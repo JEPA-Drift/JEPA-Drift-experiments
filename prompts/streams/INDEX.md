@@ -58,36 +58,36 @@ Modèles : **Opus** = Claude Code (Claude Opus) · **Vibe** = Mistral Vibe (Larg
 Effort Opus : low / medium / high / xhigh / max. Effort Vibe : Low / Medium / High / Max
 (Max → niveau `high` de vibe, son maximum). Vagues : voir `prompts/Orchestration_Streams_v5.md`.
 
-| # | Fichier | Titre | Piste | Prio | Jalon | Prérequis | Vague | Modèle | Effort |
-|---|---------|-------|-------|------|-------|-----------|-------|--------|--------|
-| 1 | `prompt-01-socle-e2.md` | Socle + lot 1 + E2 | X | A | J1 | — | 0 | Vibe | High |
-| 2 | `prompt-02-data-d1-d2.md` | D1 + D2 (dépôt B) | X | A | J2 | 1 | 1 | Vibe | High |
-| 3 | `prompt-03-data-d3.md` | D3 S&P 500 | X | A | J2, J3 | 1 | 1 | Vibe | High |
-| 4 | `prompt-04-monitors-core.md` | Surveillance : noyau, portage B | T→CC | A | J2 | 1, 2 | 2 | **Opus** | **xhigh** |
-| 5 | `prompt-05-injections.md` | Injections F1–F4, fonds D5/D6 | T→CC | A | J2 | 1, 2, 3 | 2 | Vibe | High |
-| 6 | `prompt-06-representations-z.md` | Représentations linéaires, interface Z | T→CC | A | J2 | 2, 3 | 2 | **Opus** | **high** |
-| 7 | `prompt-07-pipelines.md` | Pipelines P2-C, P3-C/D, P3-CS, P7 | T→CC | A | J2 | 4, 5, 6 | 3 | **Opus** | **xhigh** |
-| 8 | `prompt-08-contracts.md` | Tests de contrat, découplage | T→CC | A | fusions | 4–7 | 4 | Vibe | High |
-| 9 | `prompt-09-baf.md` | BAF | X | B | E9 | 1 | 1 | Vibe | Medium |
-| 10 | `prompt-10-eurofidai.md` | EUROFIDAI (D4) spec | X | B | E4-EU | 1 | 1 | Vibe | High |
-| 11 | `prompt-11-audit.md` | Audit informationnel | T→CC | A | J2 | 2, 3, 6 | 3 | Vibe | High |
-| 12 | `prompt-12-e1.md` | E1 | T→CC | A | J2 | 4–8, 11 | 5 | **Opus** | **high** |
-| 13 | `prompt-13-e3.md` | E3 | T→CC | A | J2 | 4–8 | 5 | **Opus** | **high** |
-| 14 | `prompt-14-ca-tjepa.md` | CA-T-JEPA (code) | T→CC | A/B | J3 | 3, 6, 8 | 5 | **Opus** | **high** |
-| 15 | `prompt-15-tjepa-baf.md` | T-JEPA pour BAF (code) | T→CC | B | E9 | 9 | 6 | Vibe | High |
-| 16 | `prompt-16-pretrain-rankme.md` | Pré-entraînement + RankMe | X | A | J3 | 14 | 6 | Vibe | High |
-| 17 | `prompt-17-ipca.md` | IPCA | T→CC | A | E4, E5 | 3, 6 | 3 | Vibe | High |
-| 18 | `prompt-18-cddfm.md` | Adaptateur CD-DFM | T→CC | B | E4, E5 | 3, 6 | 3 | Vibe | High |
-| 19 | `prompt-19-e4-p3kf.md` | E4 + P3-KF | T→CC | A/B | J4 | 5, 7, 11, 17 | 4 | Vibe | High |
-| 20 | `prompt-20-transmission.md` | Transmission T(u), dictionnaire | T→CC | B/C | J4 | 16, 17 | 7 | Vibe | High |
-| 21 | `prompt-21-freeze-runner.md` | Gel config, runner, figures | T→CC | A | J4, J6 | 12, 13 | 6 | Vibe | High |
-| 22 | `prompt-22-e5.md` | E5 | T→CC | A/B/C | J4 | 16, 17, 19, 21 | 7 | **Opus** | **max** |
-| 23 | `prompt-23-e6.md` | E6 | T→CC | B | J4 | 7, 16 | 7 | Vibe | High |
-| 24 | `prompt-24-e9.md` | E9 | T→CC | B | J5 | 9, 15 | 8 | Vibe | High |
-| 25 | `prompt-25-e8.md` | E8 | T→CC | A/B | J5 | 21 | 8 | Vibe | High |
-| 26 | `prompt-26-e7.md` | E7 | T→CC | C | J5 | 16 | 7 | Vibe | Medium |
-| 27 | `prompt-27-e10.md` | E10 | T→CC | C | J5 | 7 | 4 | Vibe | High |
-| 28 | `prompt-28-e11.md` | E11 | T→CC | C | J5 | 5, 7, 14 | 8 | Vibe | Medium |
+| #   | Fichier                          | Titre                                  | Piste | Prio  | Jalon   | Prérequis      | Vague | Modèle   | Effort    |
+| --- | -------------------------------- | -------------------------------------- | ----- | ----- | ------- | -------------- | ----- | -------- | --------- |
+| 1   | `prompt-01-socle-e2.md`          | Socle + lot 1 + E2                     | X     | A     | J1      | —              | 0     | Vibe     | High      |
+| 2   | `prompt-02-data-d1-d2.md`        | D1 + D2 (dépôt B)                      | X     | A     | J2      | 1              | 1     | Vibe     | High      |
+| 3   | `prompt-03-data-d3.md`           | D3 S&P 500                             | X     | A     | J2, J3  | 1              | 1     | Vibe     | High      |
+| 4   | `prompt-04-monitors-core.md`     | Surveillance : noyau, portage B        | T→CC  | A     | J2      | 1, 2           | 2     | **Opus** | **max**   |
+| 5   | `prompt-05-injections.md`        | Injections F1–F4, fonds D5/D6          | T→CC  | A     | J2      | 1, 2, 3        | 2     | Vibe     | High      |
+| 6   | `prompt-06-representations-z.md` | Représentations linéaires, interface Z | T→CC  | A     | J2      | 2, 3           | 2     | **Opus** | **xhigh** |
+| 7   | `prompt-07-pipelines.md`         | Pipelines P2-C, P3-C/D, P3-CS, P7      | T→CC  | A     | J2      | 4, 5, 6        | 3     | **Opus** | **max**   |
+| 8   | `prompt-08-contracts.md`         | Tests de contrat, découplage           | T→CC  | A     | fusions | 4–7            | 4     | Vibe     | High      |
+| 9   | `prompt-09-baf.md`               | BAF                                    | X     | B     | E9      | 1              | 1     | Vibe     | Medium    |
+| 10  | `prompt-10-eurofidai.md`         | EUROFIDAI (D4) spec                    | X     | B     | E4-EU   | 1              | 1     | Vibe     | High      |
+| 11  | `prompt-11-audit.md`             | Audit informationnel                   | T→CC  | A     | J2      | 2, 3, 6        | 3     | Vibe     | High      |
+| 12  | `prompt-12-e1.md`                | E1                                     | T→CC  | A     | J2      | 4–8, 11        | 5     | **Opus** | **xhigh** |
+| 13  | `prompt-13-e3.md`                | E3                                     | T→CC  | A     | J2      | 4–8            | 5     | **Opus** | **xhigh** |
+| 14  | `prompt-14-ca-tjepa.md`          | CA-T-JEPA (code)                       | T→CC  | A/B   | J3      | 3, 6, 8        | 5     | **Opus** | **xhigh** |
+| 15  | `prompt-15-tjepa-baf.md`         | T-JEPA pour BAF (code)                 | T→CC  | B     | E9      | 9              | 6     | Vibe     | High      |
+| 16  | `prompt-16-pretrain-rankme.md`   | Pré-entraînement + RankMe              | X     | A     | J3      | 14             | 6     | Vibe     | High      |
+| 17  | `prompt-17-ipca.md`              | IPCA                                   | T→CC  | A     | E4, E5  | 3, 6           | 3     | Vibe     | High      |
+| 18  | `prompt-18-cddfm.md`             | Adaptateur CD-DFM                      | T→CC  | B     | E4, E5  | 3, 6           | 3     | Vibe     | High      |
+| 19  | `prompt-19-e4-p3kf.md`           | E4 + P3-KF                             | T→CC  | A/B   | J4      | 5, 7, 11, 17   | 4     | Vibe     | High      |
+| 20  | `prompt-20-transmission.md`      | Transmission T(u), dictionnaire        | T→CC  | B/C   | J4      | 16, 17         | 7     | Vibe     | High      |
+| 21  | `prompt-21-freeze-runner.md`     | Gel config, runner, figures            | T→CC  | A     | J4, J6  | 12, 13         | 6     | Vibe     | High      |
+| 22  | `prompt-22-e5.md`                | E5                                     | T→CC  | A/B/C | J4      | 16, 17, 19, 21 | 7     | **Opus** | **max**   |
+| 23  | `prompt-23-e6.md`                | E6                                     | T→CC  | B     | J4      | 7, 16          | 7     | Vibe     | High      |
+| 24  | `prompt-24-e9.md`                | E9                                     | T→CC  | B     | J5      | 9, 15          | 8     | Vibe     | High      |
+| 25  | `prompt-25-e8.md`                | E8                                     | T→CC  | A/B   | J5      | 21             | 8     | Vibe     | High      |
+| 26  | `prompt-26-e7.md`                | E7                                     | T→CC  | C     | J5      | 16             | 7     | Vibe     | Medium    |
+| 27  | `prompt-27-e10.md`               | E10                                    | T→CC  | C     | J5      | 7              | 4     | Vibe     | High      |
+| 28  | `prompt-28-e11.md`               | E11                                    | T→CC  | C     | J5      | 5, 7, 14       | 8     | Vibe     | Medium    |
 
 Streams **Opus** (quota compté) : **4, 6, 7, 12, 13, 14, 22**. Tous les autres : **Vibe**.
 
