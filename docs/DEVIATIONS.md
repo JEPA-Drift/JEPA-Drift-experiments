@@ -20,3 +20,17 @@ Vérification 2026-10-16 : `https://github.com/JEPA-Drift/JEPA-Drift-experiments
 aucune donnée EUROFIDAI suivie par git ; la plage `origin/main..HEAD` ne contient aucun chemin
 eurofidai. Le push est effectué conformément à l'amendement, la condition portant sur le partage
 de l'adresse (et non sur l'accessibilité du dépôt, voulue pour la soumission anonyme).
+
+## C-eos-protocol — protocole de fin de stream (amendement complémentaire, 2026-10-16)
+
+Complément de `C-push-policy`. Avant **chaque** commit, l'instance chargée de l'implémentation
+(Mistral Vibe ou Claude Code) invoque sa directive de wrapup et enregistre le résumé produit dans
+`prompts/wrapups/wrapup-[XX].md` ([XX] = numéro ou référence du stream ; fichier rafraîchi à chaque
+commit). Chronologie exacte en fin de stream : (1) wrapup + enregistrement ; (2) réindexation via
+`tools/reindex_graphify_jcodemunch.sh` ; (3) `make check` puis commit unique — ou multiples si les
+travaux sont hétérogènes et risquent des erreurs sur une partie des livrables — ; (4)
+`git push origin <branche>`. Le chercheur a confirmé le 2026-10-16 que le dépôt GitHub, public,
+n'est connu de personne : l'instruction de push après chaque stream ne souffre aucune exception.
+Les rôles des répertoires sont désormais décrits dans AGENTS.md (« Repository layout »), notamment
+`prompts/streams/` (prompts des streams planifiés) et `prompts/wrapups/` (résumés des traitements
+des streams).

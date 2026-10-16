@@ -149,7 +149,14 @@ Si le quota Claude est très serré, 12/13 peuvent basculer en Vibe High (la pil
 
 ## 7. Fin de stream (tous les streams)
 
-À la fin de chaque stream : `tools/reindex_graphify_jcodemunch.sh`, `make check`, commit explicite,
-`git push origin <branche courante>`. Push autorisé tant que l'adresse du dépôt n'est ni partagée
-publiquement ni liée à une publication (soumission anonyme) ; les données EUROFIDAI ne quittent
-jamais la machine. Voir AGENTS.md (règles d'ingénierie) et `prompts/streams/INDEX.md` (« Fin de stream »).
+Chronologie exacte, une fois le traitement d'un stream terminé : (1) l'instance invoque sa directive
+de wrapup et enregistre le résumé dans `prompts/wrapups/wrapup-[XX].md` ([XX] = numéro du stream) ;
+(2) `tools/reindex_graphify_jcodemunch.sh` (réindexe jCodeMunch et Graphify) ; (3) `make check`, puis
+commit unique — ou plusieurs si les travaux sont hétérogènes — (Conventional Commits) ; (4)
+`git push origin <branche courante>`. Avant chaque commit, l'instance invoque sa directive de
+wrapup et enregistre le résumé dans `prompts/wrapups/wrapup-[XX].md`. Rôles : `prompts/streams/`
+stocke les prompts des streams planifiés ; `prompts/wrapups/` stocke les résumés des traitements
+des streams. Push autorisé tant que l'adresse du dépôt n'est ni partagée publiquement ni liée à
+une publication (soumission anonyme ; le chercheur a confirmé le 2026-10-16 que le dépôt, public,
+n'est connu de personne) ; les données EUROFIDAI ne quittent jamais la machine. Voir AGENTS.md
+(règles d'ingénierie et « Repository layout ») et `prompts/streams/INDEX.md` (« Fin de stream »).

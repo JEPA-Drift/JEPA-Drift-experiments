@@ -28,7 +28,7 @@ JEPA-Drift (« Article C ») teste si une représentation de la coupe transversa
    - écart maximal par bras ;
    - tableau des six cellules G1 à SR = 1 (mesuré, prédit, premier ordre) ;
    - verdict J1.
-9. Fin de stream (voir AGENTS.md, règles d'ingénierie) : `tools/reindex_graphify_jcodemunch.sh`, `make check`, commit explicite `lot1: floors, E2, section 3; J1 run`, `git push origin main`.
+9. Fin de stream (voir AGENTS.md, règles d'ingénierie) : invoquer sa directive de wrapup et enregistrer le résumé dans `prompts/wrapups/wrapup-01.md`, puis `tools/reindex_graphify_jcodemunch.sh`, `make check`, commit explicite `lot1: floors, E2, section 3; J1 run`, `git push origin main`.
 
 ```markdown
 # JEPA-Drift (Article C) — project memory for coding agents
@@ -88,6 +88,24 @@ The data-processing inequality (DPI) forbids any KL increase: gains come from co
   workflow, see Engineering rules) while the repository address is not shared publicly and not
   linked to a publication.
 
+## Repository layout
+- `jepadrift/`: library — `floors.py` (analytic floors, Article C section 3) and the subpackages `monitors/` (numpy only), `representations/`, `jepa/`, `data_loader/`, `stats/`; `sim.py` and `injection.py` are added by later streams.
+- `experiments/`: one script per experiment (E2, E1, E3, ...), argparse and `if __name__ == "__main__":`.
+- `tests/`: unit and contract tests (pytest).
+- `paper/`: Article C LaTeX sources (section 3, appendix A, bibliography addendum).
+- `prompts/`: stream prompts and orchestration — `prompts/streams/` stores the prompts of the planned streams (one `prompt-NN-<slug>.md` per stream, plus `INDEX.md`: routing table and stream conventions); `prompts/wrapups/` stores the processing summaries of the streams (one `wrapup-[XX].md` per stream, [XX] = stream number, written by the wrap-up directive before each commit); the master collection `Prompts_Claude_Code_v5.md` and `Orchestration_Streams_v5.md` live at this level.
+- `configs/`: experiment configurations (YAML); `FROZEN.json` after milestone J4.
+- `tools/`: repository tooling — `reindex_graphify_jcodemunch.sh` (end-of-stream reindexation of jCodeMunch and Graphify), plus the `pre-commit`/`pre-push` hooks and the freeze/trace scripts added by later streams.
+- `docs/`: `sections/` (section notes), `audits/` (lot audits), `DEVIATIONS.md` (deviations under `C-<topic>`), `MAPPING.md` (traceability of reported numbers).
+- `data/`: `raw/` (raw data, gitignored) and `derived/` (public derived panels; `derived/d4_eurofidai/` gitignored).
+- `results/`: one CSV per stream under `results/<stream>/`.
+- `figures/`: PNG + PDF per stream, drawn from CSVs only.
+- `logs/`: one run journal per stream under `logs/<stream>/`.
+- `external/`: external checkouts and side venvs (gitignored).
+- `incoming/`: drop zone for incoming lots (gitignored).
+- `.venv/`: Python 3.12 virtual environment (gitignored); `graphify-out/`: knowledge-graph cache (gitignored).
+- Root: `AGENTS.md` (canonical project memory; `CLAUDE.md` is a relative symlink to it), `Makefile`, `requirements.txt`, `requirements.lock`, `.gitignore`, `conftest.py`.
+
 ## Engineering rules
 - Python 3.12. Before importing numpy: OMP_NUM_THREADS=MKL_NUM_THREADS=OPENBLAS_NUM_THREADS=1,
   MKL_CBWR=COMPATIBLE, PYTHONHASHSEED=42. Seeds: np.random.SeedSequence keyed on
@@ -99,12 +117,18 @@ The data-processing inequality (DPI) forbids any KL increase: gains come from co
 - Every reported number traces to a CSV and a script (docs/MAPPING.md). Deviations from the plan or
   from Article B go to docs/DEVIATIONS.md under an identifier C-<topic>.
 - Run `make check` before every commit.
-- End of stream (after each prompt/stream is processed): run `tools/reindex_graphify_jcodemunch.sh`,
-  then `make check`, then an explicit commit (Conventional Commits), then `git push origin
-  <current-branch>`. Push only while the repository address is not shared publicly and not
-  linked to a publication (anonymous-submission companion: commits stay anonymized, no new author
-  or institution identifiers), and only after checking that the pushed range contains no path
-  under `data/raw/eurofidai/` or `data/derived/d4_eurofidai/` and no file over 50 MB.
+- Before every commit, the implementing instance (Mistral Vibe or Claude Code) invokes its wrap-up
+  directive and records the summary at `prompts/wrapups/wrapup-[XX].md` ([XX] = the number or
+  reference of the stream being processed; the file is refreshed before each commit).
+- End of stream (once a stream's processing is finished), in this exact order: (1) the wrap-up
+  summary is generated and recorded at `prompts/wrapups/wrapup-[XX].md` (rule above); (2)
+  `tools/reindex_graphify_jcodemunch.sh` reindexes jCodeMunch and Graphify; (3) `make check`, then
+  a single commit — or several if the stream's work is heterogeneous and part of the deliverables
+  risks errors; (4) `git push origin <current-branch>`. Push only while the repository address is
+  not shared publicly and not linked to a publication (anonymous-submission companion: commits
+  stay anonymized, no new author or institution identifiers), and only after checking that the
+  pushed range contains no path under `data/raw/eurofidai/` or `data/derived/d4_eurofidai/` and
+  no file over 50 MB.
 - Article B reference code: ~/The-Whitening-Advantage-Experiments (local checkout, read-only, used as-is at its current
   commit; never clone the remote github.com/TheWhiteningAdvantage-KDD2027/The-Whitening-Advantage-Experiments).
   Its code, not the text of its v87 manuscript, is the reference; read its docs/DEVIATIONS.md.

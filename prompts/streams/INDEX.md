@@ -30,17 +30,27 @@ accès au portail », vaut pour tout agent ; aucune action requise).
 
 ## Fin de stream — protocole de clôture (tous les streams)
 
-Dès qu'un stream est traité, l'agent qui le termine exécute, dans l'ordre :
-1. `tools/reindex_graphify_jcodemunch.sh` (réindexe Graphify et jCodeMunch) ;
-2. `make check` (pyflakes + tests) ;
-3. commit explicite (Conventional Commits) ;
+Chronologie exacte, une fois le traitement d'un stream terminé :
+1. l'agent invoque sa directive de wrapup et enregistre le résumé dans
+   `prompts/wrapups/wrapup-[XX].md` ([XX] = numéro ou référence du stream) ;
+2. `tools/reindex_graphify_jcodemunch.sh` (réindexe jCodeMunch et Graphify) ;
+3. `make check` (pyflakes + tests), puis commit explicite (Conventional Commits) — unique, ou
+   plusieurs si les travaux du stream sont hétérogènes et risquent des erreurs sur une partie
+   des livrables ;
 4. `git push origin <branche courante>`.
+
+Avant **chaque** commit (y compris en cours de stream), l'instance chargée de l'implémentation
+(Mistral Vibe ou Claude Code) invoque sa directive de wrapup et enregistre le résumé dans
+`prompts/wrapups/wrapup-[XX].md` (fichier rafraîchi à chaque commit). Rôles des répertoires :
+`prompts/streams/` stocke les prompts des streams planifiés ; `prompts/wrapups/` stocke les
+résumés des traitements des streams.
 
 Le push est autorisé tant que l'adresse du dépôt n'est ni partagée publiquement ni liée à une
 publication (dépôt compagnon d'une soumission anonyme : commits anonymisés, aucun nouvel
-identifiant d'auteur ou d'institution). Les données EUROFIDAI ne quittent jamais la machine :
-rien sous `data/raw/eurofidai/` ou `data/derived/d4_eurofidai/` ne peut être commité ni pushé,
-et aucun fichier de plus de 50 Mo. Voir AGENTS.md (règles d'ingénierie).
+identifiant d'auteur ou d'institution ; le chercheur a confirmé le 2026-10-16 que le dépôt,
+public, n'est connu de personne). Les données EUROFIDAI ne quittent jamais la machine : rien sous
+`data/raw/eurofidai/` ou `data/derived/d4_eurofidai/` ne peut être commité ni pushé, et aucun
+fichier de plus de 50 Mo. Voir AGENTS.md (règles d'ingénierie et « Repository layout »).
 
 ## Routage par stream
 
