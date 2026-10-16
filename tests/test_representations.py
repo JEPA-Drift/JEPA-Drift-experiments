@@ -301,6 +301,48 @@ def test_extract_deterministic(tmp_path):
     assert side["fit"]["days"] == 941 and side["fit_segment"] == "calib" and side["dataset"] == "d2_us97"
 
 
+def test_check_K_accepts_numpy_integers():
+    assert pca.check_K(np.int64(5)) == 5 and isinstance(pca.check_K(np.int32(3)), int)
+    assert pca.check_K("mp") == "mp"
+    for bad in (True, 0, -1, 2.5, "auto"):
+        with pytest.raises(ValueError):
+            pca.check_K(bad)
+    X = 0.01 * _rng(15).standard_normal((30, 8))
+    rep = PCAOrthogonal(K=np.int64(3)).fit(X, None, _days(30))
+    assert rep.config["K"] == 3 and isinstance(rep.config["K"], int)
+    assert json.loads(json.dumps(rep.sidecar()))["config"]["K"] == 3
+    assert DegreeZero(K=np.int64(3)).fit(X, None, _days(30)).config["K"] == 3
+
+
+def test_transform_panel_rejects_empty_panel():
+    X = 0.01 * _rng(16).standard_normal((20, 6))
+    for rep in (CenteredRanks().fit(X, None, _days(20)), PCAOrthogonal(K=2).fit(X, None, _days(20))):
+        with pytest.raises(ValueError, match="at least one day"):
+            rep.transform_panel(np.zeros((0, 6)))
+
+
+def test_sidecar_is_detached_from_state():
+    X = 0.01 * _rng(17).standard_normal((20, 6))
+    rep = PCAOrthogonal(K=2).fit(X, None, _days(20))
+    h = rep.state_hash()
+    side = rep.sidecar()
+    side["config"]["mode"] = "full"
+    side["heads"]["z_odd"]["dim"] = 999
+    side["normalization"]["trace"] = -1.0
+    side["fit"]["days"] = -1
+    side["channels"]["market"] = [9]
+    fresh = rep.sidecar()
+    assert fresh["config"]["mode"] == "factor" and fresh["heads"]["z_odd"]["dim"] == 3
+    assert fresh["normalization"]["trace"] > 0 and fresh["fit"]["days"] == 20
+    assert fresh["channels"]["market"] == [0]
+    assert rep.state_hash() == h
+
+
+def test_cli_rejects_options_the_representation_lacks():
+    with pytest.raises(SystemExit):
+        extract.main(["--dataset", "d2_us97", "--rep", "ranks", "--mode", "factor", "--out", "unused"])
+
+
 def test_import_isolation():
     banned = ("jepadrift.monitors", "jepadrift.injection", "torch")
     for path in sorted((REPO / "jepadrift" / "representations").glob("*.py")):

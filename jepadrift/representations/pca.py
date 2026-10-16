@@ -1,5 +1,6 @@
 """PCA-orthogonal representation (P3-C, P3-D, P3-KF): market channel PC1 plus a whitened residual block."""
 import math
+import operator
 
 import numpy as np
 
@@ -28,8 +29,16 @@ def mp_count(X):
 
 
 def check_K(K):
-    if not (K == "mp" or (isinstance(K, int) and not isinstance(K, bool) and K >= 1)):
+    """Return 'mp' unchanged, else K as a Python int >= 1 (numpy integers accepted, bool excluded)."""
+    if K == "mp":
+        return K
+    try:
+        k = 0 if isinstance(K, bool) else operator.index(K)
+    except TypeError:
+        k = 0
+    if k < 1:
         raise ValueError(f"K must be 'mp' or an int >= 1, got {K!r}")
+    return k
 
 
 def pca_directions(X, K, mode, shrinkage):
@@ -73,7 +82,7 @@ class PCAOrthogonal(Representation):
             raise ValueError(f"mode must be one of {MODES}, got {mode!r}")
         if shrinkage not in SHRINKAGES:
             raise ValueError(f"shrinkage must be one of {SHRINKAGES}, got {shrinkage!r}")
-        check_K(K)
+        K = check_K(K)
         self.config = {"K": K, "mode": mode, "shrinkage": shrinkage}
 
     def _fit(self, X, C):

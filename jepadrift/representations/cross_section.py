@@ -18,7 +18,7 @@ class DegreeZero(Representation):
             raise ValueError(f"b must be one of {B_CHOICES}, got {b!r}")
         if mode not in DZ_MODES:
             raise ValueError(f"mode must be one of {DZ_MODES}, got {mode!r}")
-        check_K(K)
+        K = check_K(K)
         self.config = {"b": b, "K": K, "mode": mode}
 
     def _fit(self, X, C):

@@ -1,4 +1,5 @@
 """Interface Z (docs/sections/interface_Z.md): fit on one pretrain or calib segment, day-by-day transform, hashed frozen state."""
+import copy
 import hashlib
 import json
 
@@ -51,6 +52,8 @@ class Representation:
     def transform_panel(self, X, C=None):
         """Apply transform_day to every row of X, with no operation across days."""
         _check(X, 2, "X")
+        if X.shape[0] == 0:
+            raise ValueError("X must hold at least one day (T >= 1)")
         # ponytail: per-day loop (bitwise equal to transform_day), vectorize in a subclass if E1 runtime needs it
         days = [self.transform_day(x, None if C is None else C[t]) for t, x in enumerate(X)]
         return {key: np.stack([day[key] for day in days]) for key in ("z_odd", "z_even")}
@@ -67,6 +70,7 @@ class Representation:
 
     def sidecar(self):
         """JSON record: state and fit-data fingerprints, fit dates, head parities, frozen normalization statistics."""
-        return {"interface": INTERFACE, "representation": type(self).__name__, "config": self.config,
+        return {"interface": INTERFACE, "representation": type(self).__name__, "config": copy.deepcopy(self.config),
                 "state_sha256": self.state_hash(), "n_assets": self.n_assets, "odd_head": self.odd_head,
-                "heads": self.heads, "channels": self.channels, "fit": self.fit_info, "normalization": self.stats}
+                "heads": copy.deepcopy(self.heads), "channels": copy.deepcopy(self.channels),
+                "fit": copy.deepcopy(self.fit_info), "normalization": copy.deepcopy(self.stats)}

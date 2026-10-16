@@ -7,6 +7,7 @@ os.environ["MKL_CBWR"] = "COMPATIBLE"
 
 import argparse
 import hashlib
+import inspect
 import json
 from pathlib import Path
 
@@ -72,9 +73,13 @@ def main(argv=None):
     kwargs = {k: v for k, v in (("mode", args.mode), ("K", args.K), ("b", args.b)) if v is not None}
     if args.shrinkage is not None:
         kwargs["shrinkage"] = None if args.shrinkage == "none" else args.shrinkage
+    cls = REGISTRY[args.rep]
+    unknown = sorted(set(kwargs) - set(inspect.signature(cls).parameters) - {"self"})
+    if unknown:
+        parser.error(f"--rep {args.rep} does not accept: {', '.join('--' + k for k in unknown)}")
     load, load_splits = DATASETS[args.dataset]
     ret, dates, _ = load()
-    npz, sidecar = extract(REGISTRY[args.rep](**kwargs), ret, dates, load_splits(args.dataset),
+    npz, sidecar = extract(cls(**kwargs), ret, dates, load_splits(args.dataset),
                            args.out or DERIVED / args.dataset, args.dataset)
     shown = npz.relative_to(REPO_ROOT) if npz.is_relative_to(REPO_ROOT) else npz
     print(f"{shown}: D={sidecar['heads']['z_odd']['dim']} D'={sidecar['heads']['z_even']['dim']} "
