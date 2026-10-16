@@ -1,0 +1,21 @@
+dataset: d1_etf4
+embargo_trading_days: 65
+convention: '65 trading days after each internal boundary (2016-01-01, 2020-01-01)
+  are embargoed and excluded from the following segment; pretrain starts at the first
+  panel day (d1_etf4: start of each series; d2_us97: first day on/after 2005-01-01)'
+segments:
+  pretrain:
+    nominal_start: '2005-01-01'
+    nominal_end: '2016-01-01'
+    first_day: 2000-01-04
+    last_day: 2015-12-31
+  calib:
+    nominal_start: '2016-01-01'
+    nominal_end: '2020-01-01'
+    first_day: 2016-04-07
+    last_day: 2019-12-31
+  monitor:
+    nominal_start: '2020-01-01'
+    nominal_end: null
+    first_day: 2020-04-06
+    last_day: 2025-07-07

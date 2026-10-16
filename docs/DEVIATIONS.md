@@ -34,3 +34,16 @@ n'est connu de personne : l'instruction de push après chaque stream ne souffre 
 Les rôles des répertoires sont désormais décrits dans AGENTS.md (« Repository layout »), notamment
 `prompts/streams/` (prompts des streams planifiés) et `prompts/wrapups/` (résumés des traitements
 des streams).
+
+## C-D2-survivor — périmètre des données (2026-10-16)
+
+D2 est le panel des 97 actions américaines survivantes du dépôt B (R15 : 5154 jours × 97 titres,
+2005-01-04 à 2025-06-30). Échantillon biaisé par la survie, réutilisé tel quel et sans re-filtrage :
+le panel est la population de l'Article B, et tout re-filtrage romprait l'identité bit à bit avec le
+code de référence.
+
+## C-interface-f64 — interface (2026-10-16)
+
+`ret` est stocké et retourné en float64 (et non float32) : lu avec `float_precision='round_trip'`,
+il est identique bit à bit aux séries CSV de l'Article B (chaîne SHA-256 des entrées et des sorties
+dans `data/derived/MANIFEST.json`).

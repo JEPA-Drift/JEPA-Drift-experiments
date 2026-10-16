@@ -1,0 +1,160 @@
+{
+  "generator": "python -m jepadrift.data_loader.articleB --build",
+  "source": {
+    "path": "~/The-Whitening-Advantage-Experiments",
+    "commit": "a05f0d9c654b6692e626080c298acebc0f0a0b5c",
+    "access": "read-only"
+  },
+  "datasets": {
+    "d1_etf4": {
+      "inputs": [
+        {
+          "path": "~/The-Whitening-Advantage-Experiments/data/derived_firstrate/R01_daily_SPY.csv",
+          "sha256": "44b0fdd7ddd121558f3d2e22bba743f180d6165a3bf4f05e1520c737289627f4",
+          "rows": 6414,
+          "first_date": "2000-01-04",
+          "last_date": "2025-07-07"
+        },
+        {
+          "path": "~/The-Whitening-Advantage-Experiments/data/derived_firstrate/R01_daily_PFF.csv",
+          "sha256": "e1581f58e4bc746531f7d1faf1e084b954167cfd0ab3717b2680aac957720817",
+          "rows": 4403,
+          "first_date": "2007-12-27",
+          "last_date": "2025-07-07"
+        },
+        {
+          "path": "~/The-Whitening-Advantage-Experiments/data/derived_firstrate/R01_daily_VNQ.csv",
+          "sha256": "c46c477438f508063a119ab4d05dc9624402a5fabec5fc16abb5cc82d23ad0bf",
+          "rows": 5014,
+          "first_date": "2005-01-04",
+          "last_date": "2025-07-07"
+        },
+        {
+          "path": "~/The-Whitening-Advantage-Experiments/data/derived_firstrate/R01_daily_BWX.csv",
+          "sha256": "9aad7d97509744ebaebc0f22c9f45b78572765f87ea190b1b0c5fade599d0be6",
+          "rows": 4451,
+          "first_date": "2007-10-09",
+          "last_date": "2025-07-07"
+        },
+        {
+          "path": "~/The-Whitening-Advantage-Experiments/results/R16_regime_census/data/R16_regime_census.csv",
+          "sha256": "e20112aad86f3227f683ae47587ff9771351db3cfe4343c35e7ffa8b099691d3",
+          "rows": 66
+        },
+        {
+          "path": "~/The-Whitening-Advantage-Experiments/results/R16_regime_census/data/R16_regime_census_strict_ps.csv",
+          "sha256": "739f14a148e2352ed8a16a75e35d6aa4366689cee1fa46e0ee2191b28263383d",
+          "rows": 48
+        },
+        {
+          "path": "~/The-Whitening-Advantage-Experiments/results/R16_regime_census/data/R16_regime_census_symmetric.csv",
+          "sha256": "463f51aa26daf6241b12a0bccbcbea9844b67707a3050561beb9e04a2a6a6d00",
+          "rows": 102
+        }
+      ],
+      "outputs": [
+        {
+          "path": "data/derived/d1_etf4/panel.parquet",
+          "sha256": "650489a8659cce2d0dcb79fc0e458b244c34b4252cf01bda3dcbfb6b44f659d4",
+          "rows": 25656,
+          "first_date": "2000-01-04",
+          "last_date": "2025-07-07"
+        },
+        {
+          "path": "data/derived/d1_etf4/ret_wide.npy",
+          "sha256": "a2a2730a5fff70392d89c444743aac078a448afdaa9691f167721f804e1d7bb1",
+          "rows": 6414,
+          "first_date": "2000-01-04",
+          "last_date": "2025-07-07"
+        },
+        {
+          "path": "data/derived/d1_etf4/dates.npy",
+          "sha256": "c4449ec694055d472c09e31ac2cf65c973abe400f5d75c6e7d3f40d85d3804c9",
+          "rows": 6414,
+          "first_date": "2000-01-04",
+          "last_date": "2025-07-07"
+        },
+        {
+          "path": "data/derived/d1_etf4/assets.json",
+          "sha256": "e3b58e3af704c9644cf27249203bb79ef7bbba5d29f20b1aa9c646fbd3db3a00",
+          "assets": 4
+        },
+        {
+          "path": "data/derived/d1_etf4/splits.yaml",
+          "sha256": "6130929addfc997c7b75fe6adc678eb998d59eb840afd915eeecbb706a78b7ba"
+        },
+        {
+          "path": "data/derived/d1_etf4/phases_lt_spy.csv",
+          "sha256": "9c2a2913139f2d10b40157c7cfcc76fd279ab438530c1f6c2d8a7ecfad0bfbf4",
+          "rows": 66,
+          "first_date": "2000-03-24",
+          "last_date": "2025-07-03"
+        },
+        {
+          "path": "data/derived/d1_etf4/phases_strict_ps.csv",
+          "sha256": "c2d47a460f7fd6e25be644e41c1b2ca592659dd433c38c1ed83b97d4de03f505",
+          "rows": 48,
+          "first_date": "2002-10-09",
+          "last_date": "2024-11-27"
+        },
+        {
+          "path": "data/derived/d1_etf4/phases_symmetric.csv",
+          "sha256": "bcc2b5cbca89805a60131f38d804befec77a92ee265f183915a3f0566188a1f7",
+          "rows": 102,
+          "first_date": "2000-03-24",
+          "last_date": "2025-07-03"
+        }
+      ]
+    },
+    "d2_us97": {
+      "inputs": [
+        {
+          "path": "~/The-Whitening-Advantage-Experiments/data/derived_equities/R15_panel_logreturns.csv",
+          "sha256": "fb426ab0e7e112de61f112952737fd38ea103bd90e1989defa6d33dc086bcf8f",
+          "rows": 5154,
+          "first_date": "2005-01-04",
+          "last_date": "2025-06-30"
+        }
+      ],
+      "outputs": [
+        {
+          "path": "data/derived/d2_us97/panel.parquet",
+          "sha256": "a681633573745554f00db363dd4c74f622e474c01d1be680940108f2f75338d9",
+          "rows": 499938,
+          "first_date": "2005-01-04",
+          "last_date": "2025-06-30"
+        },
+        {
+          "path": "data/derived/d2_us97/ret_wide.npy",
+          "sha256": "333d2b079e7048fe3f996884c1fad4d987218017b3fe2be47b92630a72d04b33",
+          "rows": 5154,
+          "first_date": "2005-01-04",
+          "last_date": "2025-06-30"
+        },
+        {
+          "path": "data/derived/d2_us97/dates.npy",
+          "sha256": "3fa7e6a01ed45f523d5245727876f0fbb899089d19568bd0bdec5251ef4e82b3",
+          "rows": 5154,
+          "first_date": "2005-01-04",
+          "last_date": "2025-06-30"
+        },
+        {
+          "path": "data/derived/d2_us97/assets.json",
+          "sha256": "8a92c598e3df93f7e6688c99c8363fdade113204414b597b44f5e68e3d064fc4",
+          "assets": 97
+        },
+        {
+          "path": "data/derived/d2_us97/splits.yaml",
+          "sha256": "c94b53af36a8ca74eb023e4680d2e353411e2206dc12df09070a1ba548c84fc6"
+        }
+      ]
+    }
+  },
+  "results": {
+    "d1_d2_profile": {
+      "path": "results/data/d1_d2_profile.csv",
+      "sha256": "99d2495d1f797a41b1d198026b917ae3e3182e895dc50bfaff59118ae25bf77c",
+      "rows": 6
+    }
+  }
+}

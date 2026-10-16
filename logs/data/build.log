@@ -1,0 +1,10 @@
+source: ~/The-Whitening-Advantage-Experiments @ a05f0d9c654b6692e626080c298acebc0f0a0b5c (read-only)
+d1_etf4: panel.parquet 25656 rows; ret_wide.npy (6414, 4); dates 2000-01-04..2025-07-07
+d1_etf4: phases_lt_spy.csv 66 phases
+d1_etf4: phases_strict_ps.csv 48 phases
+d1_etf4: phases_symmetric.csv 102 phases
+d1_etf4: splits.yaml written
+d2_us97: panel.parquet 499938 rows; ret_wide.npy (5154, 97); dates 2005-01-04..2025-06-30
+d2_us97: splits.yaml written
+profile: results/data/d1_d2_profile.csv (6 rows)
+manifest: data/derived/MANIFEST.json written
