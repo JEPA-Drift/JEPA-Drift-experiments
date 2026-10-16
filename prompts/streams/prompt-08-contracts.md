@@ -20,7 +20,7 @@ JEPA-Drift sépare strictement représentation et surveillance : un encodeur qui
    - cible EMA inactive à l'extraction.
 
    Si torch n'est pas installé, ces tests sont marqués comme sautés.
-4. **Garde-fous git.** `tools/pre-commit` lance `make check`. Il refuse tout fichier sous `data/raw/eurofidai/` ou `data/derived/d4_eurofidai/`, tout fichier de plus de 50 Mo, et tout `git push` signalé par un hook `pre-push` qui échoue avec un message rappelant l'accord de propriété intellectuelle. Installer les hooks avec `make hooks`.
+4. **Garde-fous git.** `tools/pre-commit` lance `make check` et refuse tout fichier sous `data/raw/eurofidai/` ou `data/derived/d4_eurofidai/` ainsi que tout fichier de plus de 50 Mo. Le hook `pre-push` bloque tout push dont la plage contient un de ces fichiers et rappelle que les push ne sont autorisés que tant que l'adresse du dépôt n'est ni partagée publiquement ni liée à une publication (soumission anonyme) — voir AGENTS.md. Installer les hooks avec `make hooks`.
 5. **Étendre `make check`** : pyflakes, tests unitaires, tests de contrat et de découplage.
 
 ### Entrées

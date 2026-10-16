@@ -28,7 +28,7 @@ JEPA-Drift (« Article C ») teste si une représentation de la coupe transversa
    - écart maximal par bras ;
    - tableau des six cellules G1 à SR = 1 (mesuré, prédit, premier ordre) ;
    - verdict J1.
-9. Commit local `lot1: floors, E2, section 3; J1 run`. Aucun `git push`.
+9. Fin de stream (voir AGENTS.md, règles d'ingénierie) : `tools/reindex_graphify_jcodemunch.sh`, `make check`, commit explicite `lot1: floors, E2, section 3; J1 run`, `git push origin main`.
 
 ```markdown
 # JEPA-Drift (Article C) — project memory for coding agents
@@ -83,8 +83,10 @@ The data-processing inequality (DPI) forbids any KL increase: gains come from co
 - Before milestone J4 (2026-11-08) no hyperparameter, threshold, D* or design choice may use, or be
   evaluated on, the monitor window. After J4, test-window runs require the frozen configuration hash.
 - EUROFIDAI data never leave this machine: data/raw/eurofidai/ and data/derived/d4_eurofidai/ are
-  ignored and blocked by the pre-commit hook. No `git push` until the IP agreement (LUSIS CIFRE)
-  is recorded.
+  ignored and blocked by the pre-commit hook, and nothing under those paths may ever be committed,
+  logged or pushed. `git push` of the rest of the repository is authorized (end-of-stream
+  workflow, see Engineering rules) while the repository address is not shared publicly and not
+  linked to a publication.
 
 ## Engineering rules
 - Python 3.12. Before importing numpy: OMP_NUM_THREADS=MKL_NUM_THREADS=OPENBLAS_NUM_THREADS=1,
@@ -97,6 +99,12 @@ The data-processing inequality (DPI) forbids any KL increase: gains come from co
 - Every reported number traces to a CSV and a script (docs/MAPPING.md). Deviations from the plan or
   from Article B go to docs/DEVIATIONS.md under an identifier C-<topic>.
 - Run `make check` before every commit.
+- End of stream (after each prompt/stream is processed): run `tools/reindex_graphify_jcodemunch.sh`,
+  then `make check`, then an explicit commit (Conventional Commits), then `git push origin
+  <current-branch>`. Push only while the repository address is not shared publicly and not
+  linked to a publication (anonymous-submission companion: commits stay anonymized, no new author
+  or institution identifiers), and only after checking that the pushed range contains no path
+  under `data/raw/eurofidai/` or `data/derived/d4_eurofidai/` and no file over 50 MB.
 - Article B reference code: ~/The-Whitening-Advantage-Experiments (local checkout, read-only, used as-is at its current
   commit; never clone the remote github.com/TheWhiteningAdvantage-KDD2027/The-Whitening-Advantage-Experiments).
   Its code, not the text of its v87 manuscript, is the reference; read its docs/DEVIATIONS.md.

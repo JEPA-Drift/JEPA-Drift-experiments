@@ -146,3 +146,10 @@ Si le quota Claude est très serré, 12/13 peuvent basculer en Vibe High (la pil
 4. **Niveaux du treillis (J2)** : le plan v4 indique 4,29 % / 5,03 % ; la correction donne la loi exacte 5,10 % (λ=11,2) et 4,34 % (λ=11,4) à H=5000. La bibliothèque recalcule ; le texte du plan est à corriger (piste T, lot 3).
 5. **Contingence C1** : si J2 ne trouve aucune information de dérive exploitable, E6 (second ordre) passe avant E5 et F1/F2 deviennent secondaires — re-ordonnancer les vagues 7–8.
 6. **Lot 2/3 non faits** : la correction s'arrête au lot 1. `monitors.py` (lot 2) = prompts 4–8 ; §1 v0 + Tableaux 1–3 + T6–T7 (lot 3) = piste T (Claude Opus, pas un prompt Claude Code).
+
+## 7. Fin de stream (tous les streams)
+
+À la fin de chaque stream : `tools/reindex_graphify_jcodemunch.sh`, `make check`, commit explicite,
+`git push origin <branche courante>`. Push autorisé tant que l'adresse du dépôt n'est ni partagée
+publiquement ni liée à une publication (soumission anonyme) ; les données EUROFIDAI ne quittent
+jamais la machine. Voir AGENTS.md (règles d'ingénierie) et `prompts/streams/INDEX.md` (« Fin de stream »).

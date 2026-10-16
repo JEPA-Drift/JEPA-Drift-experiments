@@ -28,6 +28,20 @@ Note : le seul « Claude Code » littéral des 28 prompts est dans `prompt-10-eu
 (note contextuelle « Claude Code n'a pas d'accès au portail EUROFIDAI » — le sens, « l'agent n'a pas
 accès au portail », vaut pour tout agent ; aucune action requise).
 
+## Fin de stream — protocole de clôture (tous les streams)
+
+Dès qu'un stream est traité, l'agent qui le termine exécute, dans l'ordre :
+1. `tools/reindex_graphify_jcodemunch.sh` (réindexe Graphify et jCodeMunch) ;
+2. `make check` (pyflakes + tests) ;
+3. commit explicite (Conventional Commits) ;
+4. `git push origin <branche courante>`.
+
+Le push est autorisé tant que l'adresse du dépôt n'est ni partagée publiquement ni liée à une
+publication (dépôt compagnon d'une soumission anonyme : commits anonymisés, aucun nouvel
+identifiant d'auteur ou d'institution). Les données EUROFIDAI ne quittent jamais la machine :
+rien sous `data/raw/eurofidai/` ou `data/derived/d4_eurofidai/` ne peut être commité ni pushé,
+et aucun fichier de plus de 50 Mo. Voir AGENTS.md (règles d'ingénierie).
+
 ## Routage par stream
 
 Modèles : **Opus** = Claude Code (Claude Opus) · **Vibe** = Mistral Vibe (Large-4).
