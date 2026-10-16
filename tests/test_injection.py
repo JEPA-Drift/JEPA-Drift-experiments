@@ -335,6 +335,16 @@ def test_inject_arguments_rejected():
             injection.inject(*args, _rng(28))
 
 
+def test_k_ignored_for_f3_and_f4():
+    X, _ = _synthetic()
+    for family, base in (("F3", {"calib": (0, 600)}),
+                         ("F4-deform", {"calib": (0, 600), "subspace": (1,), "r": 1.5})):
+        I_target = None if family.startswith("F4") else fl.kl_from_sharpe(1.0)
+        for k in (None, 10**6):
+            _, _, meta = injection.inject(X, family, 800, I_target, {**base, "K": k}, _rng(33))
+            assert meta["K"] is None and meta["family"] == family
+
+
 def test_inject_does_not_mutate_inputs():
     X, C = _synthetic()
     X_before, C_before = X.tobytes(), C.tobytes()

@@ -107,7 +107,8 @@ def inject(X, family, tau_star, I_target, params, rng):
         C = _characteristics(params, T, N)
         if convention == "b" and not (params.get("kappa") or 0) > 0:
             raise ValueError("F2 under convention (b) needs params['kappa'] > 0")
-    fit = fit_background(X[start:stop], params.get("K", 1))
+    K = params.get("K", 1) if family in ("F1", "F2") else 1
+    fit = fit_background(X[start:stop], K)
     sigma = fit["sigma"]
     if family.startswith("F4"):
         return _second_order(X, family, tau, params, fit, rng, start, stop)
@@ -140,7 +141,7 @@ def inject(X, family, tau_star, I_target, params, rng):
     X_tilde[tau:] += delta
     meta = {"family": family, "tau_star": tau, "convention": convention, "amplitude": amplitude, "seed": _seed(rng),
             "direction": (s * coef).tolist(), "direction_sha256": _sha256(delta), "info": _info(s * D_ref, sigma),
-            "K": None if params.get("K") is None else int(params["K"]), "calib": [start, stop],
+            "K": int(K) if family in ("F1", "F2") else None, "calib": [start, stop],
             "shrinkage": fit["shrinkage"], **meta_extra}
     return X_tilde, delta, meta
 

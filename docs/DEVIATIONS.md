@@ -193,3 +193,13 @@ moyenne quadratique, sur les titres et, pour F2, sur les jours de calib, des Sha
 κ ∈ {0.25 ; 0.5 ; 1}. Sous le modèle équicorrélé à un facteur du plan v4 (volatilités égales,
 chargements de PC1 proportionnels à 1), cette définition redonne κ = dispersion / dérive de marché et
 le rapport d'information κ²(1 + (N − 1)ρ)/(1 − ρ) entre largeur et marché.
+
+## C-inject-lw-test — correction du contrôle de shrinkage Ledoit–Wolf (2026-10-16)
+
+Le plan du stream 05 attendait un coefficient de shrinkage inférieur à 0,05 sur données gaussiennes
+isotropes (4000 × 5). C'est l'inverse : la cible de Ledoit–Wolf est l'identité, donc le shrinkage est
+élevé sur données isotropes (mesuré ≈ 0,6–0,9) et faible sur covariance anisotrope (≈ 0,001). Le
+contrôle porte désormais sur des données anisotropes (shrinkage < 0,05), et le cas isotrope 40 × 7
+sert à vérifier l'écrêtage à 1 de la formule de référence. Correction apportée par l'instance du
+stream 05 (règles tranchées 4 et 5 de `prompts/wrapups/wrapup-05.md`), revérifiée numériquement lors
+du pass de fix post-stream.
