@@ -3,3 +3,5 @@ data/raw/
 data/derived/d4_eurofidai/
 external/
 incoming/
+__pycache__/
+*.pyc
