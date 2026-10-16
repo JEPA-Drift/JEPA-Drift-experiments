@@ -1,0 +1,647 @@
+\documentclass[sigconf,anonymous,review]{acmart}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath} % amssymb deleted (\Bbbk already defined through newtxmath - acmart)
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{placeins}
+
+\graphicspath{{figures/}}
+
+\AtEndPreamble{
+  \theoremstyle{acmdefinition}
+  \newtheorem{assumption}[theorem]{Assumption}
+  \newtheorem{remark}[theorem]{Remark}
+}
+
+% ─────────────────────────────────────────────────────────────────
+% PDF METADATA ANONYMIZATION & TIMEZONE MASKS (DOUBLE-BLIND)
+% ─────────────────────────────────────────────────────────────────
+\AtBeginDocument{
+  \hypersetup{
+    pdfauthor={Anonymous Author(s)},
+    pdfcreator={LaTeX},
+    pdfproducer={pdfTeX},
+    pdfinfo={
+      /CreationDate (D:20270101000000Z),
+      /ModDate (D:20270101000000Z)
+    }
+  }
+}
+\makeatletter
+\@ifundefined{pdfinfoomitdate}{}{
+  \pdfinfoomitdate=1
+  \pdftrailerid{}
+  \pdfsuppressptexinfo=-1
+}
+\makeatother
+
+% ─────────────────────────────────────────────────────────────────
+\title[The Whitening Advantage]{The Whitening Advantage: Exact Calibration of Concept-Drift Detectors on Heteroscedastic Streams}
+
+% Venue metadata (overrides the acmart default ``Conference'17'' string; DOI/ISBN assigned at camera-ready).
+\acmConference[KDD '27]{ACM SIGKDD Conference on Knowledge Discovery and Data Mining}{August 2027}{San Jose, CA, USA}
+\acmYear{2027}
+\copyrightyear{2027}
+% ─────────────────────────────────────────────────────────────────
+
+\begin{document}
+
+% ══════════════════════════════════════════════════════════════════
+% ABSTRACT
+% ══════════════════════════════════════════════════════════════════
+\begin{abstract}
+    Sequential change-point detectors (CUSUM, ADWIN, Page--Hinkley) are calibrated under an i.i.d. hypothesis that financial streams violate through volatility clustering. We quantify the damage and remove it. On the raw stream, the GARCH penalty $\Gamma$, the normalized spectral density at zero frequency of the monitored statistic, drives IID-calibrated false-positive rates above 80\%. The cure is detector-specific ($\lambda \times \Gamma$ for cumulative statistics, $\epsilon_{\mathrm{cut}} \times \sqrt{\Gamma}$ for window means) and defers detection by the very factor it applies: a \emph{Lethargy Tax}, with a $\sqrt{w\Gamma}$ scaling law for gradual drifts established in a deterministic-drift approximation. On the sign-prediction stream, we prove a whitening property: under conditionally symmetric innovations, the binary error stream of any non-anticipative classifier is i.i.d. Bernoulli$(1/2)$ whatever the volatility dynamics, so calibration becomes exact, distribution-free, and detector-agnostic. What no monitor escapes is the information budget: a \emph{Sharpe ceiling} $\mathrm{ADD}_{\min} \ge 504\ln(1/\alpha_0)/\mathrm{SR}^2$, at admissible false-alarm level $\alpha_0 = 1/\mathrm{ARL}_0$, bounds detection for any monitor of the \emph{unconditional} daily-return stream, and on four ETFs (2000--2025) it puts 80\% of dated directional regimes out of budget even at the loosest calibration. A look-ahead oracle backtest locates the boundary: granted look-ahead GARCH parameters, a variance-aware monitor detects the 2020 COVID-19 crash in 3--16 trading days, while the crash exhausts the sign stream's own budget---the price of binarization, paid exactly where location and variance shocks coincide. Speed, finally, is settled by Pitman efficiency, not by volatility: at matched false-alarm rate the sign filter trails correct parametric standardization by $1/(4f_z(0)^2)$ ($\pi/2$ under Gaussianity) and overtakes it below a measured $\nu^{\star} \approx 4.9$ degrees of freedom, precisely where parametric estimation is most fragile.
+\end{abstract}
+
+% CCS Concepts (ACM 2012)
+\ccsdesc[500]{Computing methodologies~Machine learning}
+\ccsdesc[500]{Mathematics of computing~Time series analysis}
+\ccsdesc[300]{Information systems~Data streams}
+
+\keywords{concept drift, GARCH, volatility clustering, whitening filter, sequential detection, financial time series, scaling law}
+
+\maketitle
+
+% ══════════════════════════════════════════════════════════════════
+\section{Introduction}\label{sec:intro}
+% ══════════════════════════════════════════════════════════════════
+
+Financial machine-learning systems run on streams marked by volatility clustering, heavy tails, and near-unit-root persistence~\cite{cont_2001, tsay_2010}---stylized facts that break the i.i.d.\ assumption underlying standard concept-drift detectors~\cite{gama_survey_2014, lu_concept_drift_2018}. The streaming literature still evaluates detectors almost exclusively on i.i.d.\ synthetic generators; the few financial studies ran DDM, EDDM, and ADWIN on S\&P~500 data without modeling the volatility dynamics~\cite{neri_2021, cavalcante_2015}, while econometric sequential monitoring presupposes a fitted GARCH model~\cite{horvath_2006, song_kang_2020}. How drift detectors behave between these two worlds---heteroscedastic streams, no parametric crutch---has remained open.
+
+This paper closes that gap with four formal contributions, controlled validation on stationary GARCH(1,1) regimes calibrated via the ProteuS generator~\cite{suarez_cetrulo_proteus_2025}, and an in-the-wild backtest on daily ETF streams (FirstRate Data) spanning the 2020 COVID-19 variance shock. Our central object---the exact fair-coin null of a sign-error stream under conditional symmetry---elevates a classical robustness of sign statistics~\cite{campbell_dufour_1995, christoffersen_diebold_2006} into a streaming calibration recipe. What is new is not that signs are robust, but that the resulting null is an \emph{exact, finite-sample, distribution-free} pivot with no specification step, and therefore supports anytime-valid monitoring that no fitted-volatility route can offer.
+
+\paragraph{Architectural premise and scope.}
+The classifier itself is a generic proxy: the whitening property holds for \emph{any} non-anticipative classifier, and the invariance comes entirely from the conditional binarization of the error stream, never from the learning dynamics. We instantiate it with a deliberately \emph{non-adaptive} Hoeffding Tree, which keeps the drift signal available to an external monitor.
+An adaptive learner would partially absorb the change and share the drift signal with the detector; quantifying that split---how much power the monitor cedes, and how the learner's recovery speed trades against detection delay---is a distinct problem that a single ablation would not settle, and we do not address it here.
+The guarantee itself is unaffected: an adaptive learner remains $\mathcal{F}_{t-1}$-measurable, so Proposition~\ref{prop:whitening} continues to hold; what changes is the alternative, not the null. All results below are therefore stated for the frozen architecture.
+
+\paragraph{Contributions.}
+\begin{enumerate}[nosep, label=\textbf{(C\arabic*)}]
+    \item \textbf{The GARCH penalty factor $\Gamma$ and its detector-dependent cure.} We define the variance-inflation factor $\Gamma = 1 + 2\sum_{k\geq 1}\rho_e(k)$ of the monitored statistic via the FCLT for $\beta$-mixing processes; uncalibrated CUSUM and ADWIN false-positive rates approach or exceed $80\%$ once $\Gamma \gtrsim 20$, and the corrective inflation is detector-dependent: $\lambda \times \Gamma$ for cumulative statistics (CUSUM, PHT; Siegmund regime), $\epsilon_{\mathrm{cut}} \times \sqrt{\Gamma}$ for the window-mean ADWIN.
+    \item \textbf{Two-regime scaling law for gradual scale drifts.} In a deterministic-drift approximation, the \textsc{Data} delay under a linear-ramp variance drift of width $w$, at the recalibrated threshold $\lambda_{\mathrm{iid}}\Gamma$, scales as $K\sqrt{w\Gamma} + \rho w$ above an explicit crossover and saturates below it, where $\rho = \delta_P/\Delta\mu_{\max}$ is the detector's dead band. The additive $\rho w$---the fraction of the ramp the tolerance blinds the monitor to---is what lifts the measured exponent above $1/2$, and it eventually dominates: on an arbitrarily slow ramp the delay is set by the tolerance alone, independently of $\Gamma$ and of the threshold. Five penalties at a common horizon match the law to a $5\%$ median error with no fitted constant.
+    \item \textbf{The Sign-Task Whitening Property.} We prove that on a sign-prediction task with conditionally symmetric innovations, the binary error stream of \emph{any} non-anticipative classifier is i.i.d.\ Bernoulli$(1/2)$---structurally insensitive to $\Gamma$---validate it via Ljung--Box tests on $360$ independent streams and flat delays across $\Gamma \in [1, 200]$, and map its boundaries: exact past the loss of the fourth moment, broken by non-median thresholds or continuous losses, free of the specification risk of econometric standardization.
+    \item \textbf{Location/scale orthogonality and the Sharpe ceiling.} We prove the sign sensor isolates the location component at first order and is exactly blind to scale (Proposition~\ref{prop:orthogonality}), with closed-form relative efficiency $1/(4f_z(0)^2)$ against correct parametric standardization (Proposition~\ref{prop:are}); we derive the delay floor for any monitor of the \emph{unconditional} daily-return stream, $\mathrm{ADD}_{\min} \ge 504\ln(1/\alpha_0)/\mathrm{SR}^2$ trading days at false-alarm level $\alpha_0$ (Corollary~\ref{cor:sharpe_ceiling}), and show on a $25$-year, four-ETF census that it exceeds the phase duration for $80\%$ of dated directional episodes, a look-ahead oracle backtest (Section~\ref{sec:real_world}) delimiting the bound's scope.
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Background and the GARCH Penalty Factor}\label{sec:background}
+% ══════════════════════════════════════════════════════════════════
+
+\subsection{GARCH(1,1): Clustering, Mixing, and the FCLT}\label{sec:garch_model}
+The GARCH(1,1) model~\cite{bollerslev_1986, engle_1982} captures volatility clustering via:
+\begin{equation}
+    r_t = \mu + \varepsilon_t, \qquad \varepsilon_t = \sigma_t z_t, \qquad \sigma_t^2 = \omega + \alpha \varepsilon_{t-1}^2 + \beta \sigma_{t-1}^2,
+\end{equation}
+where $(z_t)$ are i.i.d.\ innovations with zero mean, unit variance, and a continuous distribution symmetric about zero (Gaussian, or the standardized Student-$t_\nu$ of our experiments, $t_7$ unless stated otherwise), and $\alpha + \beta < 1$ ensures second-order stationarity.
+Provided $\mathbb{E}[\varepsilon_t^4] < \infty$ (equivalently $\mathbb{E}[(\alpha z_t^2 + \beta)^2] < 1$), the squared residuals $\varepsilon_t^2$ follow an ARMA(1,1) with AR parameter $\alpha + \beta$~\cite{francq_garch_2010}, hence geometric ACF decay with the persistence $\alpha + \beta$ as the signature of volatility clustering~\cite{ding_1993}.
+
+A defining property of the model is that $(\varepsilon_t)$ is a \emph{martingale difference sequence}, $\mathbb{E}[\varepsilon_t \mid \mathcal{F}_{t-1}] = 0$, with $\mathcal{F}_{t-1}$ the natural filtration: returns are serially uncorrelated, and volatility clustering lives only in the even moments. Under stationarity $(\varepsilon_t)$, hence $(\varepsilon_t^2)$, is geometrically $\beta$-mixing~\cite{carrasco_mixing_2002}; by the FCLT for strongly mixing sequences~\cite{herrndorf_1984, merlevede_2006}, provided $\mathbb{E}|\varepsilon_t|^{4+\delta} < \infty$, partial sums of $\varepsilon_t^2$ carry a variance inflated by the long-run factor $\Gamma$ of Section~\ref{sec:garch}.
+
+\paragraph{Terminology: the four monitored statistics.}\label{sec:terminology}
+Four monitoring pipelines recur, each tagged by its statistic and set out in Table~\ref{tab:pipelines}: \textsc{Data} (the raw squared residual, a scale sensor), \textsc{Eco-L1} (the QMLE-standardized residual, the parametric location monitor), \textsc{Recalib} (its square, used only in the iso-FPR race of Section~\ref{sec:magnitude}), and \textsc{Concept} (the binary sign-error stream of a non-adaptive classifier, the subject of Proposition~\ref{prop:whitening}). ``The \textsc{Data} pipeline'' always means the raw squared sensor, never \textsc{Eco-L1}.
+
+\begin{table*}[t]
+    \centering
+    \caption{The four monitoring pipelines: statistic, null calibration, sensor type (Proposition~\ref{prop:orthogonality}), and sections of use. \textsc{Data}/\textsc{Recalib} read scale; \textsc{Eco-L1}/\textsc{Concept} read location.}
+    \label{tab:pipelines}
+    \small
+    \begin{tabular}{@{}lllll@{}}
+        \toprule
+        \textbf{Pipeline} & \textbf{Monitored statistic}                                               & \textbf{Null calibration}                                                                & \textbf{Sensor}        & \textbf{Used in}                                                         \\
+        \midrule
+        \textsc{Data}     & $e_t=(\varepsilon_t^2-\hat\mu_{\varepsilon^2})/\hat\sigma_{\varepsilon^2}$ & $\lambda\times\Gamma$ (CUSUM, PHT); $\epsilon_{\mathrm{cut}}\times\sqrt{\Gamma}$ (ADWIN) & scale ($2$nd order)    & \S\ref{sec:fpr_explosion}--\ref{sec:universality}, \ref{sec:real_world}A \\
+        \textsc{Eco-L1}   & $\varepsilon_t/\hat\sigma_t$, QMLE-standardized                            & fitted GARCH, re-estimated per onset                                                     & location ($1$st order) & \S\ref{sec:discussion}, Tab.~\ref{tab:isofpr_race}                       \\
+        \textsc{Recalib}  & $(\varepsilon_t/\hat\sigma_t)^2$                                           & iso-FPR bisection to $5\%$                                                               & scale (standardized)   & \S\ref{sec:magnitude}                                                    \\
+        \textsc{Concept}  & $e^{\mathrm{bin}}_t=\mathbf{1}\{\hat y_t\neq y_t\}$ (sign error)           & exact Bernoulli$(1/2)$, no $\Gamma$ estimation                                           & location ($1$st order) & \S\ref{sec:whitening}--\ref{sec:real_world}                              \\
+        \bottomrule
+    \end{tabular}
+\end{table*}
+
+% ══════════════════════════════════════════════════════════════════
+\subsection{The GARCH Penalty Factor}\label{sec:garch}
+% ══════════════════════════════════════════════════════════════════
+
+Because raw returns are serially uncorrelated (Section~\ref{sec:garch_model}), volatility clustering can only penalize a sequential detector through a \emph{volatility-sensitive} monitored statistic. Detecting structural breaks in variance is a primary goal in financial monitoring~\cite{andreou_ghysels_2002, horvath_2006}, making the scale sensor a necessary baseline before isolating location drifts.
+Throughout the \textsc{Data} pipeline, the monitored statistic is therefore the standardized squared-residual stream
+\begin{equation}\label{eq:monitored}
+    e_t := \frac{\varepsilon_t^2 - \widehat{\mu}_{\varepsilon^2}}{\widehat{\sigma}_{\varepsilon^2}}\,,
+\end{equation}
+where $\widehat{\mu}_{\varepsilon^2}$ and $\widehat{\sigma}_{\varepsilon^2}$ are the mean and standard deviation of $\varepsilon_t^2$ estimated on a drift-free warm-up window.
+We define the \textbf{GARCH penalty factor} $\Gamma$ as the normalized spectral density at zero frequency of the monitored statistic~\cite{newey_west_1987}:
+\begin{equation}\label{eq:gamma}
+    \Gamma := 1 + 2\sum_{k=1}^{\infty}\rho_e(k)\,,
+\end{equation}
+where $\rho_e(k) = \mathrm{Corr}(e_t, e_{t+k})$.
+Under a stationary GARCH(1,1) with $\mathbb{E}[(\alpha z_t^2 + \beta)^2] < 1$ (equivalently $\kappa_z\,\alpha^2 + 2\alpha\beta + \beta^2 < 1$, where $\kappa_z := \mathbb{E}[z_t^4]$ is the innovation kurtosis), the ARMA(1,1) representation of the squares (Section~\ref{sec:garch_model}) implies the geometric ACF $\rho_e(k) = \rho_e(1)\,(\alpha+\beta)^{k-1}$, yielding the closed form~\cite{bollerslev_1986, francq_garch_2010}:
+\begin{equation}\label{eq:gamma_closed}
+    \Gamma = 1 + \frac{2\rho_e(1)}{1-\alpha-\beta}\,,
+    \qquad
+    \rho_e(1) = \frac{\alpha\bigl(1-\beta(\alpha+\beta)\bigr)}{1 - 2\alpha\beta - \beta^2}\,.
+\end{equation}
+
+\paragraph{Kurtosis-free ACF.}
+Although $\mathbb{E}[\varepsilon_t^4] < \infty$ is required for $\Gamma$ to be finite, Eq.~\eqref{eq:gamma_closed} is itself \emph{kurtosis-free}: $\kappa_z$ cancels inside $\rho_e(1)$, so it holds verbatim for our standardized Student-$t_7$ innovations ($\kappa_z = 5$). Operationally $\Gamma$ inflates the variance of partial sums, $\mathrm{Var}(\sum_{i \le n} e_i) \sim n\sigma_e^2\Gamma$: short-term memory surfaces as macroscopic uncertainty and penalizes any monitor calibrated at $\Gamma = 1$. Table~\ref{tab:stylized} lists the regimes tested.
+
+\begin{table}[t]
+    \centering
+    \caption{GARCH regimes tested and their penalty $\Gamma$ (Eq.~\eqref{eq:gamma_closed}); the synthetic grid fixes $\alpha = 0.08$ and solves $\beta$ per target $\Gamma$. The last row applies Eq.~\eqref{eq:gamma_closed} to the persistence commonly reported for daily equity indices; since $\Gamma$ grows as $(1-\alpha-\beta)^{-1}$, our own variance-targeted per-asset fits sit well below it ($\hat\Gamma \in [2.6, 15.0]$, Section~\ref{sec:real_world}).}
+    \label{tab:stylized}
+    \small
+    \begin{tabular}{@{}lccc@{}}
+        \toprule
+        \textbf{Regime}  & \textbf{$\alpha + \beta$} & \textbf{$\Gamma$}   & \textbf{Vol.\ Clustering} \\
+        \midrule
+        I.I.D.\ Baseline & $0.00$                    & $1$                 & None                      \\
+        ProteuS Cal.\ A  & $0.94$--$0.96$            & $\approx 4$--$8$    & Strong                    \\
+        ProteuS Cal.\ B  & $0.983$--$0.995$          & $\approx 32$--$110$ & Extreme                   \\
+        Synthetic grid   & $0.08$--$0.999$           & $1$--$200$          & Controlled                \\
+        S\&P 500 (lit.)  & $\approx 0.99$            & $50$--$200$         & Extreme                   \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{The False Positive Explosion}\label{sec:fpr_explosion}
+
+Partial sums of the monitored statistic $e_t$ of Eq.~\eqref{eq:monitored} carry effective variance $n\Gamma$ instead of $n$. To show what ignoring this costs, we deploy two IID-calibrated detectors on \textsc{Data} streams from stationary GARCH processes under $H_0$ ($300$ streams of $5000$ steps per grid point): a StrictCUSUM\footnote{The one-sided CUSUM recursion $S_t = \max(0,\, S_{t-1} + e_t - \delta_P)$~\cite{page_1954}, alarming as soon as $S_t > \lambda$, evaluated at every step.} ($\lambda_{\mathrm{iid}} = 65$, $\delta_P = 0.5$) and an ADWIN-type window-mean detector~\cite{bifet_adwin_2007}.
+
+Figure~\ref{fig:fpr_explosion} (Appendix~\ref{app:figures}) shows the consequence: both False Positive Rates (FPR) explode as $\Gamma$ grows---a StrictCUSUM calibrated to a nominal $5\%$ under IID noise fires close to or above $80\%$ once $\Gamma > 20$; ADWIN behaves similarly. The cure is \emph{detector-dependent}. CUSUM false alarms under $H_0$ follow the Siegmund-type bound $\exp(-2\delta_P\lambda/\sigma^2_{\mathrm{LR}})$ with long-run variance $\sigma^2_{\mathrm{LR}} = \Gamma$ (Appendix~\ref{app:garch}), so the threshold must absorb the full inflation: $\lambda \times \Gamma$ holds the nominal level, while $\lambda \times \sqrt{\Gamma}$ leaves a residual plateau near $30\%$ (Figure~\ref{fig:fpr_explosion}A). ADWIN's cut statistic compares \emph{window means}---a standard-deviation-scale quantity---so $\epsilon_{\mathrm{cut}} \times \sqrt{\Gamma}$ is the right correction, containing the FPR below $13\%$ (Figure~\ref{fig:fpr_explosion}B). The Page--Hinkley Test (PHT), a cumulative statistic despite its running-mean reference, suffers the same explosion, needs the same $\lambda \times \Gamma$ inflation, and plateaus near $30\%$ under $\sqrt{\Gamma}$ scaling (Section~\ref{sec:universality}, Figure~\ref{fig:multi_detector}A).
+
+\subsection{CUSUM Delay Inflation}
+
+\begin{proposition}[CUSUM Delay Inflation]\label{prop:add_garch}
+    Let $e_t$ be the monitored statistic of Eq.~\eqref{eq:monitored} under a stationary GARCH(1,1) with $\mathbb{E}|\varepsilon_t|^{4+\delta} < \infty$ for some $\delta > 0$.
+    To maintain the same expected time to false alarm ($\mathrm{ARL}_0$), the CUSUM threshold must be recalibrated to $\lambda_{\mathrm{GARCH}} = \lambda_{\mathrm{iid}} \times \Gamma$, a rule exact only to leading order in $\lambda_{\mathrm{iid}}$: the polynomial prefactor of the Siegmund $\mathrm{ARL}_0$ formula, neglected here, makes it one-sidedly conservative at finite $\lambda_{\mathrm{iid}}$ and $\Gamma$ (Appendix~\ref{app:garch}).
+    Under an abrupt post-change mean shift $\Delta\mu$ of the monitored statistic, the expected detection delay satisfies, to leading order in the Brownian approximation:
+    \begin{equation}\label{eq:add_garch}
+        \mathbb{E}[\mathrm{ADD}_{\mathrm{Data}}] = \frac{\lambda_{\mathrm{iid}} \times \Gamma}{d} + \kappa\,,
+    \end{equation}
+    where $d = \Delta\mu - \delta_P > 0$ is the effective drift magnitude, $\delta_P > 0$ is the CUSUM tolerance, and $\kappa$ accounts for the stopping overshoot~\cite{siegmund_1985}. At fixed drift $d$, the delay thus grows linearly in $\Gamma$.
+\end{proposition}
+
+\subsection{Scaling Law for Gradual Drifts}
+
+\begin{theorem}[Two-Regime Scaling Law for Gradual Drifts]\label{thm:scaling}
+    Let the post-onset mean shift of the monitored statistic follow a linear ramp of width $w$, $\Delta\mu(s) = \Delta\mu_{\max} \cdot \min(s/w,\, 1)$, with the CUSUM recalibrated per Proposition~\ref{prop:add_garch} and run with tolerance $\delta_P$.
+    Write $\rho := \delta_P/\Delta\mu_{\max} < 1$ for the dead-band fraction and $w^*(\Gamma) := 2\lambda_{\mathrm{iid}}\Gamma / [\Delta\mu_{\max}(1-\rho)^2]$ for the crossover width.
+    In the deterministic (noise-averaged) approximation the statistic is held at zero until $s = \rho w$, then accumulates as $(\Delta\mu_{\max}/2w)(s-\rho w)^2$, so
+    \begin{equation}\label{eq:scaling}
+        \mathbb{E}[\mathrm{ADD}_{\mathrm{Data}}(w, \Gamma)] \approx
+        \begin{cases}
+            K \sqrt{w \, \Gamma} + \rho\,w + \kappa\,,                                                             & w \ge w^*(\Gamma)\,, \\[4pt]
+            \dfrac{\lambda_{\mathrm{iid}}\,\Gamma}{\Delta\mu_{\max}-\delta_P} + \dfrac{(1+\rho)\,w}{2} + \kappa\,, & w < w^*(\Gamma)\,,
+        \end{cases}
+    \end{equation}
+    where $K = \sqrt{2\lambda_{\mathrm{iid}} / \Delta\mu_{\max}}$; the branches coincide at $w = w^*(\Gamma)$, and the saturated branch reduces to Eq.~\eqref{eq:add_garch} as $w \to 0$.
+    The $\sqrt{w}$ term is the quadratic accumulation during the ramp; the additive $\rho w$ is the dead band, which a slow ramp must out-climb before the statistic leaves zero, and which makes the effective log-log exponent exceed $1/2$ over any bounded range of $w$. The inflated threshold enters as $\sqrt{\Gamma}$ in the ramp regime and as $\Gamma$ in the saturated regime.
+\end{theorem}
+
+\noindent The full derivation is deferred to Appendix~\ref{app:scaling}.
+
+% ══════════════════════════════════════════════════════════════════
+\section{The Whitening Advantage}\label{sec:whitening}
+% ══════════════════════════════════════════════════════════════════
+
+\subsection{Theoretical Statement}
+
+\begin{proposition}[Sign-Task Whitening Property]\label{prop:whitening}
+    Let $\varepsilon_t = \sigma_t z_t$, where $(z_t)$ are i.i.d., independent of the natural filtration $\mathcal{F}_{t-1}$, with a continuous distribution symmetric about zero, and $\sigma_t > 0$ is $\mathcal{F}_{t-1}$-measurable (any stationary GARCH satisfies these conditions).
+    Consider the sign-prediction task $y_t = \mathbf{1}\{\varepsilon_t > 0\}$ and \emph{any} non-anticipative classifier, i.e.\ any prediction $\widehat{y}_t$ measurable with respect to $\mathcal{F}_{t-1}$ (in particular an online Hoeffding Tree trained on past observations).
+    Then the binary error stream $e^{\mathrm{bin}}_t = \mathbf{1}\{\widehat{y}_t \neq y_t\}$ is an i.i.d.\ Bernoulli$(1/2)$ sequence.
+    In particular, its autocorrelation function vanishes identically and its GARCH penalty equals $1$, for every value of $\Gamma$ of the input stream.
+\end{proposition}
+
+\noindent The proof---four lines of conditioning---is given in Appendix~\ref{app:whitening}.
+
+\begin{remark}[Scope: median-type labels under conditional symmetry]\label{rem:scope}
+    The mechanism is that GARCH dependence resides in the \emph{even} moments of the stream, from which the sign process is decoupled by conditional symmetry: binarization at the conditional median discards exactly the information where volatility clustering lives.
+    The proposition is a property of the \emph{task}, not of the classifier: on the stationary sign task every non-anticipative classifier---a Hoeffding Tree or a coin flip alike---has error rate exactly $1/2$, and detection rests on the drift itself breaking the conditional symmetry.
+    Conversely, for a non-median threshold label $y_t = \mathbf{1}\{\varepsilon_t > c\}$ with $c \neq 0$, $\mathbb{P}(y_t = 1 \mid \mathcal{F}_{t-1})$ depends on $\sigma_t$: the label stream inherits the volatility autocorrelation and the whitening guarantee fails.
+    The two pipelines are thus complementary: a pure scale shift leaves the sign-error rate at $1/2$---invisible to Concept, exactly what the recalibrated Data pipeline catches---while a small median displacement $c$ moves the sign-error rate \emph{linearly} in $c$ but the squared-residual mean only \emph{quadratically}---the streaming analogue of the classical robustness of sign statistics to conditional heteroscedasticity~\cite{campbell_dufour_1995}.
+\end{remark}
+
+\begin{proposition}[Location/Scale Orthogonality]\label{prop:orthogonality}
+    Under the assumptions of Proposition~\ref{prop:whitening}, consider a post-change stream $\varepsilon_t^{\star} = \mu + s\,\sigma_t z_t$ with location shift $\mu \in \mathbb{R}$ and scale factor $s > 0$. The sign-error rate of the frozen median predictor depends on the location component only:
+    \[
+        \mathbb{P}(\varepsilon_t^{\star} > 0 \mid \mathcal{F}_{t-1}) = 1 - F_z\!\left(-\tfrac{\mu}{s\,\sigma_t}\right),
+    \]
+    which is \emph{invariant} to $s$ when $\mu = 0$ (a pure scale shift leaves the error rate at $1/2$: the Concept pipeline is exactly blind to it), and departs from $1/2$ \emph{linearly} in $\mu$ at first order, $\Delta q \simeq f_z(0)\,\mu/(s\,\sigma_t)$. In contrast, the squared-residual mean monitored by the Data pipeline shifts \emph{quadratically}, $\mathbb{E}[(\varepsilon_t^{\star})^2 \mid \mathcal{F}_{t-1}] = s^2\sigma_t^2 + \mu^2$, carrying no first-order location signal.
+\end{proposition}
+
+\noindent The two sensors are orthogonal: the sign sensor reads location (linear response to a median displacement, exact blindness to scale); the squared sensor reads scale (a location shift enters only at second order). This division underpins the two-branch architecture---sending a location drift to the quadratic sensor is a first-order/second-order mismatch, not a property of $\Gamma$.
+
+\begin{corollary}[Distribution-free calibration]\label{cor:universal}
+    Since $(e^{\mathrm{bin}}_t)$ is i.i.d.\ Bernoulli$(1/2)$ irrespective of $\Gamma$, the null distribution of \emph{any} monitoring statistic built on it---in particular a CUSUM---is universal: it does not depend on the GARCH parameters of the input stream. The Concept detector can therefore be calibrated to an exact false-alarm level through the finite Markov chain of the CUSUM recursion---or, equivalently, by direct Monte-Carlo simulation of a fair coin---\emph{without} estimating $\Gamma$ and \emph{without} any asymptotic (FCLT) approximation.
+\end{corollary}
+
+\paragraph{What ``exact'' means here.}
+The null law is known exactly and carries no nuisance parameter, so the achieved false-alarm rate is computable to Monte-Carlo precision alone. It is not a claim that every nominal level is attainable: under a dead band $\delta$ the two-sided CUSUM increments live on a two-point lattice, so $M_H$ is supported on multiples of $2\delta$ and the attainable levels are discrete. At $\delta = 0.1$, $H = 5{,}000$, the levels bracketing $5\%$ are $5.03\%$ at $\lambda = 11.2$ and $4.29\%$ at $\lambda = 11.4$ ($2 \times 10^5$ fair-coin streams); we take the nearest attainable level at or below nominal, $\lambda^{\star} = 11.4$.\footnote{The boundary case is not cosmetic: floating-point accumulation leaves $M_H$ a few ulps above its exact lattice value, so the implemented test $M_H > \lambda^{\star}$ is the mathematical $M_H \geq \lambda^{\star}$; we report the level actually delivered.} The level is granular but never unknown---the converse of the parametric route: continuous, but conditional on a fitted model.
+
+\paragraph{From exact to anytime-valid.} The fair-coin null licenses more than a fixed-horizon test: a mixture of betting martingales on the Bernoulli$(1/2)$ stream is a non-negative test martingale, so Ville's inequality caps its false-alarm probability at $\alpha$ \emph{uniformly over all stopping times}~\cite{ville_1939, ramdas_2023}. A sign-CUSUM calibrated to $5\%$ at $H = 5{,}000$ holds there, but continued watching drives its realized false-alarm rate to $18\%$ by $4H$; the mixture martingale stays at or below $\alpha$ under the same monitoring ($2\times10^4$ fair-coin streams per level, Figure~\ref{fig:anytime}). The guarantee is not bought with delay: at matched false-alarm rate and moderate drift the mixture detects at least as fast as the fixed-horizon CUSUM ($409$ vs.\ $539$ steps at $\eta = 0.10$), ceding ground only for abrupt shifts. Anytime-validity, which the parametric monitor cannot claim without its fitted model, thus comes for free on the whitened stream.
+
+\begin{proposition}[Relative Efficiency vs.\ Standardization]\label{prop:are}
+    For a location drift under Proposition~\ref{prop:orthogonality}, compare the sign-CUSUM (Concept) against a CUSUM on the correctly standardized residual $\varepsilon_t/\sigma_t$ (the econometric ideal). At equal false-positive rate, the ratio of their expected detection delays ($\mathrm{ADD}_{\mathrm{Concept}}$ for the sign-CUSUM, $\mathrm{ADD}_{\mathrm{Std}}$ for the standardized one) converges to the inverse Pitman asymptotic relative efficiency of the sign test~\cite{vandervaart_1998},
+    \[
+        \frac{\mathrm{ADD}_{\mathrm{Concept}}}{\mathrm{ADD}_{\mathrm{Std}}} \;\longrightarrow\; \frac{1}{4\,f_z(0)^2},
+    \]
+    where $f_z$ is the standardized innovation density. This ratio exceeds $1$ (the sign is slower) for light tails---equal to $\pi/2 \approx 1.57$ under Gaussianity---but drops below $1$ (the sign is \emph{faster}) precisely when $f_z(0) > 1/2$, i.e.\ for heavy-tailed innovations. For standardized Student-$t_\nu$ innovations this crossover ($f_z(0) = 1/2$) occurs at $\nu \approx 4.7$.
+\end{proposition}
+
+\noindent The sign filter therefore does not trade calibration robustness for a uniform speed penalty: it trails the parametric ideal by a constant for light tails and \emph{overtakes} it near the moment singularity (Section~\ref{sec:singularity}). Measured iso-FPR delays reproduce the prediction (Figure~\ref{fig:isofpr}, Appendix~\ref{app:figures}): the ratio runs below $1/(4f_z(0)^2)$ as $\nu \to 3$, converges to it as the tails lighten, and crosses unity at a measured $\nu^{\star} \approx 4.9$, above the analytic $4.7$. That gap is the estimation cost: an \emph{oracle} arm standardized by the true GARCH parameters crosses at $4.6$, on the analytic prediction, so the extra $0.3$ degrees of freedom is what a finite warm-up costs the parametric route.
+
+\begin{corollary}[Sharpe ceiling for directional drift]\label{cor:sharpe_ceiling}
+    Consider a directional regime whose daily returns carry an annualized Sharpe ratio $\mathrm{SR}$ under a homoscedastic Gaussian location alternative. Let $\gamma$ be the admissible in-control average run length ($\mathrm{ARL}_0$), and write $\alpha_0 = 1/\gamma$. The per-observation Kullback--Leibler divergence between the post- and pre-change return laws is $\mathrm{KL} = \mathrm{SR}^2/504$ (half the squared daily Sharpe, with $252$ trading days per year; Appendix~\ref{app:sharpekl}), so the first-order lower bound of quickest detection~\cite{tartakovsky_2014} gives, in the asymptotic regime $\gamma \to \infty$, for \emph{any} sequential monitor of the unconditional return law,
+    \[
+        \mathrm{ADD}_{\min} \;\ge\; \frac{\ln\gamma}{\mathrm{KL}} \;=\; \frac{504\,\ln(1/\alpha_0)}{\mathrm{SR}^2} \;\;\text{trading days}\;\,(1+o(1)),
+    \]
+    and the corresponding floor of the sign monitor is $1/(4f_z(0)^2)$ times larger in the small-drift limit by Proposition~\ref{prop:are}. Detectability of a directional regime is therefore budgeted by its Sharpe ratio alone: at the permissive $\gamma = 20$ used in our census, a drift of $\mathrm{SR} = 1$ costs at least ${\approx}1{,}510$ trading days; at the operational $\gamma = 252$ (one false alarm per year), ${\approx}2{,}790$.
+\end{corollary}
+
+\paragraph{Scope of the ceiling.} The divergence $\mathrm{SR}^2/504$ uses the \emph{unconditional} variance, so the bound is exact for a homoscedastic location alternative. Under conditional heteroscedasticity Jensen's inequality grants a variance-aware monitor a larger path divergence, $\sum_t \Delta^2/(2\sigma_t^2) \ge T\Delta^2/(2\bar{\sigma}^2)$, whereas the sign stream's budget stays the bounded Bernoulli $\mathrm{kl}$. The ceiling thus budgets the binarized stream faithfully but understates likelihood monitors when a location drift meets a variance shock---the gap Section~\ref{sec:real_world} measures.
+
+\paragraph{Empirical consequences.}
+$\mathrm{ADD}_{\mathrm{Concept}}$ is flat in $\Gamma$ under a location drift (Figure~\ref{fig:data_vs_concept}B), and so is the $5\%$ Concept threshold ($\lambda_C^{\star} \in [10.6, 10.7]$ across $\Gamma \in [1, 200]$), whereas the \textsc{Data} threshold must grow with $\Gamma$. The payoff is not raw speed---a correctly standardized parametric monitor is faster by the constant of Proposition~\ref{prop:are}---but the elimination of volatility-dependent recalibration.
+
+\subsection{Scaling Validation: Speedup vs.\ \texorpdfstring{$\Gamma$}{Gamma} and \texorpdfstring{$w$}{w}}\label{sec:scaling_validation}
+
+Two controlled experiments test these predictions on the \textsc{Data} statistic of Eq.~\eqref{eq:monitored} ($400$ seeds per configuration; Student-$t_7$, $\alpha = 0.08$, $\beta$ solved per target $\Gamma$; the injected drift multiplies the innovation variance by $s^2$---a pure scale pathology---with $s$ set per $\Gamma$ so the standardized shift equals $\Delta\mu_{\max} = 2$; each \textsc{Data} arm calibrated to $5\%$ false alarms by its own null quantile, against $31\%$ under $\times\sqrt{\Gamma}$; the \textsc{Concept} CUSUM fixed once and for all, $\lambda_C = 10$, $\delta_C = 0.1$). Under an abrupt shift the \textsc{Data} delay is linear in the penalty, $\mathrm{ADD} \approx 23.7\,\Gamma + 38$, while the \textsc{Concept} monitor stays exactly blind, its detection rate equal to its own false-alarm level---Proposition~\ref{prop:orthogonality} in action. Under gradual ramps, five penalties spanning $\Gamma \in [2, 20]$, all monitored over one common horizon so the null crossing probability is identical across $\Gamma$, reproduce Eq.~\eqref{eq:scaling} with no fitted constant to a median error of $5.4\%$; the same design prices the recalibration rule, the empirical null quantile matching $\lambda_{\mathrm{iid}} \times \Gamma$ to within $7$--$29\%$---a margin that degrades with the monitoring horizon, and whose boundary we locate at the loss of the sixth moment (Figure~\ref{fig:scale_law}B, Appendix~\ref{app:scaling}).
+
+\subsection{Sensor Mismatch: Why the Squared Stream Cannot Monitor a Location Drift}\label{sec:magnitude}
+
+Proposition~\ref{prop:orthogonality} assigns each pathology to its own sensor; Table~\ref{tab:isofpr_race} (Appendix~\ref{app:figures}) prices the violation. Under a location drift $\Delta = c \cdot \sigma_{\mathrm{unc}}$ (iso-FPR $5\%$ arms), the volatility-standardized squared sensor (\textsc{Recalib}) runs $2$ to $19\times$ behind the two first-order monitors and its detection collapses below $c = 0.5$: the shift enters the squared stream only at second order ($\approx c^2/\sqrt{\kappa_z-1}$), clearing the dead band $\delta_{\mathrm{R}} = 0.125$ only above $c^{\star} \approx 0.43$---a blind zone that persists even at $\Gamma = 1$. \textsc{Eco-L1} and \textsc{Concept} both detect at every magnitude, their ratio governed by the Pitman efficiency of Proposition~\ref{prop:are} rather than by $\Gamma$ ($1.66\times$ for the parametric route at $c = 1$ under $t_{30}$). What separates the two routes is not delay but calibration requirements: a fitted volatility model versus a moment-free median.
+
+\subsection{Empirical Boundaries: Whiteness, Scope Limits, and Moments}\label{sec:validity_map}
+
+We first verify the core property via Ljung--Box Q-tests~\cite{ljung_box_1978} (lag 20) on 360 independent stationary GARCH(1,1) streams ($30$ seeds $\times$ 4 ETF calibrations $\times$ 3 clustering levels, $n = 8000$; online Hoeffding Tree). The squared inputs reject whiteness in $100\%$ of the clustered calibrations ($p < 10^{-10}$) and already over-reject on the i.i.d.\ arm ($9.2\%$), where $t_7$ innovations deprive $\varepsilon_t^2$ of a fourth moment and the $\chi^2$ approximation fails; the binary errors hold the nominal level in every regime ($3.3$--$5.0\%$; $4.4\%$ pooled, $95\%$ Wilson $[2.8, 7.1]\%$), even through the finite-sample transient of online learning (Figure~\ref{fig:ljungbox}).
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{Fig6_LjungBox_Robust.png}
+    \Description{Ljung-Box p-values comparing squared returns and binary classification errors across GARCH regimes.}
+    \caption{\textbf{Proposition~\ref{prop:whitening} in the data} (Ljung--Box p-values, 360 independent stationary GARCH streams).
+        Left: the squared returns $\varepsilon_t^2$ feeding the \textsc{Data} pipeline are overwhelmingly autocorrelated.
+        Right: the binary classification errors $e^{\mathrm{bin}}_t$ show no detectable autocorrelation in any GARCH regime ($3.3$--$5.0\%$ rejection, the nominal type-I level).}
+    \label{fig:ljungbox}
+\end{figure}
+
+Three stress tests then chart the boundaries (Figures~\ref{fig:validity_map} and~\ref{fig:skew_robustness}, Appendix~\ref{app:figures}). First, the guarantee needs no moments: our $t_7$ grid violates $\mathbb{E}[\varepsilon_t^4] < \infty$ beyond $\Gamma \approx 41.6$, yet the binary error stream stays strictly white up to $\Gamma = 200$. Second, the task boundaries are sharp: a non-median threshold or a continuous MSE loss re-inherits the autocorrelation (rejection $100\%$ for $c \ge 0.5$ and for MSE), exactly as Remark~\ref{rem:scope} requires. Third, conditional asymmetry is benign but not free: skew-$t$ innovations (realized skewness to $-1.44$) leave conditional independence intact yet shift the null rate to $q \approx 0.58$, making a fixed-$1/2$ CUSUM fire at ${\approx}97\%$; recentering on a warm-up estimate $\hat{q}$ restores control. The estimate is a sample proportion, asymptotically normal with no moment requirement (Section~\ref{sec:discussion}).
+
+\subsection{Universality Across Detector Families}\label{sec:universality}
+
+To show the advantage is a property of the signal and not of the CUSUM topology, we evaluate the \textsc{Concept} pipeline on four additional detectors: the Page--Hinkley Test (PHT), ADWIN, DDM~\cite{gama_2004_ddm}, and EDDM~\cite{baena_2006_eddm}---a set dictated by input type, since DDM and EDDM model a Bernoulli error rate and are structurally inapplicable to the continuous \textsc{Data} stream.
+
+By Corollary~\ref{cor:universal} the binarized stream carries an exact Bernoulli(1/2) null, so CUSUM, PHT, ADWIN, and DDM hold a bounded False Positive Rate across $\Gamma \in [1, 200]$ with no volatility-aware recalibration, and their delays under a physical shift ($c=1.5$) are flat (Figure~\ref{fig:multi_detector}B): peak-to-peak ADD variation below $3.2\%$ over a $\times 170$ range of $\Gamma$ for the cumulative detectors, $13\%$ for the window-mean ADWIN. The same maximum-entropy regime exposes one design boundary: EDDM monitors the spacing between errors---Geometric(0.5) on a fair coin, extreme relative variance---keeping its degradation ratio permanently triggered ($>90\%$ FPR), a failure that is itself $\Gamma$-invariant: the property's signature rather than its breakdown.
+
+The symmetric question---what monitoring the \emph{unfiltered} stream costs---sharpens the result. Figure~\ref{fig:data_vs_concept} (Appendix~\ref{app:figures}) contrasts, detector by detector, the abrupt-drift delay on the raw \textsc{Data} statistic against the whitened \textsc{Concept} stream, each recalibrated as prescribed: the \textsc{Concept} delay is flat for every detector, while the \textsc{Data} delay grows at each detector's own recalibration exponent (log-log slopes $0.86$ CUSUM, $1.09$ PHT, $0.47$ ADWIN). We call this the \emph{Lethargy Tax}: controlling false alarms on a heteroscedastic stream defers detection by the very factor used to inflate the threshold. The running-mean PHT pays it twice---beyond $\Gamma \approx 75$ its adaptive reference absorbs the shift faster than the inflated threshold reacts, collapsing detection below $50\%$ (a \emph{stochastic syncope}). The whitening filter voids the entire schedule of penalties.
+
+\subsection{The Conditional Mean Boundary (AR-GARCH)}\label{sec:ar_garch}
+
+Proposition~\ref{prop:whitening} requires the binarization threshold to sit at the conditional median. Under a non-zero conditional mean $\mu_t = \mathbb{E}[r_t \mid \mathcal{F}_{t-1}]$---e.g.\ AR(1) momentum, $\mu_t = \phi r_{t-1}$---the naive sign $y^{\mathrm{naive}}_t = \mathbf{1}\{r_t > 0\}$ has $\mathbb{P}(r_t > 0 \mid \mathcal{F}_{t-1}) = 1 - F_z(-\mu_t/\sigma_t)$, which couples with $\sigma_t$ and reinstates the GARCH autocorrelation in the label stream. The filter therefore applies to the \emph{residuals} of the conditional-mean model; the practical question is what survives when those residuals are formed with an \emph{estimated} $\hat{\mu}_t$.
+
+\paragraph{Estimation enters through the bias, not the variance.}
+The proposition asks of the recentering only measurability, not accuracy. Any $\mathcal{F}_{t-1}$-measurable $\hat{\mu}_t$ leaves the sign conditionally Bernoulli with parameter $q_t = 1 - F_z(u_t)$, where $u_t := (\hat{\mu}_t - \mu_t)/\sigma_t$ is the centering error in innovation units. Symmetry of $f_z$ annihilates the quadratic term, so $q_t - 1/2 = -f_z(0)\,u_t + O(u_t^3)$ and $\mathrm{Cov}(y_t, y_{t+k}) \simeq f_z(0)^2\,\mathrm{Cov}(u_t, u_{t+k})$ for $k \geq 1$: the \emph{systematic} component of $u_t$ perturbs the label stream at first order, its zero-mean component only at second order. The prediction is falsifiable, and asymmetric: Ljung--Box responds to $|\mathrm{Cov}(y_t, y_{t+k})|$ whereas the CUSUM responds to its sign, so a systematic error of magnitude $b$ should cost the same whiteness whether it under- or over-centers, but should inflate the false-alarm rate only when it under-centers.
+
+\paragraph{Measurement.}
+We test it on AR(1)-GARCH(1,1) streams ($\alpha = 0.1058$, $\beta = 0.8742$, standardized $t_7$; $10{,}000$ paired trajectories per $\phi$, horizon $H = 5{,}000$), recentering with a non-anticipative rolling OLS of window $n$ against naive ($\hat{\mu}_t = 0$) and oracle ($\hat{\mu}_t = \phi r_{t-1}$) arms on the same paths (Figure~\ref{fig:estmean}). The naive boundary is a slope, not a cliff: Ljung--Box rejection climbs from $5.1\%$ at $\phi = 0$ to $99.8\%$ at $\phi = 0.15$, dragging the \textsc{Concept} FPR to $20.8\%$. Every OLS arm erases that failure: across the full $7 \times 4$ grid of momentum strengths $\phi \in [0, 0.15]$ and window lengths $n \in \{125, 250, 500, 1000\}$, Ljung--Box rejection stays within $4.6$--$5.6\%$ and FPR within $4.3$--$5.9\%$, matching the oracle bands on the same paths. The two channels separate as predicted: the systematic one, the classical small-sample AR bias $\mathbb{E}[\hat{\phi}] - \phi \approx -2.5\,\phi/n$, stays under $2.9 \times 10^{-3}$, while the dispersion channel, whose RMSE reaches $11.4\%$ of $\sigma_{\mathrm{unc}}$ at $n = 125$, costs at most $0.4$ points of rejection. Bias, not noise, is what the property is exposed to, and this holds on a DGP past the fourth-moment boundary ($\mathbb{E}[(\alpha z_t^2 + \beta)^2] = 1.005 > 1$), where $\Gamma$ is formal only and the recentered sign stream is white regardless. These are $H_0$ measurements: they bound the \emph{calibration} cost of estimation, not its delay cost.
+
+\paragraph{The adverse direction.}
+We test the asymmetry directly by injecting a deliberate bias into an otherwise unbiased arm---$\hat{\mu}_t = (\hat{\phi}_t + b)\,r_{t-1}$ on a stream with $\phi = 0$, $n = 250$, $10{,}000$ trajectories per $b$ (Figure~\ref{fig:adverse}). Whiteness behaves exactly as predicted: the injected-bias arm and the naive arm at $\phi = b$ reject within three points of each other across a range spanning $5$ to $100\%$. Calibration does not, and the asymmetry is the whole point: injected \emph{over}-centering makes the sign stream negatively autocorrelated and the false-alarm rate collapses to $0.86\%$ at $b = 0.15$, while naive \emph{under}-centering inflates it to $20.8\%$---identical $|\mathrm{Cov}|$, opposite sign, opposite consequence. The rolling OLS errs on the adverse side (its bias leaves a residual momentum $+2.5\,\phi/n > 0$, so it under-centers), but its safety rests on magnitude, and the margin is wide: at a residual momentum of $0.02$---seven times the largest we measure---the under-centering penalty is still only $1.1$ points of false-alarm rate.
+
+\subsection{Real-World Validation: FirstRate ETF Data In-The-Wild}\label{sec:real_world}
+
+To test whether the advantage survives market microstructure and empirical heavy tails, we move to four reference ETFs (SPY, PFF, VNQ, BWX) from FirstRate Data\footnote{\url{https://firstratedata.com}, product \texttt{full\_1min\_adjsplitdiv}. The commercial license forbids redistribution of raw prices; the full pipeline code and all derived alarm and summary CSVs are released at \url{https://github.com/TheWhiteningAdvantage-KDD2027/The-Whitening-Advantage-Experiments} (Appendix~\ref{app:repro}).}, downsampled to daily log-returns of 16:00 ET closes (splits and dividends adjusted) to preserve the Martingale Difference Sequence hypothesis that intraday bid-ask bounce and U-shaped seasonality violate.
+
+\paragraph{Warm-up and Gatekeeper Validation (pre-2020 window).}
+On the pre-pandemic window we recenter the binary error stream on the empirical conditional median; a lag-20 Ljung--Box test finds no serial correlation on any asset (SPY $p=0.22$, PFF $0.57$, VNQ $0.96$, BWX $0.77$), licensing the filter. The \textsc{Data} pipeline needs more machinery: variance-targeting QMLE on the centered warm-up innovations yields markedly heterogeneous per-asset penalties ($\hat{\Gamma} = 15.0$, $2.6$, $4.2$, $5.8$ for SPY, PFF, VNQ, BWX).\footnote{A naive QMLE on the raw, unscaled returns silently returns its initialization on these micro-variance streams (a floating-point conditioning failure with \texttt{success=True}); variance targeting---certified by a parameter-recovery test on simulated ground truth---is what makes the parametric baseline usable here at all.} The sign filter needs none of this.
+
+\paragraph{Panel A: The COVID-19 Variance Shock (2020).}
+We monitor SPY through 2020 (Figure~\ref{fig:real_world}A, Appendix~\ref{app:figures}), tracking $S_t/\lambda$ for the recalibrated \textsc{Data} monitor ($\lambda_{\mathrm{iid}} = 65$, $\delta_P = 0.5$, one-sided) and the whitened \textsc{Concept} monitor ($\lambda_C = 10$, $\delta_C = 0.1$, two-sided). Neither fires---\textsc{Data} peaks at $0.37$ of its threshold, \textsc{Concept} at $0.45$---but the silences differ in kind. The \textsc{Data} threshold, inflated to $\lambda_{\mathrm{iid}} \times \hat{\Gamma}_{\mathrm{SPY}} \approx 975$ by the fitted persistence, is precisely the barrier that defers even a legitimate variance alarm: the Lethargy Tax on real data. The \textsc{Concept} monitor is silent because binarization caps the Fisher information below what an alarm requires within the crash's short duration---a structural limit quantified below. One pipeline misses the event it was built to catch; the other runs out of budget for an event too brief to afford.
+
+\paragraph{Panel B: Semi-Real Injection and Statistical Degradation (2021--2023).}
+For quantitative delay we inject a permanent directional shift ($\Delta = 1.5\sigma_{\mathrm{unc}}$, a deliberately aggressive stress probe) into the real 2021--2023 streams, resetting the monitors on the first trading day of each month ($36$ onsets per ETF, $250$-day horizon). Both pipelines watch the same injected series, each recalibrated at every onset from the trailing $250$ days (the \textsc{Data} arm refitting $\hat{\Gamma}$ by QMLE at each onset). The injection is synthetic because an exact ground-truth onset requires it; the background noise is strictly empirical, and a \emph{placebo arm} ($\Delta = 0$) measures the alarm rate induced by true variance regimes such as the 2022 bear market.
+
+The raw \textsc{Data} pipeline shows only weak, placebo-confounded power against this location drift, exactly as Proposition~\ref{prop:orthogonality} predicts for a squared sensor: raw detection never exceeds one third of onsets (SPY $0.0\%$; PFF $30.6\%$ against a $22.2\%$ placebo; VNQ $16.7\%$; BWX $19.4\%$)---the alarms that do occur respond to the second-order term $(\Delta/\sigma)^2$, confounded with genuine variance regimes. The whitened \textsc{Concept} pipeline, monitoring the correct first-order signal, separates cleanly: $100\%$ detection on all four ETFs at an ADD of $36.6$--$64.6$ days, against background alarm rates of $0$--$13.9\%$. The magnitude implies a Sharpe ratio far beyond any traded index; the experiment calibrates \emph{power}, and its message is architectural---only one of the two sensors responds to a directional break at all.
+
+\paragraph{The Regime Census and the Sharpe Ceiling In-The-Wild.}
+The natural question is what \emph{unforced} directional regimes the market offers. A retrospective multi-scale Pagan--Sossounov bull/bear dating~\cite{pagan_sossounov_2003} of the four streams (2000--2025; $66$ phases after duration censoring, the COVID-19 crash---too brief for the filter---dated at the raw scale) answers through Corollary~\ref{cor:sharpe_ceiling}: for $53$ of $66$ phases ($80\%$), the floor $\mathrm{ADD}_{\min}$ at the most permissive operating point exceeds the phase's own duration. Pricing the binarization exactly through $\mathrm{kl}(q_{\mathrm{phase}}\,\|\,q_{\mathrm{ref}})$ moves that count by one phase ($52$ of $66$); tightening to one false alarm per year leaves $64$ of $66$ ($97\%$) out of budget. Long secular advances move the up-day probability only marginally (SPY 2011--2018: $0.541 \to 0.554$ over $1{,}753$ days); they nonetheless dominate the detectable set on duration alone, and even there the floor consumes $55$--$92\%$ of the phase. What falls out of budget is the short episode---duration binds, not magnitude.
+
+The COVID-19 crash ($\Delta q \approx -0.28$, annualized Sharpe ${\approx}{-6.0}$ over $23$ trading days) separates the two readings of the ceiling. For the \emph{sign} stream the budget is the exact Bernoulli divergence $\mathrm{kl}(q_{\mathrm{phase}}\,\|\,q_{\mathrm{ref}}) = 0.162$ nats/day: a floor of ${\approx}34$ trading days at one false alarm per year, and $18.5$ days at the loosest calibration---four fifths of the phase. A variance-aware monitor is not so bounded: in a look-ahead oracle backtest (Figure~\ref{fig:oracle_frontier}, Appendix~\ref{app:figures}), a CUSUM on returns standardized by the conditional volatility of a GARCH(1,1) fitted on a window \emph{including} the crash---parameter oracle, causal filtration---detects it in $3$ trading days (likelihood-ratio increments, phase false-alarm probability $1.3\%$) to $16$ days (standardized-mean CUSUM), against a bootstrap null freezing the same volatility path. The mechanism is Jensen's inequality: the path divergence $\sum_t \Delta^2/(2\sigma_t^2)$ is $10.6\times$ the unconditional budget, because the conditional $\sigma_t$ lags the shock. The same protocol discriminates the census flags (2009 recovery detected, 2019 advance missed, no alarm on the 2011 correction at the matched operating point), and the detection is specific to \emph{conditional} information: a look-ahead \emph{centered realized} volatility, pricing the crash into $\sigma_t$ contemporaneously, yields no alarm at iso-FPR. The $3$-day figure is an upper envelope no online monitor attains.
+
+% ══════════════════════════════════════════════════════════════════
+\section{Discussion}\label{sec:discussion}
+% ══════════════════════════════════════════════════════════════════
+
+\subsection{Econometric Whitening: Baseline, Misspecification, and the Moment Singularity}
+
+The whitening filter is conceptually adjacent to GARCH-residual standardization~\cite{horvath_2006, song_kang_2020}. Under a correctly specified process and a converged QMLE fit, monitoring \textsc{Eco-L1} also achieves a $\Gamma$-invariant false-alarm rate with flat delays and, for a location drift, the speed advantage of Proposition~\ref{prop:are} (Table~\ref{tab:isofpr_race}): continuous residuals carry more information per observation than a binarized stream. The sign filter's value is therefore not speed under correct specification but the removal of the specification and estimation steps---two costs the parametric route pays and the sign filter does not:
+
+\emph{Estimation cost.} \textsc{Eco-L1} must fit a persistent GARCH ($\alpha+\beta = 0.85$) on a finite warm-up: on a $250$-step window the estimated persistence collapses to a median $\hat\alpha+\hat\beta = 0.62$ and the FPR nearly doubles to $9.5\%$; the level is restored from $n = 500$ onward. The asymmetry is structural: the sample median is asymptotically $\mathcal{N}(0,\, 1/(4nf_z(0)^2))$ with \emph{no} finite-moment requirement~\cite{vandervaart_1998}, while QMLE normality requires a finite fourth moment ($\kappa_z < \infty$) and its variance explodes under financial heavy tails. The sign pipeline is warm-up-independent in practice (measured FPR $3$--$8\%$ across all warm-up lengths).
+
+\emph{Efficiency reversal.} Figure~\ref{fig:isofpr}B measures $\mathrm{ADD}_{\mathrm{Concept}}/\mathrm{ADD}_{\mathrm{Eco\text{-}L1}}$ against Student-$t_\nu$ degrees of freedom at matched $5\%$ FPR: the ratio follows the qualitative shape of $1/(4f_z(0)^2)$ and inverts in the heavy-tailed regime of the moment singularity (Section~\ref{sec:singularity}), while never exceeding the Gaussian ceiling $\pi/2$ elsewhere.
+
+\emph{Efficiency reversal on a real heavy-tailed stream.} We race the recentred sign-CUSUM (\textsc{Concept}) against a CUSUM on the honestly standardized residual $\varepsilon_t/\hat{\sigma}_t$ (\textsc{Eco-L1}; GARCH(1,1) refitted on each pre-onset window and filtered forward through the \emph{observed} stream---no look-ahead) on daily Bitcoin returns ($2015$--$2025$; $106$ monthly onsets, public adjusted closes), both arms at an identical $4.7\%$ false-alarm rate on real placebo windows. On BTC, whose standardized innovations carry $\hat{\nu} = 2.78$---well inside the heavy-tailed regime of Proposition~\ref{prop:are}---the sign filter leads across the reliable range: the delay ratio runs from $0.74$ at $c = 0.35$ to parity ($1.01$) at $c = 1.5$, mean $0.87$. A quasi-Gaussian synthetic control ($t_{30}$, identical onsets and false-alarm rate) inverts the ordering to \textsc{Eco-L1}-faster ($0.98$--$1.14$, mean $1.06$), reproducing the light-tailed Pitman penalty on real machinery (Figure~\ref{fig:crypto_race}, Appendix~\ref{app:figures}). Ethereum marks the practical boundary: its recentred sign stream fails whiteness (Ljung--Box $p = 0.019$), the fair-coin pivot does not hold exactly, and the synthetic control does not recover the light-tailed ordering at its $72$ onsets; we report BTC as the demonstration and ETH as the frontier.
+
+\paragraph{Misspecification.}
+
+Beyond finite-sample instability, explicit standardization is exposed to structural misspecification. When the stream carries asymmetric volatility clustering (GJR-GARCH, leverage $\gamma_{\mathrm{lev}} > 0$) but the baseline standardizes with its symmetric GARCH(1,1) \emph{population limit}---so any leakage is structural rather than estimation noise---residual Ljung--Box rejection on the standardized squared residual rises from $5.1\%$ to $24.6\%$ at $\gamma_{\mathrm{lev}} = 0.28$ (Figure~\ref{fig:leverage}, Appendix~\ref{app:figures}), driving its false-alarm rate from $3.2\%$ to $20.6\%$ under a pseudo-Gaussian innovation law that isolates leverage from tail effects. The sign pipeline is structurally immune to leverage itself: $\sigma_t$ depends asymmetrically on the sign of $\varepsilon_{t-1}$ but remains $\mathcal{F}_{t-1}$-measurable, so Proposition~\ref{prop:whitening} holds exactly: across the whole leverage grid its Ljung--Box rejection stays within $4.6$--$5.4\%$ and its false-alarm rate within $7.6$--$8.4\%$ at its fixed threshold---above nominal, but flat where the baseline's climbs by a factor of six. The parametric route therefore fails to control false alarms even at the population limit once misspecified; the whitened route holds a leverage-invariant rate throughout.
+
+\paragraph{The moment singularity.}\label{sec:singularity}
+
+Standard approximations, $\Gamma$ included, require $\mathbb{E}[\varepsilon_t^4] < \infty$. Stressing both pipelines as Student-$t$ innovations approach the kurtosis singularity ($\nu \to 4$; drift $c = 1.0$), the \textsc{Data} pipeline sinks into a \emph{stochastic syncope} as the sample variance of the squared residuals diverges: detection decays monotonically ($83\%$ at $\nu = 10$, $61\%$ at $\nu = 7$), collapses below the $50\%$ censoring threshold for $\nu \le 5.5$, and the surviving minority carries survivorship-biased delays of $2{,}400$--$3{,}000$ steps (Figure~\ref{fig:fat_tails}, Appendix~\ref{app:figures}). The \textsc{Concept} pipeline, reading only the topology of the conditional median, stays flat at $34$--$38$ steps right up to the singularity.
+
+When monitoring continuous regression outputs (e.g., deep-learning forecasters), the binarization filter is absent and the continuous loss streams may re-inherit the GARCH autocorrelation---a natural extension for monitoring forecasting pipelines.
+
+\paragraph{Operating regimes where the budget is affordable.}
+Corollary~\ref{cor:sharpe_ceiling} prices the ceiling \emph{per observation}, so the calendar-time floor of a location drift is fixed by the annualized Sharpe alone, invariant to sampling frequency. Daily equities are the adversarial case ($\mathrm{SR} = 1$ is $\mathrm{SR}_{\mathrm{daily}} \approx 0.063$), which is why $80\%$ of dated regimes fall out of budget. Exact calibration pays off elsewhere: on large-shift heteroscedastic streams (network, sensor, industrial telemetry), where shifts far above the noise floor clear the Bernoulli budget in a handful of observations; and on long-horizon slow drifts, where duration is not binding and anytime-validity removes the horizon-dependence of the alarm rate. The guarantee transfers verbatim, but this paper delimits these regimes without measuring them.
+
+% ══════════════════════════════════════════════════════════════════
+\section{Related Work}\label{sec:related}
+% ══════════════════════════════════════════════════════════════════
+
+Sequential change detectors---CUSUM~\cite{page_1954}, ADWIN~\cite{bifet_adwin_2007}---and the concept-drift literature they anchor~\cite{gama_survey_2014, lu_concept_drift_2018} are calibrated under i.i.d.\ or weakly dependent noise. Recent benchmarks document detector-calibration fragility on real streams and the evaluation distortions temporal dependence induces~\cite{lukats_2024, ziffer_tenet_2024}; financial evaluations of DDM/EDDM/ADWIN report calibration difficulties on market data~\cite{neri_2021, cavalcante_2015}; none models the volatility-clustering mechanism itself. Change-point analysis under dependence spans self-normalization~\cite{shao_2010} and retrospective GARCH-monitoring statistics~\cite{aue_horvath_2013, berkes_2004, horvath_2006, song_kang_2020}; all presuppose a fitted parametric model---exactly the failure mode quantified in Section~\ref{sec:discussion}.
+
+Our whitening result is a statement about the null: under $H_0$ the monitored stream is an \emph{exact pivot}---a fair coin---whatever the nuisance dynamics. Probability-integral-transform diagnostics~\cite{diebold_1998} reach i.i.d.\ uniformity only under a correctly specified conditional law. Sign statistics are classically robust to conditional heteroscedasticity~\cite{campbell_dufour_1995}, and sign predictability under volatility dynamics is documented~\cite{christoffersen_diebold_2006}; Corollary~\ref{cor:universal} turns these into a calibration recipe with no specification step. Because the pivot is exact, a test martingale on the fair coin inherits the time-uniform false-alarm control of e-processes~\cite{ville_1939, ramdas_2023, shin_2024}---unavailable to monitors that condition on a fitted volatility model. For evaluation we favor a semi-synthetic protocol with exact onsets and interpretable $\Gamma$~\cite{suarez_cetrulo_proteus_2025} over deep generative simulators~\cite{cetingoz_lehalle_2025}; continuous-time quickest detection~\cite{chevalier_2023} targets a different observation model.
+
+% ══════════════════════════════════════════════════════════════════
+\section{Conclusion}\label{sec:conclusion}
+% ══════════════════════════════════════════════════════════════════
+
+We have established the \textbf{Whitening Advantage}: on sign-prediction tasks under conditionally symmetric innovations, binarization by a non-adaptive classifier yields an i.i.d.\ Bernoulli$(1/2)$ error stream (Proposition~\ref{prop:whitening}), making Concept-drift detection structurally insensitive to volatility clustering. On the \textsc{Data} side we derived the penalty factor $\Gamma$ and its detector-dependent recalibrations; the two sensors are orthogonal (Proposition~\ref{prop:orthogonality}). At matched false-positive rate the sign filter trails correctly specified parametric standardization by $1/(4f_z(0)^2)$ (Proposition~\ref{prop:are}), inverting below a measured $\nu^{\star} \approx 4.9$ (analytic $4.7$ for the exactly standardized ideal). Its decisive advantage is calibration, not delay: the sign stream is a fair coin by construction, exact in finite samples with no volatility model, where the parametric approach is conditional on a converged fit and a sufficient warm-up.
+
+On real daily ETF streams (FirstRate Data, 2000--2025), neither monitor fires during the 2020 COVID-19 shock: the raw monitor is throttled by its $\Gamma$-inflated threshold, while the crash's brief duration exhausts the sign filter's information budget. Under injected breaks the picture inverts, the sign filter detecting on every asset. A retrospective census explains why unforced drifts are hard: the Sharpe-ceiling floor exceeds the duration of $80\%$ of dated bull/bear episodes. A look-ahead oracle locates the boundary: a variance-aware monitor granted look-ahead GARCH parameters detects the crash in $3$--$16$ days---a $10.6\times$ Jensen gain no online estimator attains. Real directional drift is detectable in principle but evanescent in practice; exactly why exact, variance-estimation-free calibration matters more than raw speed.
+
+\paragraph{Escaping the ceiling sideways.} The ceiling is univariate; pooling $K$ correlated streams is a real but small escape (97 surviving US equities, $2005$--$2025$, public adjusted closes---a survivorship-biased panel providing an upper-bound co-movement benchmark; Figure~\ref{fig:cross_section}): sign correlation $\hat\rho \approx 0.26$ saturates the effective panel near $1/\hat\rho \approx 3.8$, the budget contracts by a measured $2\times$ only, and temporal whiteness fails beyond $K = 10$---an independence null reaches ${\sim}100\%$ false alarms by $K = 40$, forcing bootstrap calibration. The pooled monitor still never flags the $2020$ crash: pooling widens the target, it does not move the wall.
+
+\newpage
+
+% ──────────────────────────────────────────────────────────────────
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{articleB_biblio_v69}
+
+\appendix
+
+\section{Reproducibility}\label{app:repro}
+
+\paragraph{Code, data, and provenance.}
+All code, protocol CSVs, and reproduction scripts are available anonymously at \url{https://github.com/TheWhiteningAdvantage-KDD2027/The-Whitening-Advantage-Experiments}. The repository includes all derived CSVs for FirstRate ETFs (redistribution of raw prices restricted), public fetchers for Bitcoin, Ethereum, and 97 equities, and a complete mapping table in \texttt{README.md} linking every figure and number to its generating script and CSV.
+
+\paragraph{Compute and implementation.}
+Experiments ran on an AMD EPYC 8224P CPU (24 cores, 192\,GB RAM), without GPU. Regenerating every figure and number reported here from cached inputs takes ${\approx}1$\,h of wall-clock time, of which ${\approx}25$\,min is the iso-FPR race of Section~\ref{sec:magnitude}; acquiring the public equity panel and cryptocurrency series is a further one-off ${\approx}2$\,h bounded by provider rate limits rather than by computation. The repository also ships a higher-resolution scaling campaign (${\approx}45$\,min) that the paper does not use. Simulations parallelize over seeds via \texttt{joblib} and \texttt{concurrent.futures}; bit-level reproducibility requires single-threaded BLAS, which we enforce and which costs wall-clock time. QMLE recursions and Fern\'andez--Steel skew-$t$ distributions are implemented natively in the repository to avoid third-party package defaults (\texttt{arch}). Regime phases are cut \emph{post-onset}: the return dated at a turning point closes the regime it ends, so consecutive phases partition the return series and no pre-change observation enters a phase's Sharpe. The convention matters: at troughs following a crash the turning-point return is an outlier (e.g.\ $-18.6\%$ on PFF, 2020-03-18) that both depresses the mean and inflates the variance of the phase that follows, biasing its floor upward. Scaling-law campaigns run under two horizons ($H = 2\times10^5$ for Section~\ref{sec:scaling_validation} and $H = 3\times10^6$ for Appendix~\ref{app:scaling}'s boundary test).
+
+\section{Proof of Proposition~\ref{prop:add_garch}}\label{app:garch}
+
+\begin{proof}
+    Under GARCH(1,1) stationarity, $(\varepsilon_t)$ is geometrically $\beta$-mixing~\cite{carrasco_mixing_2002}, hence so is the transformed sequence $(e_t)$ of Eq.~\eqref{eq:monitored}.
+    Under $\mathbb{E}|\varepsilon_t|^{4+\delta} < \infty$, the FCLT for strongly mixing sequences applies~\cite{herrndorf_1984, merlevede_2006}: the partial sums of $\xi_t := e_t - \delta_P$ satisfy an invariance principle with long-run variance $\sigma^2_{\mathrm{LR}} = \Gamma$ (unit marginal variance after standardization), where $\Gamma = 1 + 2\sum_{k=1}^{\infty}\rho_e(k)$ is the normalized spectral density at frequency zero~\cite{newey_west_1987}.
+
+    \emph{Threshold inflation.}
+    In the Brownian approximation, the CUSUM statistic under $H_0$ is a reflected Brownian motion with drift $-\delta_P$ and diffusion coefficient $\sigma^2_{\mathrm{LR}}$, whose expected first-passage time over $\lambda$ is
+    \[
+        \mathrm{ARL}_0(\lambda) = \frac{\sigma^2_{\mathrm{LR}}}{2\delta_P^2}\left( e^{2\delta_P\lambda/\sigma^2_{\mathrm{LR}}} - \frac{2\delta_P\lambda}{\sigma^2_{\mathrm{LR}}} - 1 \right),
+    \]
+    dominated by the exponential term for large $\lambda$~\cite{siegmund_1985, tartakovsky_2014}.
+    Holding $\mathrm{ARL}_0$ fixed when $\sigma^2_{\mathrm{LR}}$ inflates from $1$ to $\Gamma$ requires holding the exponent $2\delta_P\lambda/\sigma^2_{\mathrm{LR}}$ fixed up to logarithmic terms, i.e.\ $\lambda_{\mathrm{GARCH}} = \lambda_{\mathrm{iid}} \times \Gamma$ asymptotically.
+    The neglected polynomial prefactor leaves a finite-$\Gamma$ error that is bounded and one-sided on our grid: against a $5\%$ nominal level, the realized FPR under the rule falls from $2.7\%$ at $\Gamma = 1.2$ to $1.3\%$ at $\Gamma = 200$, monotonically and never in excess (Figure~\ref{fig:fpr_explosion}A).
+    The rule is therefore safe but increasingly costly in power as $\Gamma$ grows---the Lethargy Tax of Section~\ref{sec:universality} in its calibration form.
+
+    \emph{Delay.}
+    Under the alternative, the increments have positive mean $d = \Delta\mu - \delta_P$; by Wald's identity applied to the stopped accumulation (valid to first order for ergodic increments), $\mathbb{E}[S_\tau] = \lambda_{\mathrm{GARCH}} + \mathbb{E}[\mathrm{overshoot}]$, whence
+    \[
+        \mathbb{E}[\mathrm{ADD}] \approx \frac{\lambda_{\mathrm{iid}} \times \Gamma}{d} + \kappa\,,
+    \]
+    with $\kappa$ the overshoot correction~\cite{siegmund_1985}; the delay is thus linear in $\Gamma$ at fixed drift.
+\end{proof}
+
+\section{Proof of Theorem~\ref{thm:scaling}}\label{app:scaling}
+
+\begin{proof}
+    The expected CUSUM increment at step $s$ after drift onset is $\mathbb{E}[\xi_{\tau^*+s}] = \Delta\mu_{\max}\min(s/w, 1) - \delta_P$, which is \emph{negative} for $s < \rho w$: the reflection at zero holds the mean statistic there, and accumulation starts at $s_0 = \rho w$. Integrating from $s_0$ and completing the square,
+    \[
+        S_{\tau^*+s} \approx
+        \begin{cases}
+            \dfrac{\Delta\mu_{\max}}{2w}\,(s-\rho w)^2\,,                                   & s \le w\,, \\[6pt]
+            \dfrac{\Delta\mu_{\max}(1-\rho)^2 w}{2} + (\Delta\mu_{\max}-\delta_P)(s - w)\,, & s > w\,.
+        \end{cases}
+    \]
+    \emph{Ramp regime.}
+    Solving $\frac{\Delta\mu_{\max}}{2w}(s^*-\rho w)^2 = \lambda_{\mathrm{iid}}\Gamma$ gives $s^* = K\sqrt{w\Gamma} + \rho w$; the condition $s^* \le w$ is equivalent to $w \ge w^*(\Gamma) = 2\lambda_{\mathrm{iid}}\Gamma/[\Delta\mu_{\max}(1-\rho)^2]$.
+
+    \emph{Saturated regime.}
+    Otherwise the threshold is crossed after ramp completion: the linear branch gives $s^* = \lambda_{\mathrm{iid}}\Gamma/(\Delta\mu_{\max}-\delta_P) + (1+\rho)w/2$, which is Eq.~\eqref{eq:add_garch} at $w = 0$.
+    Both expressions equal $w^*$ at $w = w^*(\Gamma)$.
+
+    Adding the irreducible overshoot correction $\kappa$~\cite{siegmund_1985} completes the proof.
+
+    \emph{Reading of the dead band.}
+    The tolerance $\delta_P$ is the detector's reference drift: it protects the false-alarm rate by refusing to accumulate anything smaller. Against a ramp, the instantaneous shift enters at zero and must first climb past that floor, so the detector is structurally blind over the first fraction $\rho$ of the ramp and only then begins to integrate. The blind window is $\rho w$---proportional to the drift's own width, not to the threshold, not to $\Gamma$. This is a property of every CUSUM run with a non-zero tolerance, not an artefact of the deterministic approximation, and it inverts the usual intuition about slow drifts: since $K\sqrt{w\Gamma}$ grows as $\sqrt{w}$ while $\rho w$ grows linearly, the dead band overtakes the accumulation term at $w = w^*(\Gamma)(1-\rho)^2/\rho^2$ and dominates beyond it, so
+    \[
+        \mathrm{ADD}_{\mathrm{Data}}(w, \Gamma) \;\sim\; \frac{\delta_P}{\Delta\mu_{\max}}\, w
+        \qquad (w \to \infty)\,,
+    \]
+    a delay linear in the ramp width and \emph{independent of both the GARCH penalty and the threshold}. Arbitrarily slow drifts are therefore not penalized by heteroscedasticity at all; they are penalized by the detector's own tolerance. Our grid reaches $2.5\times$ that turning point, where $\rho w$ already contributes $58\%$ of the predicted delay.
+
+    \emph{Measured domain of validity.}
+    We test Eq.~\eqref{eq:scaling} on five penalties, $\Gamma \in \{2, 4, 8, 11.6, 20\}$, with $w$ swept on a grid held fixed in units of $w^*(\Gamma)$, from deep inside the saturated regime to $22.5\,w^*$, and \emph{all} penalties monitored over one common horizon ($H = 200{,}000$) so that the null crossing probability is identical across $\Gamma$ and the thresholds are comparable in level (censoring $\le 1.3\%$, detection $\ge 98.7\%$ everywhere; realized hold-out false-alarm rate $3.5$--$6.2\%$).
+
+    That design first prices the recalibration rule itself. The empirical null quantile satisfies $\lambda^{\star}(\Gamma)/\Gamma \in [138, 167]$ against $\lambda_{\mathrm{iid}} = 129.5$ measured at the same horizon---the $\lambda_{\mathrm{iid}} \times \Gamma$ rule of Proposition~\ref{prop:add_garch} holding to within $7$--$29\%$ over a tenfold range of $\Gamma$, with the residual on the conservative side.
+
+    Setting $\kappa = 0$, Eq.~\eqref{eq:scaling} then predicts the measured delay with \emph{no} fitted constant to a median error of $5.4\%$ (maximum $27\%$). Dropping the $\rho w$ term---the form in which the deterministic limit is usually stated---leaves a prediction the measurement exceeds by $32\%$ to $141\%$, the gap growing without bound in $w$.
+    The residual is signed and interpretable. On the saturated branch the measurement exceeds the prediction by $\kappa = 9$, $86$, $109$, $133$ and $619$ steps at increasing $\Gamma$: this is the reflection at zero, which invalidates the Wald identity $\mathbb{E}[\tau] = \lambda/\mathbb{E}[\xi]$ under which the deterministic crossing time \emph{is} the expected delay for a free walk. Near the crossover the two agree to $2$--$4\%$; on the far ramp branch ($w > 10\,w^*$) the measurement falls $5$--$11\%$ below, the ordinary first-passage effect of a noisy path crossing ahead of its mean.
+    $\kappa$ is therefore not the $\Gamma$-free constant of Eq.~\eqref{eq:scaling}, and it is not a power law in $\Gamma$ either: at $\Gamma = 20$ the delay's standard deviation reaches $3.2\times$ its mean with $1.3\%$ censoring, so a handful of trajectories out of $400$ that stay tens of thousands of steps below the barrier---low-volatility stretches in which the standardized squared statistic never clears $\delta_P$---account for most of it. We report $\kappa$ as an empirical residual and assert no mechanism.
+    Measuring the median instead separates the two effects: $\mathrm{MED}/\mathrm{ADD}$ falls to $0.68$ at the largest penalties, and the median sits $0$--$18\%$ \emph{below} the deterministic prediction, as the inverse-Gaussian skew of a first-passage law requires. The mean is the right quantity for a detection-delay criterion and the one Eq.~\eqref{eq:scaling} approximates; the mean--median gap measures the volatility-clustering tail, not a failure of the law.
+    Finally, the measured log-log exponent over the ramp branch runs $0.65$--$0.71$, against the $0.71$--$0.73$ that Eq.~\eqref{eq:scaling} itself predicts over this range of $w$: the departure from $1/2$ is the dead band, not a failure of the law. Model curves in Figure~\ref{fig:scale_law}B use the threshold actually applied.
+
+    \emph{Where the recalibration rule stops holding.}
+    A second campaign pushes the horizon to $H = 3\times10^6$ and the grid to $225\,w^*$, deep into the dead-band-dominated regime, and locates the boundary of Proposition~\ref{prop:add_garch} rather than of Eq.~\eqref{eq:scaling}.
+    The scaling law survives intact where the moment hypothesis is comfortable: at $\Gamma \le 4$ it holds to $5.7\%$ with no fitted constant even at that horizon and width, $\rho w$ carrying $78\%$ of the predicted delay and the measured exponents ($0.79$) matching the model to $1\%$.
+    The recalibration rule does not. The empirical null quantile departs from $\lambda_{\mathrm{iid}} \times \Gamma$ by $+3.3\%$ and $+1.1\%$ at $\Gamma = 2$ and $4$, but by $+27\%$, $+43\%$ and $+96\%$ at $\Gamma = 8$, $11.6$ and $20$. The transition is not gradual in $\Gamma$: it coincides with the moment margin $\delta$ of the hypothesis $\mathbb{E}|\varepsilon_t|^{4+\delta} < \infty$ falling below $2$, i.e.\ with the loss of $\mathbb{E}[\varepsilon_t^6]$---the second moment of the \emph{monitored} statistic $\varepsilon_t^2$---which for $\alpha = 0.08$ and standardized $t_7$ innovations occurs at $\Gamma \approx 7.1$. The largest available margin at $\Gamma = 20$ is $\delta \le 0.8$.
+    The underlying effect needs no GARCH at all and is visible at $\Gamma = 1$: over $H = 7.7\times10^4$, $2\times10^5$ and $3\times10^6$ the i.i.d.\ threshold grows as $102.8 \to 129.5 \to 303.0$, i.e.\ as $H^{0.24}$--$H^{0.31}$ rather than the $\log H$ of Siegmund's $\mathrm{ARL}_0$ formula, whose Cram\'er condition squared innovations do not satisfy. Volatility persistence lowers the tail index further, which is why the error grows with $\Gamma$.
+    Two consequences. First, Proposition~\ref{prop:add_garch} is an asymptotic recipe whose accuracy is governed jointly by the horizon and by the moment margin; we report the main grid at $H = 2\times10^5$, inside the regime where it holds to $29\%$, and state the degradation rather than selecting a horizon that hides it. Second, the fair-coin null of Proposition~\ref{prop:whitening} carries \emph{no} moment condition, so no analogue of this boundary exists on the \textsc{Concept} side---an independent reason, beyond the anytime-validity of Section~\ref{sec:whitening}, to prefer a monitor whose null law does not have to be re-derived for each horizon.
+\end{proof}
+
+\section{Proof of Proposition~\ref{prop:whitening}}\label{app:whitening}
+
+\begin{proof}
+    Fix $t$ and condition on $\mathcal{F}_{t-1}$.
+    Since $\sigma_t > 0$ is $\mathcal{F}_{t-1}$-measurable and $z_t$ is independent of $\mathcal{F}_{t-1}$ with a continuous distribution symmetric about zero,
+    \[
+        \mathbb{P}(y_t = 1 \mid \mathcal{F}_{t-1}) = \mathbb{P}(\sigma_t z_t > 0 \mid \mathcal{F}_{t-1}) = \mathbb{P}(z_t > 0) = \tfrac{1}{2}\,.
+    \]
+    The prediction $\widehat{y}_t$ is $\mathcal{F}_{t-1}$-measurable, hence
+    \[
+        \mathbb{P}(e^{\mathrm{bin}}_t = 1 \mid \mathcal{F}_{t-1})
+        = \widehat{y}_t\,\mathbb{P}(y_t = 0 \mid \mathcal{F}_{t-1}) + (1-\widehat{y}_t)\,\mathbb{P}(y_t = 1 \mid \mathcal{F}_{t-1})
+        = \tfrac{1}{2}\,.
+    \]
+    The conditional law of $e^{\mathrm{bin}}_t$ given $\mathcal{F}_{t-1}$ is thus the fixed Bernoulli$(1/2)$ law, independent of the past.
+    Since $(e^{\mathrm{bin}}_1, \dots, e^{\mathrm{bin}}_{t-1})$ is $\mathcal{F}_{t-1}$-measurable, $e^{\mathrm{bin}}_t$ is independent of $(e^{\mathrm{bin}}_1, \dots, e^{\mathrm{bin}}_{t-1})$ with a constant marginal.
+    By induction, $(e^{\mathrm{bin}}_t)$ is i.i.d.\ Bernoulli$(1/2)$.
+\end{proof}
+
+\section{Sharpe--KL Conversion for Corollary~\ref{cor:sharpe_ceiling}}\label{app:sharpekl}
+For daily Gaussian returns, $\mathrm{KL}\big(\mathcal{N}(\mu,\sigma^2)\,\|\,\mathcal{N}(0,\sigma^2)\big) = \mu^2/(2\sigma^2) = \mathrm{SR}_{\mathrm{daily}}^2/2 = \mathrm{SR}^2/504$, since $\mathrm{SR} = \sqrt{252}\,\mathrm{SR}_{\mathrm{daily}}$. The lower bound $\mathrm{ADD}_{\min} \ge \ln(\gamma)/\mathrm{KL}\,(1+o(1))$ is the first-order information bound of quickest detection~\cite{tartakovsky_2014}; the Pitman efficiency used in Proposition~\ref{prop:are} is classical~\cite{vandervaart_1998}.
+
+\section{Supplementary Figures}\label{app:figures}
+\FloatBarrier % Keeps appendix F floats from drifting back onto page 11
+
+This appendix collects the figures supporting the robustness and detector-generalization results whose quantitative conclusions are stated in the main text.
+
+\begin{figure*}[t]
+    \centering
+    \scalebox{1}[1.33]{\includegraphics[width=\textwidth]{Fig21_SPY_InTheWild.png}}
+    \Description{Real-world backtest showing Concept pipeline immunity to COVID-19 volatility and massive ADD superiority on semi-real injections.}
+    \caption{\textbf{Real-world validation on ETF streams} (FirstRate Data, SPY). \textbf{(A)} Normalized CUSUM $S_t/\lambda$ through the 2020 crash: \textsc{Data} is throttled by its $\Gamma$-inflated threshold (Lethargy Tax); \textsc{Concept} exhausts its budget on a crash too brief to afford. \textbf{(B)} Directional injection ($1.5\sigma_{\mathrm{unc}}$, 2021--2023) with placebo control: squared sensor is weak and placebo-confounded, while sign filter achieves $100\%$ detection (ADD $36.6$--$64.6$ days).}
+    \label{fig:real_world}
+\end{figure*}
+
+\begin{figure*}[t]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \scalebox{1}[1.33]{\includegraphics[width=\linewidth]{Fig4_FPR_Explosion_CUSUM.png}}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \scalebox{1}[1.33]{\includegraphics[width=\linewidth]{Fig5_FPR_Explosion_ADWIN.png}}
+    \end{minipage}
+    \Description{False positive rate explosion for StrictCUSUM and ADWIN under varying GARCH penalty factors, with detector-dependent recalibrations.}
+    \caption{\textbf{The FPR explosion and its detector-dependent cure} ($H_0$ GARCH streams, \textsc{Data} statistic). \textbf{(A)} StrictCUSUM: uncalibrated FPR explodes above $80\%$; $\lambda \times \sqrt{\Gamma}$ plateaus near $30\%$; the full $\lambda \times \Gamma$ inflation holds the nominal $5\%$. \textbf{(B)} ADWIN: the window-mean cut scales with the standard deviation, so $\epsilon_{\mathrm{cut}} \times \sqrt{\Gamma}$ contains the FPR within ${\approx}2.5\times$ nominal.}
+    \label{fig:fpr_explosion}
+\end{figure*}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{Fig22_IsoFPR_Race.png}
+    \Description{Iso-FPR detection delay versus drift magnitude, and relative efficiency versus Student-t degrees of freedom.}
+    \caption{\textbf{Iso-FPR race and relative efficiency} (all arms calibrated to $5\%$ FPR by bisection, $2{,}000$ null streams). \textbf{(A)} Delay vs.\ drift magnitude $c$ at $\Gamma \approx 11.6$: the squared sensor is $2$--$19\times$ slower and collapses below $c \approx 0.5$. \textbf{(B)} $\mathrm{ADD}_{\mathrm{Concept}}/\mathrm{ADD}_{\mathrm{Eco\text{-}L1}}$ vs.\ $\nu$: the ratio matches the predicted crossover of $1/(4f_z(0)^2)$, crossing unity at a measured $\nu^{\star} \approx 4.9$ (analytic $4.7$ for the exactly standardized ideal), below which the sign filter overtakes parametric standardization.}
+    \label{fig:isofpr}
+\end{figure*}
+
+\begin{figure*}[p]
+    \centering
+    \includegraphics[width=\textwidth]{Fig8_Scale_Law_Orthogonality_2e5.png}
+    \Description{Detection delay of the squared-residual monitor under scale drift: linear in the GARCH penalty for an abrupt shift, and following a square-root-of-width law for a gradual shift, while the sign monitor is blind throughout.}
+    \caption{\textbf{Scale-monitoring law and location/scale orthogonality} ($5\%$ false alarms per $\Gamma$, $400$ seeds; error bars = SEM). \textbf{(A)} Abrupt scale shift: \textsc{Data} delay is linear in $\Gamma$ ($\mathrm{ADD} \approx 23.7\,\Gamma + 38$). \textbf{(B)} Gradual ramps across five penalties $\Gamma \in \{2, \dots, 20\}$ up to $w = 22.5\,w^*(\Gamma)$. Solid lines show Theorem~\ref{thm:scaling} (Eq.~\eqref{eq:scaling}) with no fitted constant; dotted verticals mark the crossover $w^*(\Gamma)$. Filled markers: mean delay; crosses: median. In both panels, the sign monitor remains blind to scale drifts (detection rate $=$ false-alarm rate, Prop.~\ref{prop:orthogonality}).}
+    \label{fig:scale_law}
+\end{figure*}
+
+\begin{figure*}[p]
+    \centering
+    \includegraphics[width=\textwidth]{Fig11_Whitening_Boundary.png}
+    \Description{Empirical validity map of the concept-drift whitening property under different boundaries.}
+    \caption{\textbf{Empirical validity map of the whitening property} ($100$ streams per configuration). \textbf{(A)} $\Gamma$-insensitivity holds past the loss of the fourth moment ($\Gamma \approx 41.6$). \textbf{(B)} Shifted threshold ($c>0$) or continuous MSE loss breaks whitening, mapping the boundaries of Remark~\ref{rem:scope}.}
+    \label{fig:validity_map}
+\end{figure*}
+
+\begin{figure*}[p]
+    \centering
+    \includegraphics[width=\textwidth]{Fig25_Estimated_Mean_Robustness.png}
+    \Description{Whiteness and false-alarm rate of the recentered sign stream when the conditional mean is estimated by rolling OLS, across AR(1) momentum strengths and window lengths.}
+    \caption{\textbf{Whitening under an estimated conditional mean} ($10{,}000$ paired AR(1)-GARCH trajectories per $\phi$, horizon $H = 5{,}000$; error bars = Wilson intervals). \textbf{(A)} Ljung--Box rejection of the sign stream vs.\ momentum $\phi$. \textbf{(B)} \textsc{Concept} FPR at threshold $\lambda^{\star} = 11.4$ (exact lattice level $4.29\%$, $5.03\%$ at $\lambda = 11.2$; shaded band = the two attainable levels bracketing $5\%$). Naive recentering ($\hat{\mu}_t = 0$) degrades rapidly (FPR reaching $20.8\%$ at $\phi = 0.15$), while all rolling-OLS arms ($n \in [125, 1000]$) match oracle false-alarm control. Calibration depends on estimator \emph{bias}, not dispersion.}
+    \label{fig:estmean}
+\end{figure*}
+
+\begin{figure*}[p]
+    \centering
+    \includegraphics[width=\textwidth]{Fig26_Adverse_Bias_and_Lattice.png}
+    \Description{Effect of a deliberately injected recentering bias on the whiteness and the false-alarm rate of the sign stream, and the discrete null law of the sign-CUSUM.}
+    \caption{\textbf{The adverse direction and discrete null law} ($10{,}000$ trajectories/point for A--B; $2 \times 10^5$ fair-coin streams for C). \textbf{(A)} Ljung--Box rejection: injected over-centering bias $b$ and naive under-centering at $\phi = b$ yield identical whiteness loss ($|\mathrm{Cov}(y_t, y_{t+k})|$ response). \textbf{(B)} False-alarm rate: over-centering induces negative autocorrelation (FPR collapses to $0.86\%$), whereas under-centering induces positive autocorrelation (FPR inflates to $20.8\%$). \textbf{(C)} Survival function of $M_H$ under $H_0$: step function on multiples of $2\delta$ with the two levels bracketing $5\%$ marked.}
+    \label{fig:adverse}
+\end{figure*}
+
+\begin{figure*}[p]
+    \centering
+    \includegraphics[width=\textwidth]{Fig27_Eprocess_AnytimeValid.png}
+    \Description{Anytime-valid detection on the sign stream: false-alarm rate under three monitoring rules, detection delay versus drift, and average run length versus level.}
+    \caption{\textbf{Anytime-valid detection on the fair-coin stream} ($2\times10^4$ streams per cell). \textbf{(A)} Realized false-alarm rate under continuous monitoring (peeking over $[1, 4H]$): fixed-horizon CUSUM climbs to $18\%$, whereas the mixture martingale (MIX) remains bounded by $\alpha$. \textbf{(B)} Detection delay vs.\ drift $\eta$ ($\alpha=0.05$): MIX matches CUSUM speed for moderate drifts ($\eta \le 0.10$). \textbf{(C)} Average run length vs.\ $\alpha$: e-CUSUM satisfies $\mathrm{ARL}_0 \ge 1/\alpha$. Only MIX controls the time-uniform false-alarm probability.}
+    \label{fig:anytime}
+\end{figure*}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{Fig14_Skew_Robustness.png}
+    \Description{Sensitivity of sign-task whitening to conditional asymmetry showing robustness.}
+    \caption{\textbf{Sensitivity to conditional asymmetry} ($1{,}000$ streams per point). \textbf{(A)} Conditional whiteness is preserved across extreme skewness. \textbf{(B)} Asymmetry shifts the marginal rate; recentering on warm-up estimate $\hat{q}$ restores false-alarm control (measured FPR $1.0$--$1.8\%$).}
+    \label{fig:skew_robustness}
+\end{figure*}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{Fig20_Data_vs_Concept_ADD.png}
+    \Description{Detection delay versus GARCH penalty for three detectors on the raw Data stream versus the whitened Concept stream.}
+    \caption{\textbf{The Lethargy Tax vs.\ GARCH immunity} (abrupt drift $c=2$, $1{,}000$ streams per point). \textbf{(A)} Raw \textsc{Data}: the recalibrated delay grows with $\Gamma$ at each detector's own recalibration exponent; PHT collapses near $\Gamma \approx 75$ (stochastic syncope). \textbf{(B)} Whitened \textsc{Concept}: flat delays for all detectors.}
+    \label{fig:data_vs_concept}
+\end{figure*}
+
+\begin{figure*}[t]
+    \centering
+    \begin{minipage}[t]{0.46\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Fig15_Robustness_Leverage.png}
+        \Description{False positive rates showcasing robustness to volatility misspecification under leverage.}
+        \caption{\textbf{Robustness to volatility misspecification} ($10{,}000$ streams/point, pseudo-Gaussian innovations). Symmetric GARCH standardization on GJR-GARCH leverage inflates the baseline's Ljung--Box rejection ($5.1\%\to24.6\%$) and drives its FPR from $3.2\%$ to $20.6\%$; the sign pipeline holds a leverage-invariant false-alarm rate ($7.6$--$8.4\%$ at its fixed threshold), its null law is Bernoulli$(1/2)$ (Corollary~\ref{cor:universal}).}
+        \label{fig:leverage}
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.46\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Fig16_Robustness_FatTails.png}
+        \Description{Detection delay versus moment singularity showing stochastic syncope in Data pipeline.}
+        \caption{\textbf{Detection delay vs.\ moment singularity} ($1{,}000$ streams/point). As $\nu \to 4$, the \textsc{Data} pipeline collapses (detection $<50\%$) due to divergent sample variance, whereas \textsc{Concept} delay remains flat.}
+        \label{fig:fat_tails}
+    \end{minipage}
+\end{figure*}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.92\textwidth]{Fig24_Oracle_Frontier.png}
+    \Description{Empirical oracle detectability frontier showing realized delay versus false-alarm rate under a frozen-volatility null.}
+    \caption{\textbf{Empirical oracle detectability frontier} (look-ahead GARCH parameters, causal filtration): realized delay $\tau$ vs.\ bootstrap $\mathrm{FPR}_H$ under a frozen-volatility null, for the likelihood-ratio CUSUM and the standardized-mean CUSUM ($\delta = 0$ and $\delta_{\mathrm{opt}}$). Dotted line: phase end ($T$). The 2020 crash is detected well before $T$ at sub-percent false alarms; the 2011 correction is not detected at either setting.}
+    \label{fig:oracle_frontier}
+\end{figure*}
+
+\begin{table}[h]
+    \caption{Iso-FPR race under a location drift ($\Gamma \approx 11.6$, standardized Student-$t_{30}$ innovations, all arms calibrated to 5\% FPR, 2,000 streams). ADD in steps; DetRate in parentheses when below 1.}
+    \label{tab:isofpr_race}
+    \small
+    \begin{tabular}{lrrr}
+        \toprule
+        $c$    & \textsc{Recalib} ($(\varepsilon/\hat\sigma)^2$) & \textsc{Eco-L1} ($\varepsilon/\hat\sigma$) & \textsc{Concept} (sign) \\
+        \midrule
+        $0.25$ & $2293$ \; $(0.19)$                              & $389$                                      & $460$                   \\
+        $0.50$ & $1337$ \; $(0.89)$                              & $72.0$                                     & $101$                   \\
+        $1.00$ & $203$                                           & $26.4$                                     & $43.8$                  \\
+        $2.00$ & $55.9$                                          & $12.6$                                     & $28.9$                  \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\FloatBarrier % Keeps the final figures (15, 16, 17) separated
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{Fig18_Multi_Detector.png}
+    \Description{Multi-detector generalization: the Page-Hinkley explosion and cure mirror the CUSUM, and whitened delays are flat for CUSUM, PHT, ADWIN, and DDM.}
+    \caption{\textbf{Multi-detector generalization.} \textbf{(A)} The Page--Hinkley Test is cumulative like the CUSUM: same FPR explosion, same $\lambda \times \Gamma$ cure, same ${\approx}30\%$ plateau under $\sqrt{\Gamma}$. \textbf{(B)} Universality of the whitening filter ($c=1.5$): flat delays across CUSUM ($\approx 28.3$), PHT ($\approx 27.1$), ADWIN ($\approx 61$), DDM ($\approx 250$); EDDM's flat curve is a noise artifact of its incompatibility with maximum-entropy streams.}
+    \label{fig:multi_detector}
+\end{figure*}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{Fig28_Crypto_HeavyTail_Race.png}
+    \Description{Iso-FPR detection delay versus drift magnitude on real Bitcoin and a quasi-Gaussian synthetic control, for the sign filter and the standardized-residual monitor.}
+    \caption{\textbf{Efficiency reversal on real Bitcoin} (iso-FPR $4.7\%$ on real placebo windows, $106$ monthly onsets; hollow markers are unreliable points, $\mathrm{DetRate} < 0.9$). \textbf{(A)} Daily BTC ($\hat{\nu} = 2.78$): the sign filter (\textsc{Concept}) leads the honestly standardized residual (\textsc{Eco-L1}) across the reliable range, converging to parity at $c = 1.5$. \textbf{(B)} A quasi-Gaussian $t_{30}$ control on the same onsets inverts the ordering, reproducing the light-tailed Pitman penalty of Figure~\ref{fig:isofpr}B on real machinery.}
+    \label{fig:crypto_race}
+\end{figure*}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{Fig30_RealCrossSectional_Escape_UPDATED.png}
+    \Description{False-alarm rate and detection-budget reduction versus panel size for a cross-sectional sign monitor on a real US equity panel, comparing an independence calibration with a real-window bootstrap.}
+    \caption{\textbf{Cross-sectional escape on a real equity panel} ($97$ surviving US equities, $2005$--$2025$, upper-bound co-movement benchmark). \textbf{(A)} An independence calibration lets false alarms climb toward $100\%$ by ignoring sign correlation ($\hat\rho \approx 0.26$), whereas a real-window bootstrap holds the nominal $5\%$ level ($4.8$--$6.4\%$). \textbf{(B)} Realized budget reduction plateaus near $2\times$ ($K \ge 20$), bounded by the effective panel size $K_{\mathrm{eff}} \approx 1/\hat\rho \approx 3.8$. Point-to-point scatter reflects threshold variations across panel compositions ($r \ge 0.99$ with bootstrap threshold).}
+    \label{fig:cross_section}
+\end{figure*}
+
+\end{document}

@@ -1,0 +1,5 @@
+E2 / J1 summary  (seed 20261018, reps 2000, 75 s)
+cells passing the J1 rule: 46/46
+largest calendar deviation: S1/oracle D=1 SR=4.0 gamma=20 delay ratio=1.118 (gated on the information clock)
+H0 sign streams: mean=0.4998 acf1=+0.0002 cross=-0.0009 (se 0.0010); acf1 of squares=+0.067
+J1: PASS
