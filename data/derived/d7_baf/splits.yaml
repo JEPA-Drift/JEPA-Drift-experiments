@@ -1,0 +1,18 @@
+dataset: d7_baf
+convention: fit months 0-2, calib month 3, monitor months 4-7; no embargo (native
+  drift in a synthetic dataset)
+segments:
+  fit:
+    months:
+    - 0
+    - 1
+    - 2
+  calib:
+    months:
+    - 3
+  monitor:
+    months:
+    - 4
+    - 5
+    - 6
+    - 7

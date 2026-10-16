@@ -8,3 +8,4 @@ pytest
 pyflakes
 pyyaml
 yfinance
+kaggle==1.6.17

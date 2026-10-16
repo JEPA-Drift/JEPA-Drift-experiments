@@ -1,0 +1,173 @@
+{
+  "fit_months": [
+    0,
+    1,
+    2
+  ],
+  "numeric": {
+    "income": {
+      "mean": 0.5208072758595503,
+      "std": 0.29286337471744667
+    },
+    "name_email_similarity": {
+      "mean": 0.5143203118921372,
+      "std": 0.28673296303584966
+    },
+    "prev_address_months_count": {
+      "mean": 16.75235430272593,
+      "std": 44.058471784241945
+    },
+    "current_address_months_count": {
+      "mean": 88.5410148625198,
+      "std": 91.80571985736393
+    },
+    "customer_age": {
+      "mean": 33.44845216716746,
+      "std": 12.16061314480006
+    },
+    "days_since_request": {
+      "mean": 1.194997145069601,
+      "std": 5.334242898737822
+    },
+    "intended_balcon_amount": {
+      "mean": 9.254469680200732,
+      "std": 20.251430635894955
+    },
+    "zip_count_4w": {
+      "mean": 1853.4169791884424,
+      "std": 1153.6801543917406
+    },
+    "velocity_6h": {
+      "mean": 6903.92500203522,
+      "std": 3159.1477437277113
+    },
+    "velocity_24h": {
+      "mean": 5570.71212635677,
+      "std": 1351.2613376930544
+    },
+    "velocity_4w": {
+      "mean": 5645.671850867256,
+      "std": 630.2311684859613
+    },
+    "bank_branch_count_8w": {
+      "mean": 191.78963023783558,
+      "std": 462.9687757356496
+    },
+    "date_of_birth_distinct_emails_4w": {
+      "mean": 10.709935296028853,
+      "std": 5.496431887989403
+    },
+    "credit_risk_score": {
+      "mean": 112.61818612277384,
+      "std": 72.45603591168347
+    },
+    "email_is_free": {
+      "mean": 0.5620455421255847,
+      "std": 0.4961360404859464
+    },
+    "bank_months_count": {
+      "mean": 11.094650651447338,
+      "std": 12.088673410891749
+    },
+    "proposed_credit_limit": {
+      "mean": 521.1626313787814,
+      "std": 515.4464064809976
+    },
+    "session_length_in_minutes": {
+      "mean": 8.393079011227828,
+      "std": 8.648660841243053
+    },
+    "device_distinct_emails_8w": {
+      "mean": 1.0312966736265203,
+      "std": 0.2205857700090543
+    },
+    "device_fraud_count": {
+      "mean": 0.0,
+      "std": 1.0
+    },
+    "phone_home_valid": {
+      "mean": 0.3979835734021091,
+      "std": 0.48948263723483326
+    },
+    "phone_mobile_valid": {
+      "mean": 0.8764730920640038,
+      "std": 0.32904146188749483
+    },
+    "has_other_cards": {
+      "mean": 0.18450832285997093,
+      "std": 0.38789867314047305
+    },
+    "foreign_request": {
+      "mean": 0.027604341135253715,
+      "std": 0.16383653161679773
+    },
+    "keep_alive_session": {
+      "mean": 0.6090258135850635,
+      "std": 0.4879692323256704
+    }
+  },
+  "categorical": {
+    "payment_type": {
+      "vocab": [
+        "AA",
+        "AB",
+        "AC",
+        "AD",
+        "AE"
+      ],
+      "unknown_code": -1
+    },
+    "employment_status": {
+      "vocab": [
+        "CA",
+        "CB",
+        "CC",
+        "CD",
+        "CE",
+        "CF",
+        "CG"
+      ],
+      "unknown_code": -1
+    },
+    "housing_status": {
+      "vocab": [
+        "BA",
+        "BB",
+        "BC",
+        "BD",
+        "BE",
+        "BF",
+        "BG"
+      ],
+      "unknown_code": -1
+    },
+    "source": {
+      "vocab": [
+        "INTERNET",
+        "TELEAPP"
+      ],
+      "unknown_code": -1
+    },
+    "device_os": {
+      "vocab": [
+        "linux",
+        "macintosh",
+        "other",
+        "windows",
+        "x11"
+      ],
+      "unknown_code": -1
+    }
+  },
+  "sentinels": {
+    "description": "Les valeurs -1 dans les attributs listes sont des sentinelles documentees dans la fiche BAF (missing/not applicable). Elles sont standardisees comme les autres valeurs (z-score) ; apres pretraitement, elles ne sont plus egales a -1.",
+    "columns": [
+      "prev_address_months_count",
+      "current_address_months_count",
+      "credit_risk_score",
+      "bank_months_count",
+      "session_length_in_minutes",
+      "device_distinct_emails_8w"
+    ]
+  }
+}

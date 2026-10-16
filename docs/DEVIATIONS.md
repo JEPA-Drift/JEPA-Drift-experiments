@@ -248,3 +248,12 @@ non finie déclenche une `ValueError`. Sur `d3_239`, les lignes 0–1255 (2000�
 et la ligne 0 n'a pas de rendement : `Z_odd` compte 5482 lignes, datées par `dates`, et le JSON déclare
 `rows = [1256, 6738]`. Sur `d2_us97`, les 5154 lignes sont transformées. `d3_500` (13 % de NaN) n'est pas proposé
 par la CLI : l'appelant y choisit un sous-panel complet.
+
+## C-BAF-synthetic — dérive native d'un jeu synthétique (2026-10-16)
+
+Le jeu D7 (BAF — Bank Account Fraud, Jesus et al., NeurIPS 2022 Datasets and Benchmarks) est
+un jeu **synthétique** : les demandes d'ouverture de compte sont générées à partir de données
+réelles, mais le jeu lui-même est artificiel. La dérive observée (augmentation du taux de
+fraude de 0,87 % au mois 2 à 1,47 % au mois 7) est une **dérive native d'un jeu synthétique**.
+Ne jamais décrire cette dérive comme « in-the-wild » ou « réelle » : les données sont
+synthétiques, générées par un processus connu des auteurs du jeu.

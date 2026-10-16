@@ -234,6 +234,30 @@
           "sha256": "305ca75be587315940cc71f1ac204f5bba6909194a0422a76dfe30cebe0441c6"
         }
       ]
+    },
+    "d7_baf": {
+      "inputs": [
+        {
+          "path": "data/raw/baf/Base.csv",
+          "sha256": "7bf10a37ce07e72e14c1b09e5efee3d27261baff4facc7da767b0474dcf9b809",
+          "rows": 1000000
+        }
+      ],
+      "outputs": [
+        {
+          "path": "data/derived/d7_baf/base.parquet",
+          "sha256": "c8dd174a281694a9419b1bc9739557e16d93ed58891ebda1233b0f3440f064bc",
+          "rows": 1000000
+        },
+        {
+          "path": "data/derived/d7_baf/splits.yaml",
+          "sha256": "a392d7d90089ba1692f74e52590e587576be95adb7d7bb2b19cdfb481d8ae3f2"
+        },
+        {
+          "path": "data/derived/d7_baf/preproc.json",
+          "sha256": "1fbd71a759e74ff3d9849487428e40794b6d2910602e210300b2517a83dde7f5"
+        }
+      ]
     }
   },
   "results": {
@@ -246,6 +270,11 @@
       "path": "results/data/d3_profile.csv",
       "sha256": "b19b902132c418836c0b3a04dcf2460f859f9a7648dcefba60549adad4f4ef7b",
       "rows": 7
+    },
+    "baf_profile": {
+      "path": "results/data/baf_profile.csv",
+      "sha256": "0d683ec88664e0c1a56be666a6d39a4e6ec8b1e2b11355f3d2a039fdb31898db",
+      "rows": 8
     }
   },
   "sources": {
@@ -265,6 +294,13 @@
       "tickers_requested": 503,
       "tickers_downloaded": 503,
       "tickers_failed": 0
+    },
+    "d7_baf": {
+      "kaggle_dataset": "sgpjesus/bank-account-fraud-dataset-neurips-2022",
+      "kaggle_api": "1.6.17",
+      "license": "CC BY 4.0 (see Kaggle dataset page)",
+      "variants_checked": 6,
+      "variant_converted": "Base"
     }
   }
 }
