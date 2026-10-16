@@ -12,3 +12,10 @@ def ledoit_wolf(X):
     b2 = (np.sum((Xc.T ** 2) @ (Xc ** 2)) / n - np.sum(S ** 2)) / n
     shrinkage = 0.0 if d2 == 0 else float(min(b2, d2) / d2)
     return (1.0 - shrinkage) * S + shrinkage * mu * np.eye(p), shrinkage
+
+
+def eigh_desc(sigma):
+    """Eigen-pairs of a symmetric matrix by decreasing eigenvalue, each eigenvector signed to a nonnegative sum."""
+    eigval, eigvec = np.linalg.eigh(sigma)
+    eigval, eigvec = eigval[::-1].copy(), eigvec[:, ::-1]
+    return eigval, eigvec * np.where(eigvec.sum(axis=0) < 0, -1.0, 1.0)

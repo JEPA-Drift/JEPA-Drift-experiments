@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 
 from jepadrift import floors as fl
-from jepadrift.stats.covariance import ledoit_wolf
+from jepadrift.stats.covariance import eigh_desc, ledoit_wolf
 
 FAMILIES = ("F1", "F2", "F3", "F4-deform", "F4-rotate")
 SR_ASSET_B = 1.0
@@ -38,9 +38,7 @@ def fit_background(X_calib, K):
     N = sigma.shape[0]
     if not 1 <= K <= N - 1:
         raise ValueError(f"K must lie in [1, {N - 1}], got {K}")
-    eigval, eigvec = np.linalg.eigh(sigma)
-    eigval, eigvec = eigval[::-1].copy(), eigvec[:, ::-1]
-    eigvec = eigvec * np.where(eigvec.sum(axis=0) < 0, -1.0, 1.0)
+    eigval, eigvec = eigh_desc(sigma)
     B = eigvec[:, :K] * np.sqrt(eigval[:K])
     psi = np.diag(sigma) - np.sum(B ** 2, axis=1)
     if psi.min() <= 0:

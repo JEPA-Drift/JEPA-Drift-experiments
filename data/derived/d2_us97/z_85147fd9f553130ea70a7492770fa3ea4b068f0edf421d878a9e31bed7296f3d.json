@@ -1,0 +1,75 @@
+{
+  "channels": {
+    "market": [
+      0
+    ],
+    "residual": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "config": {
+    "K": "mp",
+    "mode": "factor",
+    "shrinkage": "ledoit_wolf"
+  },
+  "dataset": "d2_us97",
+  "dates": [
+    "2005-01-04",
+    "2025-06-30"
+  ],
+  "fit": {
+    "c_sha256": null,
+    "days": 941,
+    "first_day": "2016-04-07",
+    "last_day": "2019-12-31",
+    "x_sha256": "65a3ac89070c97e84d2808cf6e791e7942305197e0aee0660c8161d055521530"
+  },
+  "fit_segment": "calib",
+  "heads": {
+    "z_even": {
+      "definition": "z_odd ** 2",
+      "degree": 2,
+      "dim": 6,
+      "parity": "even"
+    },
+    "z_odd": {
+      "definition": "x @ W, W = V_sel diag(eigval_sel)^(-1/2)",
+      "degree": 1,
+      "dim": 6,
+      "parity": "odd"
+    }
+  },
+  "interface": "Z-1",
+  "n_assets": 97,
+  "normalization": {
+    "K": 5,
+    "eigval": [
+      0.006896813830479569,
+      0.0014880441341791866,
+      0.001123081711266451,
+      0.0008954579837032,
+      0.0005548766263683386,
+      0.0005300294917272274
+    ],
+    "mp_edge": 1.7452090047873516,
+    "n_above_edge": 6,
+    "shrinkage": 0.01919366605532097,
+    "trace": 0.020823987564483122
+  },
+  "odd_head": true,
+  "representation": "PCAOrthogonal",
+  "rows": [
+    0,
+    5154
+  ],
+  "state_sha256": "85147fd9f553130ea70a7492770fa3ea4b068f0edf421d878a9e31bed7296f3d",
+  "x_sha256": "c99e3807f688b2f170e2ffc72abb53dcf9e510a37b7173e941d8d965382846ba",
+  "z_sha256": {
+    "Z_even": "32acd50db0ee3a9ce1ac016cc74ae8787254cd19890f9d4e4acdf0febf77ea3f",
+    "Z_odd": "5be33a0621184602ab99fec4859786e83a4e07dde04cd74092d0eef8a5d72109"
+  }
+}

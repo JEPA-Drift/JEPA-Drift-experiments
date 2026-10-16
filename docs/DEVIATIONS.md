@@ -203,3 +203,48 @@ contrôle porte désormais sur des données anisotropes (shrinkage < 0,05), et l
 sert à vérifier l'écrêtage à 1 de la formule de référence. Correction apportée par l'instance du
 stream 05 (règles tranchées 4 et 5 de `prompts/wrapups/wrapup-05.md`), revérifiée numériquement lors
 du pass de fix post-stream.
+
+## C-repr-mp-K — K au bord de Marčenko–Pastur (2026-10-16)
+
+Le prompt 06 fixe K « au bord de Marčenko–Pastur λ₊ = σ²(1 + √(N/T))² sur la corrélation ». Lecture retenue
+(confirmée au GO, H1) : σ² = 1, trace/N d'une matrice de corrélation ; n₊ = nombre de valeurs propres de la
+corrélation empirique de la calib au-dessus de λ₊, PC1 compris ; K = n₊ − 1, car PC1 est le canal marché et le
+résiduel factoriel est PC2..PC(K+1). Sur les fenêtres de calib : K = 5 pour `d2_us97` (N/T = 0,1031,
+λ₊ = 1,7452, six valeurs au-dessus) et K = 10 pour `d3_239` (N/T = 0,254, λ₊ = 2,2619, onze valeurs au-dessus),
+soit les « marché plus dix facteurs » du prompt 18. La variante σ² = 1 − λ₁/N [Laloux et al., 2000], qui retire
+le mode de marché de la variance de bruit, donnerait K = 9 (λ₊ = 1,1752) et K = 15 (λ₊ = 1,6256) ; elle n'est pas
+retenue. K ≤ 0 déclenche une `ValueError` (sondes 2 et 8 de `prompts/plans/plan-06.md`).
+
+## C-repr-whiten-lw — blanchiment par la covariance Ledoit–Wolf (2026-10-16)
+
+Le prompt 06 demande des sorties « blanchies » et propose `shrinkage="ledoit_wolf"|None`. Défaut retenu (GO, H2) :
+blanchiment par Σ̂_LW de la calib, la covariance de l'injecteur (`injection.fit_background`). Pour toute dérive δ,
+en mode full, ½‖z(δ)‖² = ½δᵀΣ̂⁻¹δ, l'information journalière visée par `inject` (écart relatif 1,7e-16 sur la
+calib de `d3_239`, sonde 5). Contrepartie : la variance de calib de chaque coordonnée vaut λ_S/λ_LW, entre 0,49 et
+1,03 sur `d3_239`, et non 1 ; avec `shrinkage=None`, elle vaut 1 exactement.
+
+## C-repr-layout — disposition des colonnes de l'ACP et règle tail10 (2026-10-16)
+
+La colonne 0 de `z_odd` est le canal marché v₁ᵀx/√λ₁ dans les trois modes de `PCAOrthogonal`, y compris
+« tail10 », et `channels` déclare la disposition (GO, H3) : PC1 n'est jamais écarté en silence (AGENTS.md), et
+P3-KF lit le seul bloc résiduel. Pas de centrage : un décalage constant rendrait la transformation affine, donc non
+impaire. « tail10 » (GO, H4) : m = plus grand nombre de dernières composantes dont la somme des valeurs propres
+reste ≤ 10 % de tr Σ̂, sur les valeurs propres de la Σ̂ utilisée (Ledoit–Wolf par défaut) ; m = 46 sur `d2_us97`
+et 123 sur `d3_239` (48 et 130 avec les valeurs propres empiriques, sonde 4).
+
+## C-repr-even-heads — têtes paires (2026-10-16)
+
+Le prompt définit la tête paire de l'ACP (carrés des coordonnées blanchies), pas celles des représentations de
+degré 0. Décision (GO, H5) : z_even = z_odd² pour `PCAOrthogonal` et `CenteredRanks` ; z_even = [‖Px‖] pour
+`DegreeZero`, une tête paire homogène de degré 1. Motifs : la mise prévisible de P3-CS (b) (prompt 07) lit
+σ̂ = moyenne exponentielle de ‖Px_{t−1}‖, que Z fournit alors ; en mode full, Σ z_k² = 1, et les carrés de
+`DegreeZero` seraient dégénérés.
+
+## C-repr-rows — lignes extraites (2026-10-16)
+
+Le prompt décrit `Z_odd` comme une matrice T × D. Décision (GO, H7) : la représentation est ajustée sur les lignes
+de calib de `splits.yaml` et transforme les lignes allant du premier jour de pretrain à la fin du panel ; une valeur
+non finie déclenche une `ValueError`. Sur `d3_239`, les lignes 0–1255 (2000–2004) n'appartiennent à aucun segment
+et la ligne 0 n'a pas de rendement : `Z_odd` compte 5482 lignes, datées par `dates`, et le JSON déclare
+`rows = [1256, 6738]`. Sur `d2_us97`, les 5154 lignes sont transformées. `d3_500` (13 % de NaN) n'est pas proposé
+par la CLI : l'appelant y choisit un sous-panel complet.
