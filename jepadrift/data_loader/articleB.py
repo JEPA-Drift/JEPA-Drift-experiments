@@ -308,13 +308,25 @@ def _build_manifest(frames, d2_frame):
     d2_outputs = panel_outputs(D2_DIR, d2_ret, d2_dates, d2_assets)
 
     profile = pd.read_csv(RESULTS_DATA / "d1_d2_profile.csv")
-    return {
+    manifest = {
         "generator": "python -m jepadrift.data_loader.articleB --build",
         "source": {"path": ARTICLE_B_REF, "commit": _article_b_commit(), "access": "read-only"},
         "datasets": {D1_DIR: {"inputs": d1_inputs, "outputs": d1_outputs},
                      D2_DIR: {"inputs": d2_inputs, "outputs": d2_outputs}},
         "results": {"d1_d2_profile": out("results/data/d1_d2_profile.csv", rows=len(profile))},
     }
+    # Preserve entries from other builders (e.g. D3 sp500) so that rebuilding
+    # D1/D2 does not wipe them out of the shared manifest.
+    man_path = DERIVED / "MANIFEST.json"
+    if man_path.exists():
+        existing = json.loads(man_path.read_text())
+        for key in ("datasets", "results"):
+            for k, v in existing.get(key, {}).items():
+                if k not in manifest[key]:
+                    manifest[key][k] = v
+        if "sources" in existing:
+            manifest["sources"] = existing["sources"]
+    return manifest
 
 
 def build():

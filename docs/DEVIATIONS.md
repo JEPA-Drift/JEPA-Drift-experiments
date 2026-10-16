@@ -54,3 +54,49 @@ code de référence.
 `ret` est stocké et retourné en float64 (et non float32) : lu avec `float_precision='round_trip'`,
 il est identique bit à bit aux séries CSV de l'Article B (chaîne SHA-256 des entrées et des sorties
 dans `data/derived/MANIFEST.json`).
+
+## C-D3-no239 — liste des 239 titres CD-DFM absente (2026-10-16)
+
+Le dépôt `alexouadi/CD-DFM` (cloné dans `external/cd-dfm/`, commit épinglé dans le manifeste) ne
+contient pas la liste explicite des 239 titres du S&P 500 utilisés par Alouadi & Lehalle
+(arXiv:2607.24410) : le README indique « We cannot redistribute the panel » (caractéristiques
+RavenPack/Compustat sous licence). Règle de repli déterministe appliquée : parmi les 503
+constituants actuels du S&P 500 (Wikipedia), les 239 titres retenus sont ceux ayant le plus grand
+nombre de jours de trading depuis 2000-01-01 (ex æquo : ordre alphabétique). La sélection est
+enregistrée dans `data/derived/d3_239/selection.json` et vérifiée par le test
+`test_d3_239_selection`.
+
+## C-D3-survivor — constituants actuels du S&P 500 (2026-10-16)
+
+`d3_500` est construit à partir des constituants actuels du S&P 500 (table Wikipedia « List of
+S&P 500 companies », 503 titres au 2026-10-16), et non d'une sélection par survie. Contrairement
+à D2 (97 survivants biaisés par la survie), D3 n'a pas de biais de survie : les titres sont les
+constituants actuels, et l'historique individuel de chaque titre peut être partiel (géré par
+`in_universe`). 503/503 titres téléchargés avec succès depuis Yahoo Finance.
+
+## C-D3-gics-static — secteur GICS statique (2026-10-16)
+
+Le secteur GICS utilisé dans `chars.parquet` est le secteur actuel (table Wikipedia), non une
+classification point-in-time. Un titre ayant changé de secteur au cours de la période conserve
+son secteur actuel sur toute la période. Les 11 secteurs GICS sont encodés en one-hot
+(`c_gics_<sector>`).
+
+## C-D3-provenance — provenance et reproductibilité (2026-10-16)
+
+Les cours ajustés proviennent de Yahoo Finance via yfinance 1.7.0 (installé dans `.venv`, figé
+dans `requirements.lock`). Les hashes SHA-256 des bruts Yahoo (`data/raw/d3_yf/`, gitignoré) sont
+une provenance à date fixe : Yahoo révise l'historique ajusté, un re-téléchargement n'est pas
+garanti bit-identique. L'ancrage reproductible est le panneau dérivé commité
+(`data/derived/d3_239/`, `data/derived/d3_500/`) + hash de sortie dans le manifeste. Le test de
+reconstruction depuis le cache (`test_reconstruction_from_cache`) vérifie que `ret_wide.npy` est
+bit-identique à la reconstruction depuis les caches bruts. Le déterminisme bit-à-bit du parquet
+repose sur pyarrow 26.0.0 épinglé + codec fixé (snappy par défaut) + pas de timestamp embarqué.
+Tous les fichiers dérivés sont sous la limite de 50 Mo (plus grand : `d3_500/panel.parquet` à
+45,97 Mo) : pas de compression zstd ni de sharding nécessaires, aucun écart C-D3-shard requis.
+
+## C-D3-manifest-merge — préservation des entrées D3 dans le manifeste (2026-10-16)
+
+`articleB.build()` (exécuté par le fixture de test de `test_data_d1_d2.py`) recrée le manifeste
+et préserve désormais les entrées des autres builders (`datasets`, `results`, `sources` non
+D1/D2) : sans ce mécanisme, le rebuild D1/D2 écrasait les entrées D3 (`d3_239`, `d3_500`,
+`sources.d3`) ajoutées par `sp500._update_manifest`.

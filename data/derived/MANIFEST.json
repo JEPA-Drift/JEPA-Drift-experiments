@@ -148,6 +148,92 @@
           "sha256": "c94b53af36a8ca74eb023e4680d2e353411e2206dc12df09070a1ba548c84fc6"
         }
       ]
+    },
+    "d3_239": {
+      "inputs": [],
+      "outputs": [
+        {
+          "path": "data/derived/d3_239/panel.parquet",
+          "sha256": "2d6f964bed21288aa3bdc5ce5d41dfd04c83d2faa1fcb0cde7a3e61d4b20d292",
+          "rows": 1610382,
+          "first_date": "2000-01-03",
+          "last_date": "2026-10-16"
+        },
+        {
+          "path": "data/derived/d3_239/ret_wide.npy",
+          "sha256": "a266fbab1d62c2562b7ff59a6bac33b0c9fa909efbae2a17205a0f45ce6a8f9a",
+          "rows": 6738,
+          "first_date": "2000-01-03",
+          "last_date": "2026-10-16"
+        },
+        {
+          "path": "data/derived/d3_239/dates.npy",
+          "sha256": "c0ebc462baaf80ac545e7790f488e72f1ee013e1ac97846f3b96764e45ac4bd0",
+          "rows": 6738,
+          "first_date": "2000-01-03",
+          "last_date": "2026-10-16"
+        },
+        {
+          "path": "data/derived/d3_239/assets.json",
+          "sha256": "15fd5f1210876ee1952b10b15bf7eae965bea48da2a03811765207969b9bfee5",
+          "assets": 239
+        },
+        {
+          "path": "data/derived/d3_239/chars.parquet",
+          "sha256": "d0a6881df02c3e878d3a063717bd5b6f994ee8791519a921b077fa69fc61a933"
+        },
+        {
+          "path": "data/derived/d3_239/splits.yaml",
+          "sha256": "3f3a65babba2f2cdf11172ab1d9b0665f8559bab05dbb652ae7dd364240d4bd8"
+        },
+        {
+          "path": "data/derived/d3_239/flags.csv",
+          "sha256": "8a2106e7487878267777fb79567c3068e2a859552cc94246bd8c03cbd119558c"
+        }
+      ]
+    },
+    "d3_500": {
+      "inputs": [],
+      "outputs": [
+        {
+          "path": "data/derived/d3_500/panel.parquet",
+          "sha256": "395922ebb732a932f9612ec1fb6098b47b1f1c7ea929c38f702b54b8875ad781",
+          "rows": 3389214,
+          "first_date": "2000-01-03",
+          "last_date": "2026-10-16"
+        },
+        {
+          "path": "data/derived/d3_500/ret_wide.npy",
+          "sha256": "3d56e8162c2d818d5109959ad3b67b8b9a61bef26c5fd4196fec2953f53874d4",
+          "rows": 6738,
+          "first_date": "2000-01-03",
+          "last_date": "2026-10-16"
+        },
+        {
+          "path": "data/derived/d3_500/dates.npy",
+          "sha256": "c0ebc462baaf80ac545e7790f488e72f1ee013e1ac97846f3b96764e45ac4bd0",
+          "rows": 6738,
+          "first_date": "2000-01-03",
+          "last_date": "2026-10-16"
+        },
+        {
+          "path": "data/derived/d3_500/assets.json",
+          "sha256": "a63cfc1749d9313a3cbf4566b4a617cd9b06497fdf5edf17b3470d1a96d76d76",
+          "assets": 503
+        },
+        {
+          "path": "data/derived/d3_500/chars.parquet",
+          "sha256": "4f0234c1f7e92191320189b16eae11bd036e407fd04a52b7272f87c0fd477039"
+        },
+        {
+          "path": "data/derived/d3_500/splits.yaml",
+          "sha256": "c70e07c13d7a8426eb48cda732678cfe3dcc8672469a58dc32a168792df0df84"
+        },
+        {
+          "path": "data/derived/d3_500/flags.csv",
+          "sha256": "305ca75be587315940cc71f1ac204f5bba6909194a0422a76dfe30cebe0441c6"
+        }
+      ]
     }
   },
   "results": {
@@ -155,6 +241,30 @@
       "path": "results/data/d1_d2_profile.csv",
       "sha256": "99d2495d1f797a41b1d198026b917ae3e3182e895dc50bfaff59118ae25bf77c",
       "rows": 6
+    },
+    "d3_profile": {
+      "path": "results/data/d3_profile.csv",
+      "sha256": "b19b902132c418836c0b3a04dcf2460f859f9a7648dcefba60549adad4f4ef7b",
+      "rows": 7
+    }
+  },
+  "sources": {
+    "d3": {
+      "yfinance": "1.7.0",
+      "wikipedia": {
+        "url": "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies",
+        "sha256": "494a809d434e28f55624ee1d67b13e9f235e603d069cb8a71838f451443ed8fa",
+        "fetched": "2026-10-16"
+      },
+      "cd_dfm": {
+        "repo": "https://github.com/alexouadi/CD-DFM",
+        "commit": "37a1dfb39974884df822aa2994854bbf1270e381",
+        "access": "read-only"
+      },
+      "start_date": "2000-01-01",
+      "tickers_requested": 503,
+      "tickers_downloaded": 503,
+      "tickers_failed": 0
     }
   }
 }

@@ -10,11 +10,11 @@ SHELL := /bin/bash
 .PHONY: test j1 check
 
 test:
-	pytest -q
+	pytest -q --ignore=external
 
 j1:
 	python experiments/e2_floor_validation.py --reps 2000 --out results/e2 2>&1 | tee logs/e2/run.log
 
 check:
 	pyflakes jepadrift experiments tests
-	pytest -q
+	pytest -q --ignore=external
