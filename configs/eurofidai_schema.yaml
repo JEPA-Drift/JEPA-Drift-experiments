@@ -1,0 +1,32 @@
+# Schema EUROFIDAI (D4) — correspondance noms de champs
+# Modifiable par le chercheur si les noms de colonnes du portail EUROFIDAI diffèrent.
+#
+# Convention : cle = nom interne (utilise par le chargeur), valeur = nom de colonne
+# dans les fichiers CSV exportes depuis le portail EUROFIDAI.
+
+fields:
+  id_stable: "id_eurofidai"        # identifiant stable EUROFIDAI
+  isin: "isin"                     # code ISIN
+  market: "market"                 # place de cotation (EPA, ETR, LSE, ...)
+  date: "date"                     # date de cotation (AAAA-MM-JJ)
+  adjusted_close: "close_adj"      # cours ajuste (splits + dividendes)
+  adjustment_factor: "facteur_ajust"  # facteur d'ajustement cumule (alternative)
+  total_return: "rendement_total"  # rendement total si disponible
+  market_cap: "capitalisation"     # capitalisation boursiere
+  listing_status: "statut_cotation"  # statut : cote, suspendu, radie
+  delisting_date: "date_radiation"  # date de radiation (si applicable)
+  index_membership: "indice_appartenance"  # appartenance aux indices
+
+# Filtre de liquidite : un titre est liquide a t ssi :
+# - le volume de t est >= min_volume (0 = pas de filtre sur le volume)
+# - le titre a echange au moins min_days_traded_21 jours sur les 21 derniers jours
+liquidity:
+  min_volume: 0
+  min_days_traded_21: 1
+
+# Secteurs GICS (optionnel) : mapping marche -> secteur GICS par defaut
+# Si EUROFIDAI fournit une classification sectorielle, mapper ici.
+# Laisser vide si non disponible.
+sectors:
+  enabled: false
+  mapping: {}

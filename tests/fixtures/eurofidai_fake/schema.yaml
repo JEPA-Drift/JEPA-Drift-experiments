@@ -1,0 +1,23 @@
+# Test schema for EUROFIDAI fixtures
+# Maps the column names used in tests/fixtures/eurofidai_fake/ to internal names.
+
+fields:
+  id_stable: "id_eurofidai"
+  isin: "isin"
+  market: "market"
+  date: "date"
+  adjusted_close: "close_adj"
+  adjustment_factor: "facteur_ajust"
+  total_return: "rendement_total"
+  market_cap: "capitalisation"
+  listing_status: "statut_cotation"
+  delisting_date: "date_radiation"
+  index_membership: "indice_appartenance"
+
+liquidity:
+  min_volume: 0
+  min_days_traded_21: 1
+
+sectors:
+  enabled: false
+  mapping: {}

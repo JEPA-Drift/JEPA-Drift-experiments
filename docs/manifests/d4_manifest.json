@@ -1,0 +1,12 @@
+{
+  "dataset": "d4_eurofidai",
+  "source": "EUROFIDAI (proprietary)",
+  "extraction_date": null,
+  "markets": [],
+  "files": [],
+  "n_assets": 0,
+  "n_days": 0,
+  "first_date": null,
+  "last_date": null,
+  "outputs": {}
+}
