@@ -63,6 +63,18 @@ def test_vectorized_cusum_rejects_nan():
             call()
 
 
+def test_vectorized_cusum_rejects_empty_streams():
+    calls = (lambda: cusum.cusum_trajectory_vec(np.zeros((2, 0)), 0.1),
+             lambda: cusum.strict_cusum_vec(np.zeros(0), 0.1, 1.0),
+             lambda: cusum.strict_cusum_vec(np.zeros((2, 0)), 0.1, 1.0),
+             lambda: cusum.bilateral_delay_vec(np.zeros((2, 0)), 0.1, 1.0),
+             lambda: cusum.cusum_max_bilateral_vec(np.zeros((2, 0)), 0.1),
+             lambda: cusum.multiple_alarms_vec(np.zeros((2, 0)), 0.1, 1.0, bilateral=True))
+    for call in calls:
+        with pytest.raises(ValueError, match="at least one observation"):
+            call()
+
+
 def test_p1_constants():
     cb, cc, db = cusum.P1["P1-C/B"], cusum.P1["P1-C/C"], cusum.P1["P1-D/B"]
     assert (cb["stream"], cb["delta"], cb["threshold"], cb["bilateral"]) == ("label", 0.1, 10.0, True)
@@ -215,6 +227,12 @@ def test_gamma_spectral():
     assert abs(gamma.gamma_spectral(x) / pop - 1) < 0.03
     g = gamma.gamma_spectral(rng.standard_normal((3, 100_000)))
     assert g.shape == (3,) and (np.abs(g - 1) < 0.05).all()
+
+
+def test_gamma_spectral_rejects_constant_series():
+    for x in (np.ones(500), np.ones((3, 500))):
+        with pytest.raises(ValueError):
+            gamma.gamma_spectral(x)
 
 
 def test_required_threshold_semantics():

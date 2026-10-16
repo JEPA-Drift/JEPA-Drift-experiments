@@ -16,6 +16,8 @@ def gamma_spectral(x, L=None):
         raise ValueError(f"need 0 <= L < n, got L={L}, n={n}")
     xc = x - x.mean(axis=-1, keepdims=True)
     denom = (xc * xc).sum(axis=-1)
+    if (denom == 0.0).any():
+        raise ValueError("gamma_spectral is undefined for a constant series (zero variance)")
     g = np.ones(x.shape[:-1])
     for k in range(1, L + 1):
         g = g + 2.0 * (1.0 - k / (L + 1.0)) * (xc[..., k:] * xc[..., :-k]).sum(axis=-1) / denom

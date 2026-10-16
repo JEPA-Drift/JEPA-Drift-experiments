@@ -57,6 +57,8 @@ def _paths(streams):
     x = np.asarray(streams, dtype=np.float64)
     if not np.isfinite(x).all():
         raise ValueError("stream contains non-finite values")
+    if x.shape[-1] == 0:
+        raise ValueError("streams must contain at least one observation (T >= 1)")
     return x.reshape(-1, x.shape[-1]), x.shape[:-1]
 
 

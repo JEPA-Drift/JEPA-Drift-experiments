@@ -66,8 +66,8 @@ par l'instance dans `prompts/plans/`, et la trace de décision doit rester dans 
 6. **Taille des artefacts commités.** `results/identity/articleB_R01_R08.csv` (format long,
    cellule par cellule, 2 entrées × 2 environnements) et `logs/identity/*.log` seront commités :
    vérifier au commit qu'aucun fichier ne dépasse 50 Mo (la vérification de range de la Tâche 11
-   le couvre). Aucun horodatage dans les journaux commités ; aucun chemin `/home/m53` dans les
-   artefacts (substitution par `~`).
+   le couvre). Aucun horodatage dans les journaux commités ; aucun chemin absolu de la machine
+   hôte dans les artefacts (substitution par `~`).
 7. **Hors périmètre, noté pour mémoire** : `docs/MAPPING.md` n'existe pas encore (pas requis pour
    ce stream) ; `prompts/streams/INDEX.md` décrit les 28 prompts, pas l'avancement (pas de mise à
    jour requise).
