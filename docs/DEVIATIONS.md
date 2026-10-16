@@ -148,3 +148,48 @@ flottante des pas +0.4/−0.6 y fait alors appliquer la règle large sur une par
 l'équivalence avec la règle exacte est vérifiée trajectoire par trajectoire
 (`test_midpoint_threshold_reproduces_lattice_rule`). Valeurs inchangées : à H = 5000 et 5 %, L = 57
 (λ = 11.4, niveau exact 0.043428228893176074) ; le seuil flottant vaut 11.5.
+
+## C-e2-sim — déplacement du générateur GARCH d'E2 vers `jepadrift/sim.py` (2026-10-16)
+
+`NU`, `T_SCALE`, `t_innov` et `Garch` quittent `experiments/e2_floor_validation.py` pour
+`jepadrift/sim.py`, copiés octet par octet depuis `3e3a804` ; les SHA-256 des segments source sont
+épinglés par `tests/test_injection.py::test_e2_uses_moved_generator`. Le prompt 05 dit qu'E2 « les
+importe » : E2 importe `NU`, `T_SCALE` et `Garch`, mais pas `t_innov`, appelé seulement par `Garch`.
+L'importer créerait un import inutilisé, que pyflakes rejette dans `make check`. La ligne d'import ne
+porte aucun `# noqa` (revue GO : inerte, pyflakes n'implémentant pas E402). `results/e2/e2_cells.csv`
+est inchangé : SHA-256 `e315e537ead0f656e4bcd3897e6ff04075f3780a8fbe642e258864739b570823` avant et
+après le déplacement (`make j1`) ; seule la durée change dans `results/e2/e2_j1_summary.txt` et
+`logs/e2/run.log`, qui sont restaurés. `experiments.e2_floor_validation.Garch` reste importable pour le
+contrôle GARCH du stream 04.
+
+## C-inject-F2-norm — normalisation de F2 sur la moyenne de calibration (2026-10-16)
+
+Le prompt 05 normalise F2 « sur la moyenne de calibration ». Lecture retenue (confirmée au GO) :
+½·moyenne_{t ∈ calib}(Δ_tᵀΣ̂⁻¹Δ_t) = I_target, soit la moyenne des informations journalières, et non
+l'information ½·Δ̄ᵀΣ̂⁻¹Δ̄ de la dérive moyenne. Motifs : I est une KL par jour (glossaire AGENTS.md) ;
+l'information s'additionne jour par jour (Lemme 1) ; la Prop. « Latent delay floors » (c) écrit
+SR² = 252·E[Δμ_tᵀΣ_t⁻¹Δμ_t]. Sur la calib de `d3_239` (K = 11, trois directions tirées), l'information
+de la dérive moyenne vaut 73 à 95 % de la moyenne des informations journalières, et l'information
+journalière varie de −17 % à +26 % autour de cette moyenne (sondes de `prompts/plans/plan-05.md`).
+Après τ*, l'information réalisée suit C_t ; elle n'est pas renormalisée, faute de quoi l'échelle
+dépendrait des lignes surveillées.
+
+## C-inject-F2-nan — caractéristiques manquantes de F2 (2026-10-16)
+
+Une caractéristique NaN compte comme une exposition nulle, soit le rang centré neutre 0 pour les rangs
+de D3 dans [−0.5 ; 0.5]. Le nombre d'entrées imputées est consigné dans `meta["c_nan_imputed"]` ;
+±inf déclenche une `ValueError`. Motif : sur `d3_239`, `c_beta_252`, `c_vol_63` et `c_mom_12_1`
+manquent sur 8 jours de pretrain et 24 jours de calib où le rendement existe ; refuser les NaN rendrait
+F2 inutilisable sur D3. Lecture retenue au GO ; `test_f2_nan_characteristics_imputed` vérifie
+l'équivalence avec des zéros explicites.
+
+## C-inject-conv-b — convention (b), amplitude par titre (2026-10-16)
+
+Le prompt 05 définit la convention (b) comme une « amplitude par titre fixée » et κ comme le rapport
+entre la dispersion transversale orthogonale aux chargements et la dérive de marché ; le prompt 19 fixe
+le « SR de marché par titre » à 1. Lecture retenue (confirmée au GO) : l'amplitude par titre est la
+moyenne quadratique, sur les titres et, pour F2, sur les jours de calib, des Sharpe annualisés
+√252·Δ_i/σ̂_i, avec σ̂_i² = Σ̂_ii. Elle vaut `SR_ASSET_B` = 1 pour F1 et F3, et κ·`SR_ASSET_B` pour F2,
+κ ∈ {0.25 ; 0.5 ; 1}. Sous le modèle équicorrélé à un facteur du plan v4 (volatilités égales,
+chargements de PC1 proportionnels à 1), cette définition redonne κ = dispersion / dérive de marché et
+le rapport d'information κ²(1 + (N − 1)ρ)/(1 − ρ) entre largeur et marché.

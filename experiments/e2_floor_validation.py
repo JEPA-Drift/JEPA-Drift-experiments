@@ -40,10 +40,9 @@ from scipy import stats
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from jepadrift import floors as fl  # noqa: E402
+from jepadrift.sim import NU, T_SCALE, Garch
 
 MASTER_SEED = 20261018
-NU = 7
-T_SCALE = math.sqrt((NU - 2) / NU)          # unit-variance Student-t innovations
 TOL = 0.10
 CALENDAR_MIN = 150.0   # days
 
@@ -69,39 +68,6 @@ def first_passage(step, threshold, reps, nmax, reflect=False):
 def summarise(stop):
     x = stop[~np.isnan(stop)]
     return float(x.mean()), float(x.std(ddof=1) / math.sqrt(x.size))
-
-
-def t_innov(rng, shape):
-    """Unit-variance Student-t (nu = 7); multivariate t when shape is 2-D."""
-    if len(shape) == 1:
-        return rng.standard_t(NU, size=shape) * T_SCALE
-    z = rng.standard_normal(shape)
-    w = np.sqrt(rng.chisquare(NU, size=shape[0]) / NU)
-    return z / w[:, None] * T_SCALE
-
-
-class Garch:
-    """Common-volatility GARCH(1,1), unit unconditional variance, run in parallel."""
-
-    def __init__(self, rng, reps, dim, alpha, beta, burn=1000):
-        self.rng, self.reps, self.dim = rng, reps, dim
-        self.alpha, self.beta, self.omega = alpha, beta, 1.0 - alpha - beta
-        self.s2 = np.ones(reps)
-        self.prev = np.zeros(reps)          # mean square of the last background draw
-        for _ in range(burn):
-            self.draw()
-
-    def draw(self):
-        self.s2 = self.omega + self.alpha * self.prev + self.beta * self.s2
-        sig = np.sqrt(self.s2)
-        if self.dim == 1:
-            x = sig * t_innov(self.rng, (self.reps,))
-            self.prev = x ** 2
-        else:
-            x = sig[:, None] * t_innov(self.rng, (self.reps, self.dim))
-            self.prev = (x ** 2).mean(axis=1)
-        sign = self.rng.choice((-1.0, 1.0), size=self.reps)   # day-level symmetrisation
-        return (x * sign) if self.dim == 1 else x * sign[:, None], sig
 
 
 def p_up(delta, sig):
