@@ -100,3 +100,51 @@ Tous les fichiers dérivés sont sous la limite de 50 Mo (plus grand : `d3_500/p
 et préserve désormais les entrées des autres builders (`datasets`, `results`, `sources` non
 D1/D2) : sans ce mécanisme, le rebuild D1/D2 écrasait les entrées D3 (`d3_239`, `d3_500`,
 `sources.d3`) ajoutées par `sp500._update_manifest`.
+
+## C-R01-parse — lecture des CSV dérivés par R01 (2026-10-16)
+
+R01 (`exp_R01_real_world_backtest.py` l.249) lit `data/derived_firstrate/R01_daily_<ETF>.csv` avec
+le convertisseur flottant par défaut de pandas, alors que D1 (prompt 2) lit les mêmes fichiers avec
+`float_precision='round_trip'`. Les deux lectures diffèrent sur 6258 des 6414 rendements SPY,
+jusqu'à 7356 ulp, sous pandas 2.3.2 comme sous 3.0.6. Effet sur la réplication de R01 depuis le
+chargeur D1 (`results/identity/articleB_R01_R08.csv`, entrée `d1_loader`, identique dans les deux
+environnements) : `omega` ≤ 2.64e-14 et `sigma_unc` ≤ 1.32e-14 en relatif (4 cellules chacune),
+`S_over_thr_Data` ≤ 1.97e-14 (220 cellules sur 253). Les sorties discrètes (α, β, Γ̂, q̂, alarmes
+2020, délais, taux, IC, ADD, SEM) sont bit-identiques. Avec le lecteur de R01 (entrée diagnostique
+`articleB_csv`, seule exception délibérée à `round_trip`), ces colonnes sont bit-identiques.
+
+## C-R01-env — environnements de contrôle R01 (2026-10-16)
+
+Les contrôles d'identité tournent dans `.venv` (numpy 2.4.4, scipy 1.17.1, pandas 3.0.6,
+statsmodels 0.15.0) et dans `external/articleB-venv` (créé par `~/miniforge3/envs/Trading/bin/python
+-m venv`, puis `pip install -r` des requirements de l'Article B : numpy 1.26.4, scipy 1.16.2,
+pandas 2.3.2, statsmodels 0.14.5 ; PyYAML 6.0.3 ajouté pour importer le chargeur D1, sans rôle
+numérique). Résultat identique dans les deux : 1401 cellules R01 et 32 cellules R08 conformes ;
+SLSQP (`fit_garch_qmle`) bit-identique sous scipy 1.16.2 et 1.17.1. Seul écart d'environnement :
+`lb_pvalue_warmup`, 4 cellules à 4.63e-15 en relatif. Cause établie : `acorr_ljungbox` appelle
+`acf(fft=False)`, donc `np.correlate`, dont le résultat dépend de la BLAS liée à numpy ; les roues
+PyPI (openblas64) donnent Q = 0x1.8a1ef17b13742p+4 pour SPY, la build conda-forge de
+l'environnement `Trading` (versions de l'Article B) donne 0x1.8a1ef17b13749p+4 et reproduit le CSV
+de l'Article B bit à bit (1401/1401 cellules `articleB_csv`, exécution diagnostique non écrite) ;
+`chi2.sf` est identique partout. Les versions de paquets n'épinglent pas la build BLAS : le test
+diagnostique exige la bit-identité de l'entrée `articleB_csv` hors `lb_pvalue_warmup`, colonne qui
+reste soumise au seuil de 1e-12.
+
+## C-garch-pyflakes — exclusion de `jepadrift/stats/garch.py` de pyflakes (2026-10-16)
+
+`fit_garch_qmle` est porté sans modification (R01 l.84–100) et lie une exception inutilisée
+(`except (TypeError, np.linalg.LinAlgError) as e`, R01 l.99), que pyflakes signale. Modifier la ligne
+romprait l'identité octet par octet exigée par le prompt 04. La cible `check` du `Makefile` exclut
+donc ce seul fichier de pyflakes ; `tests/test_identity_articleB.py::test_ported_sources_byte_identical`
+fige son contenu sur la source de l'Article B.
+
+## C-lattice-midpoint — seuil flottant des CUSUM calibrés sur le treillis (2026-10-16)
+
+`select_threshold` (`jepadrift/monitors/lattice.py`) renvoie le point du treillis λ = L·u et le seuil
+opérationnel `threshold` = (L + ½)·u (règle stricte) ou (L − ½)·u (règle large), à comparer en
+flottant par `S > threshold`. L'Article B compare au point du treillis lui-même ; l'accumulation
+flottante des pas +0.4/−0.6 y fait alors appliquer la règle large sur une partie des trajectoires
+(écart B `R08-delivered-level-above-nominal`). Le seuil au milieu laisse une marge d'une demi-unité ;
+l'équivalence avec la règle exacte est vérifiée trajectoire par trajectoire
+(`test_midpoint_threshold_reproduces_lattice_rule`). Valeurs inchangées : à H = 5000 et 5 %, L = 57
+(λ = 11.4, niveau exact 0.043428228893176074) ; le seuil flottant vaut 11.5.

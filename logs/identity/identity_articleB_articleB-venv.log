@@ -1,0 +1,24 @@
+generator: python experiments/identity_articleB.py
+article_b: ~/The-Whitening-Advantage-Experiments @ a05f0d9c654b6692e626080c298acebc0f0a0b5c (read-only)
+env: articleB-venv; python 3.12.9; numpy 1.26.4; scipy 1.16.2; pandas 2.3.2; statsmodels 0.14.5
+gate: non-float cells equal; float cells bit-identical or rel_diff <= 1e-12; NaN equals NaN
+articleB_csv R01_covid_alarms         cells     5  pass     5  bit-identical     5  max rel_diff 0
+articleB_csv R01_covid_trajectories   cells  1012  pass  1012  bit-identical  1012  max rel_diff 0
+articleB_csv R01_garch_models         cells    56  pass    56  bit-identical    52  max rel_diff 4.63e-15
+articleB_csv R01_injection_summary    cells    48  pass    48  bit-identical    48  max rel_diff 0
+articleB_csv R01_magnitude_sweep      cells   216  pass   216  bit-identical   216  max rel_diff 0
+articleB_csv R01_placebo_control      cells    64  pass    64  bit-identical    64  max rel_diff 0
+d1_loader    R01_covid_alarms         cells     5  pass     5  bit-identical     5  max rel_diff 0
+d1_loader    R01_covid_trajectories   cells  1012  pass  1012  bit-identical   792  max rel_diff 1.97e-14
+d1_loader    R01_garch_models         cells    56  pass    56  bit-identical    44  max rel_diff 2.64e-14
+d1_loader    R01_injection_summary    cells    48  pass    48  bit-identical    48  max rel_diff 0
+d1_loader    R01_magnitude_sweep      cells   216  pass   216  bit-identical   216  max rel_diff 0
+d1_loader    R01_placebo_control      cells    64  pass    64  bit-identical    64  max rel_diff 0
+n/a          R08_lattice_exact_law    cells    32  pass    32  bit-identical    17  max rel_diff 9.72e-15
+not bit-identical: articleB_csv R01_garch_models.lb_pvalue_warmup: 4 cells, max rel_diff 4.63e-15
+not bit-identical: d1_loader R01_covid_trajectories.S_over_thr_Data: 220 cells, max rel_diff 1.97e-14
+not bit-identical: d1_loader R01_garch_models.lb_pvalue_warmup: 4 cells, max rel_diff 4.63e-15
+not bit-identical: d1_loader R01_garch_models.omega: 4 cells, max rel_diff 2.64e-14
+not bit-identical: d1_loader R01_garch_models.sigma_unc: 4 cells, max rel_diff 1.32e-14
+not bit-identical: n/a R08_lattice_exact_law.exact_level: 15 cells, max rel_diff 9.72e-15
+verdict (d1_loader and R08 rows): PASS
