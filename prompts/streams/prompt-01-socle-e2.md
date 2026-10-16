@@ -93,7 +93,7 @@ The data-processing inequality (DPI) forbids any KL increase: gains come from co
 - `experiments/`: one script per experiment (E2, E1, E3, ...), argparse and `if __name__ == "__main__":`.
 - `tests/`: unit and contract tests (pytest).
 - `paper/`: Article C LaTeX sources (section 3, appendix A, bibliography addendum).
-- `prompts/`: stream prompts and orchestration — `prompts/streams/` stores the prompts of the planned streams (one `prompt-NN-<slug>.md` per stream, plus `INDEX.md`: routing table and stream conventions); `prompts/wrapups/` stores the processing summaries of the streams (one `wrapup-[XX].md` per stream, [XX] = stream number, written by the wrap-up directive before each commit); the master collection `Prompts_Claude_Code_v5.md` and `Orchestration_Streams_v5.md` live at this level.
+- `prompts/`: stream prompts and orchestration — `prompts/streams/` stores the prompts of the planned streams (one `prompt-NN-<slug>.md` per stream, plus `INDEX.md`: routing table and stream conventions); `prompts/plans/` stores the implementation plans of the streams (one `plan-[XX].md` per stream, [XX] = stream number, recorded before the plan's execution); `prompts/wrapups/` stores the processing summaries of the streams (one `wrapup-[XX].md` per stream, [XX] = stream number, written by the wrap-up directive before each commit); the master collection `Prompts_Claude_Code_v5.md` and `Orchestration_Streams_v5.md` live at this level.
 - `configs/`: experiment configurations (YAML); `FROZEN.json` after milestone J4.
 - `tools/`: repository tooling — `reindex_graphify_jcodemunch.sh` (end-of-stream reindexation of jCodeMunch and Graphify), plus the `pre-commit`/`pre-push` hooks and the freeze/trace scripts added by later streams.
 - `docs/`: `sections/` (section notes), `audits/` (lot audits), `DEVIATIONS.md` (deviations under `C-<topic>`), `MAPPING.md` (traceability of reported numbers).
@@ -116,6 +116,7 @@ The data-processing inequality (DPI) forbids any KL increase: gains come from co
   figures (PNG + PDF) in figures/<stream>/ drawn from CSVs only. No notebooks.
 - Every reported number traces to a CSV and a script (docs/MAPPING.md). Deviations from the plan or
   from Article B go to docs/DEVIATIONS.md under an identifier C-<topic>.
+- When an implementation plan is created for a stream [XX] (explicitly requested by the user in text, or directly via the `/plan` directive), it must be recorded at `prompts/plans/plan-[XX].md` BEFORE its execution.
 - Run `make check` before every commit.
 - Before every commit, the implementing instance (Mistral Vibe or Claude Code) invokes its wrap-up
   directive and records the summary at `prompts/wrapups/wrapup-[XX].md` ([XX] = the number or

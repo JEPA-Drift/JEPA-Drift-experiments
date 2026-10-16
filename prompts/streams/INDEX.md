@@ -28,6 +28,13 @@ Note : le seul « Claude Code » littéral des 28 prompts est dans `prompt-10-eu
 (note contextuelle « Claude Code n'a pas d'accès au portail EUROFIDAI » — le sens, « l'agent n'a pas
 accès au portail », vaut pour tout agent ; aucune action requise).
 
+## Plans de stream — enregistrement avant exécution
+
+Lorsqu'un plan d'implémentation est créé pour un stream [XX] (demande textuelle explicite de
+l'utilisateur, ou appel direct de la directive `/plan`), il est enregistré dans
+`prompts/plans/plan-[XX].md` AVANT son exécution. `prompts/plans/` stocke les plans
+d'implémentation des streams.
+
 ## Fin de stream — protocole de clôture (tous les streams)
 
 Chronologie exacte, une fois le traitement d'un stream terminé :

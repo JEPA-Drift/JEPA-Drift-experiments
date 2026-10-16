@@ -35,6 +35,13 @@ Les rôles des répertoires sont désormais décrits dans AGENTS.md (« Reposito
 `prompts/streams/` (prompts des streams planifiés) et `prompts/wrapups/` (résumés des traitements
 des streams).
 
+## C-plan-recording — enregistrement des plans de stream (2026-10-16)
+
+Nouvelle règle du projet (amendement 2026-10-16) : lorsqu'un plan d'implémentation est créé pour
+un stream [XX] (demande textuelle explicite de l'utilisateur, ou appel direct de la directive
+`/plan`), il est enregistré dans `prompts/plans/plan-[XX].md` AVANT son exécution. Le rôle du
+répertoire `prompts/plans/` est documenté dans AGENTS.md (« Repository layout »).
+
 ## C-D2-survivor — périmètre des données (2026-10-16)
 
 D2 est le panel des 97 actions américaines survivantes du dépôt B (R15 : 5154 jours × 97 titres,
