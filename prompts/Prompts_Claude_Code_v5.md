@@ -24,8 +24,8 @@ J'ai clos le stream en cours au stade de l'audit du code de l'Article B, sans é
 - **Plancher de Sharpe.** Le gabarit le définit comme « ADD_min ≥ 504·ln(1/α₀)/SR² ». C'est faux à γ fini. Les prompts emploient le budget d'évidence (Lemme 1) et la fonction Φ (Prop. 2).
 - **Flux de signe.** Le gabarit parle d'un flux d'erreurs de classifieur. Les détecteurs de l'Article B surveillent le flux d'étiquettes. Dans l'Article C, le flux de signe est le signe d'une projection impaire.
 - **Contexte partagé.**
-  - Le prompt 1 écrit `CLAUDE.md` à la racine du dépôt.
-  - D'après la documentation de Claude Code, ce fichier est chargé à chaque session lancée dans ce répertoire ou dans un sous-répertoire.
+  - Le prompt 1 écrit `AGENTS.md` à la racine du dépôt et crée le lien symbolique relatif `CLAUDE.md` -> `AGENTS.md`.
+  - Chaque session lancée dans ce répertoire ou un sous-répertoire charge cette mémoire : Claude Code via `CLAUDE.md`, Mistral Vibe via `AGENTS.md`.
   - Chaque prompt garde quand même les définitions minimales dont il a besoin.
 - **Format.** Les blocs extérieurs utilisent quatre accents graves, car les prompts contiennent des blocs à trois.
 
@@ -74,7 +74,7 @@ JEPA-Drift (« Article C ») teste si une représentation de la coupe transversa
 
 ### Tâche
 1. Racine `~/JEPA-Drift-experiments` (`git init` si nécessaire). Créer : `jepadrift/{monitors,representations,jepa,data_loader,stats}/` (avec `__init__.py`), `experiments/`, `tests/`, `paper/`, `configs/`, `tools/`, `docs/{sections,audits}/`, `data/{raw,derived}/`, `results/`, `figures/`, `logs/e2/`, `external/`, `incoming/`.
-2. Écrire `CLAUDE.md` à la racine avec exactement le contenu du bloc ci-dessous.
+2. Écrire `AGENTS.md` à la racine avec exactement le contenu du bloc ci-dessous, puis créer le lien symbolique relatif `CLAUDE.md` -> `AGENTS.md` (Claude Code lit `CLAUDE.md`, Mistral Vibe lit `AGENTS.md` : même configuration pour les deux).
 3. Environnement Python 3.12 dans `.venv` : `numpy==2.4.4 scipy==1.17.1 pandas pyarrow statsmodels matplotlib pytest pyflakes`. Écrire `requirements.txt` (dépendances directes, numpy et scipy épinglés) et `requirements.lock` (`pip freeze`).
 4. Déplacer depuis `incoming/lot1/`, sans modifier aucun fichier :
    - `floors.py` → `jepadrift/floors.py` ;
@@ -180,7 +180,7 @@ The data-processing inequality (DPI) forbids any KL increase: gains come from co
   - écart maximal |ratio − 1| : G1 0.024, G2 0.047, S1 0.118 (contrôlé en temps d'information), S2 0.046.
 
 ### Livrables
-`CLAUDE.md`, `Makefile`, `requirements.txt`, `requirements.lock`, `.gitignore`, fichiers du lot 1 en place, `results/e2/{e2_cells.csv,e2_j1_summary.txt,J1_report.md}`, `logs/e2/run.log`.
+`AGENTS.md` et `CLAUDE.md` (lien symbolique relatif vers `AGENTS.md`), `Makefile`, `requirements.txt`, `requirements.lock`, `.gitignore`, fichiers du lot 1 en place, `results/e2/{e2_cells.csv,e2_j1_summary.txt,J1_report.md}`, `logs/e2/run.log`.
 
 ### Contraintes techniques
 Python 3.12, CPU, un seul thread BLAS. Pas de notebook. Les fichiers du lot 1 sont figés : toute anomalie est consignée, jamais corrigée en place.
