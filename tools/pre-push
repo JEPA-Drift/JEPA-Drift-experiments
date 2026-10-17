@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# pre-push hook (stream 08): block pushes containing eurofidai paths or files > 50 MB.
+# Reminds that pushes are only authorized while the repo address is not shared publicly
+# and not linked to a publication (anonymous submission).
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+# Read stdin: lines of "local_ref local_sha remote_ref remote_sha"
+while read -r local_ref local_sha remote_ref remote_sha; do
+    # Determine the range of commits being pushed
+    if [ "$local_sha" = "0000000000000000000000000000000000000000" ]; then
+        # Branch deletion, nothing to check
+        continue
+    fi
+    if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+        # New branch: check all commits on the local branch not on any remote
+        range=$(git rev-list "$local_sha" --not --remotes 2>/dev/null || git rev-list "$local_sha")
+    else
+        range=$(git rev-list "${remote_sha}..${local_sha}" 2>/dev/null || true)
+        if [ -z "$range" ]; then
+            continue
+        fi
+    fi
+
+    # Check each commit in the range for blocked paths
+    for commit in $range; do
+        while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            case "$file" in
+                data/raw/eurofidai/*|data/derived/d4_eurofidai/*)
+                    echo "BLOCKED: push contains '$file' under a protected EUROFIDAI path." >&2
+                    echo "EUROFIDAI data must never be committed, logged or pushed." >&2
+                    echo "Remove the file from the push range and try again." >&2
+                    exit 1
+                    ;;
+            esac
+        done < <(git diff-tree --no-commit-id --name-only -r "$commit" 2>/dev/null || true)
+    done
+done
+
+echo "[pre-push] path check OK"
+echo "[pre-push] REMINDER: pushes are only authorized while the repository address" >&2
+echo "[pre-push] is not shared publicly and not linked to a publication (anonymous submission)." >&2
+echo "[pre-push] OK"

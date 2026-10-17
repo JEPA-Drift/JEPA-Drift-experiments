@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# pre-commit hook (stream 08): run make check, block eurofidai paths, block files > 50 MB.
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+# --- Block eurofidai paths and large files ---
+BLOCKED_PATHS=("data/raw/eurofidai" "data/derived/d4_eurofidai")
+MAX_SIZE=$((50 * 1024 * 1024))  # 50 MB
+
+staged_files=$(git diff --cached --name-only --diff-filter=ACMR)
+if [ -z "$staged_files" ]; then
+    exit 0
+fi
+
+violations=0
+while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    # Check blocked paths
+    for blocked in "${BLOCKED_PATHS[@]}"; do
+        if [[ "$file" == "$blocked"/* ]]; then
+            echo "BLOCKED: '$file' is under the protected path '$blocked/'." >&2
+            echo "EUROFIDAI data must never be committed, logged or pushed." >&2
+            violations=$((violations + 1))
+        fi
+    done
+    # Check file size (only for files that exist in the working tree)
+    if [ -f "$file" ]; then
+        size=$(stat -c%s "$file" 2>/dev/null || echo 0)
+        if [ "$size" -gt "$MAX_SIZE" ]; then
+            echo "BLOCKED: '$file' is $size bytes (> 50 MB)." >&2
+            violations=$((violations + 1))
+        fi
+    fi
+done <<< "$staged_files"
+
+if [ "$violations" -gt 0 ]; then
+    echo "" >&2
+    echo "pre-commit: $violations violation(s) found. Commit aborted." >&2
+    exit 1
+fi
+
+# --- Run make check ---
+echo "[pre-commit] running make check..."
+make check
+
+echo "[pre-commit] OK"
