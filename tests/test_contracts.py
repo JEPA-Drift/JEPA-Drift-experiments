@@ -241,9 +241,17 @@ def test_normalization_from_declared_segment_only(small_panel):
 
 # ------------------------------------------------------------------ Torch model guards
 
-torch = pytest.importorskip("torch", reason="torch not installed; JEPA guards skipped")
+try:
+    import torch
+    HAS_TORCH = True
+except ImportError:
+    torch = None
+    HAS_TORCH = False
+
+needs_torch = pytest.mark.skipif(not HAS_TORCH, reason="torch not installed; JEPA guards skipped")
 
 
+@needs_torch
 def test_torch_eval_mode_buffer_stability():
     """In eval mode, no buffer changes after 10 forward passes."""
     model = torch.nn.Sequential(
@@ -261,6 +269,7 @@ def test_torch_eval_mode_buffer_stability():
         assert torch.equal(buffers_before[name], buf), f"buffer {name} changed in eval mode"
 
 
+@needs_torch
 def test_torch_no_batchnorm_in_training():
     """No BatchNorm* layer should be in training mode."""
     model = torch.nn.Sequential(
@@ -273,6 +282,7 @@ def test_torch_no_batchnorm_in_training():
             assert not module.training, "BatchNorm layer must be in eval mode"
 
 
+@needs_torch
 def test_torch_no_temporal_normalization():
     """No normalization computed on the temporal axis (dim=0 for (T, N) input)."""
     import ast as _ast
@@ -295,6 +305,7 @@ def test_torch_no_temporal_normalization():
                                     f"{py_file.name}: normalization on temporal axis (dim=0) detected"
 
 
+@needs_torch
 def test_torch_ema_target_inactive_at_extraction():
     """EMA target parameters should not be used at extraction time (eval mode, no_grad)."""
     model = torch.nn.Sequential(torch.nn.Linear(10, 5))

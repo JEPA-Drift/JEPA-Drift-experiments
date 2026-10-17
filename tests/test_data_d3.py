@@ -323,6 +323,8 @@ def test_manifest_sources(_d3_built):
 
 # ------------------------------------------------------- reconstruction from cache
 
+@pytest.mark.skipif(np.__version__ != "2.4.4",
+                    reason="bit-exact reconstruction pinned to the reference stack (.venv: numpy 2.4.4)")
 def test_reconstruction_from_cache(_d3_built):
     """ret_wide.npy is bit-identical to the reconstruction from per-ticker caches."""
     for subset, loader in (("d3_239", sp500.load_d3_239),
