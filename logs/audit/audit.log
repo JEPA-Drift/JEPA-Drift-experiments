@@ -1,0 +1,67 @@
+generator: python experiments/audit_information.py --datasets d2_us97 d3_239 --out results/audit
+window 2005-01-01..2019-12-31; moving-block bootstrap, blocks of 20 days, B = 2000; phases >= 20 days; subspace blocks <= 30; seeds SeedSequence([11, crc32(dataset), crc32(dating), phase_id])
+d2_us97: 2005-01-04..2019-12-31, 3774 days x 97 assets; calib rows (2833, 3774); K = 5 (6 eigenvalues above the MP edge 1.74521); calib basis 85147fd9f553130e = prompt 6 sidecar
+  sha256 data/derived/d2_us97/ret_wide.npy 333d2b079e7048fe3f996884c1fad4d987218017b3fe2be47b92630a72d04b33
+  sha256 data/derived/d2_us97/z_85147fd9f553130ea70a7492770fa3ea4b068f0edf421d878a9e31bed7296f3d.json 90e4e17efd28bcdc03d4b335e74183e9dd2bcf2570b258bdff9679c1f83bebd9
+  lt_spy: 9 transitions kept, dropped (< 20 days): 2008-10-27 (265/6 days), 2008-11-04 (6/12 days), 2008-11-20 (12/30 days)
+  strict_ps: 10 transitions kept, dropped (< 20 days): none
+  symmetric: 9 transitions kept, dropped (< 20 days): 2008-10-27 (265/6 days), 2008-11-04 (6/12 days), 2008-11-20 (12/30 days)
+  lt_spy and symmetric SPY chains identical in the window: True
+d3_239: 2005-01-03..2019-12-31, 3775 days x 239 assets; calib rows (2834, 3775); K = 10 (11 eigenvalues above the MP edge 2.26192); calib basis 6c44d64a3bf139be = prompt 6 sidecar
+  sha256 data/derived/d3_239/ret_wide.npy a266fbab1d62c2562b7ff59a6bac33b0c9fa909efbae2a17205a0f45ce6a8f9a
+  sha256 data/derived/d3_239/z_6c44d64a3bf139beeca0939ab0ba821004796a053ec81e9952d44c7ac37ace3f.json db8871caf9ab781bb4b5ae8758736446a7279d213ce199faf22723a8a0145f3e
+  sha256 data/derived/d3_239/chars.parquet d0a6881df02c3e878d3a063717bd5b6f994ee8791519a921b077fa69fc61a933
+  lt_spy: 9 transitions kept, dropped (< 20 days): 2008-10-27 (265/6 days), 2008-11-04 (6/12 days), 2008-11-20 (12/30 days)
+  strict_ps: 10 transitions kept, dropped (< 20 days): none
+  symmetric: 9 transitions kept, dropped (< 20 days): 2008-10-27 (265/6 days), 2008-11-04 (6/12 days), 2008-11-20 (12/30 days)
+  lt_spy and symmetric SPY chains identical in the window: True
+R9 d2_us97 lt_spy: negative sr2_debiased over 9 transitions {'market': 0, 'factor': 5, 'idio': 4, 'residual_full': 4}
+R9 d2_us97 strict_ps: negative sr2_debiased over 10 transitions {'market': 0, 'factor': 6, 'idio': 3, 'residual_full': 3}
+R9 d2_us97 symmetric: negative sr2_debiased over 9 transitions {'market': 0, 'factor': 5, 'idio': 4, 'residual_full': 4}
+R9 d3_239 lt_spy: negative sr2_debiased over 9 transitions {'market': 0, 'factor': 5, 'idio': 6, 'residual_full': 6, 'chars': 2}
+R9 d3_239 strict_ps: negative sr2_debiased over 10 transitions {'market': 0, 'factor': 4, 'idio': 6, 'residual_full': 5, 'chars': 3}
+R9 d3_239 symmetric: negative sr2_debiased over 9 transitions {'market': 0, 'factor': 5, 'idio': 6, 'residual_full': 6, 'chars': 2}
+R9 d2_us97 lt_spy median market: 40.77 [26.5, 61.51]
+R9 d2_us97 lt_spy median factor: -3.93 [-16.81, 18.84]
+R9 d2_us97 lt_spy median idio: 16.59 [-171.2, 309.3]
+R9 d2_us97 lt_spy median residual_full: 0.04422 [-199.2, 298.3]
+R9 d2_us97 strict_ps median market: 19.25 [8.949, 37.05]
+R9 d2_us97 strict_ps median factor: -2.462 [-11.56, 11.82]
+R9 d2_us97 strict_ps median idio: 8.634 [-89.94, 145.9]
+R9 d2_us97 strict_ps median residual_full: 0.56 [-101.8, 145.4]
+R9 d2_us97 symmetric median market: 40.77 [26.86, 63.31]
+R9 d2_us97 symmetric median factor: -3.93 [-17.3, 17.32]
+R9 d2_us97 symmetric median idio: 16.59 [-183, 334.4]
+R9 d2_us97 symmetric median residual_full: 0.04422 [-205, 316.3]
+R9 d3_239 lt_spy median market: 38.18 [22.03, 62.52]
+R9 d3_239 lt_spy median factor: -3.556 [-23.55, 24.19]
+R9 d3_239 lt_spy median idio: -181.6 [-661.4, 618.9]
+R9 d3_239 lt_spy median residual_full: -151.3 [-663.3, 695.6]
+R9 d3_239 lt_spy median chars: 5.446 [-40.47, 65.31]
+R9 d3_239 strict_ps median market: 22.35 [11.93, 38.93]
+R9 d3_239 strict_ps median factor: 0.9965 [-12.66, 20.25]
+R9 d3_239 strict_ps median idio: -51.65 [-277.1, 279.1]
+R9 d3_239 strict_ps median residual_full: -53.91 [-291, 282.7]
+R9 d3_239 strict_ps median chars: 5.472 [-19.51, 40.65]
+R9 d3_239 symmetric median market: 38.18 [22.47, 62.85]
+R9 d3_239 symmetric median factor: -3.556 [-23.62, 25.43]
+R9 d3_239 symmetric median idio: -181.6 [-649.2, 561]
+R9 d3_239 symmetric median residual_full: -151.3 [-628.4, 591]
+R9 d3_239 symmetric median chars: 5.446 [-39.66, 68.54]
+symmetry d2_us97: Holm rejections binomial ['PC1', 'PC3'], triples ['PC1']; GARCH not converged []
+symmetry d3_239: Holm rejections binomial ['PC1', 'PC2', 'PC3', 'char:rev_21'], triples ['PC1', 'PC2']; GARCH not converged []
+N3 d2_us97 mvt_static (cited variant): nu = 5.026, J/Sigma^-1 = 1.247, 148 ECME iterations, converged True
+N3 d2_us97 mvt_garch: nu = 9.215, J/Sigma^-1 = 1.068, 89 ECME iterations, converged True
+N3 d3_239 mvt_static (cited variant): nu = 5.43, J/Sigma^-1 = 1.207, 154 ECME iterations, converged True
+N3 d3_239 mvt_garch: nu = 10.89, J/Sigma^-1 = 1.049, 62 ECME iterations, converged True
+caveat: phase boundaries are SPY turning points dated ex post; the noise debiasing does not remove this selection, which inflates the market SR^2
+caveat: N2 with a 60-day Ledoit-Wolf Sigma_t also holds the Jensen gap of its estimation noise
+duration 200 s
+sha256 spectrum.csv ee434bec8acecb19418b470033cd4d3cd40da66c99d8b3fbba5d9589a1dddf51
+sha256 eta_by_year.csv b3485185d6150011f88b5cf7ca1e9ecc057be3c178a0525ec0bfb9b109f0c53d
+sha256 sign_corr.csv 92560c88c821bd4182b4ca39b8757a666c85e181275199b60c800f66ee5af813
+sha256 symmetry_tests.csv 1bcd55d4c0a735ad1da2d0f78ed816dcfd0107e28ff62f1f99b3958b45272f20
+sha256 drift_sharpe_transitions.csv b6a6715273428249bcaf62a4a80bee1d8617912b4aa8feec17ae6105da58d4e8
+sha256 channel_ceilings.csv 407539600581a9a5c0f77c191ff126de9dadacdd76f6f4b45c29082cb1f73c10
+sha256 budget_share.csv 80ac03d3d9c32f674010fa7d8f7a353152d5508a23b5cb443f3fd861224ff193
+sha256 predicted_gains.csv ac2568ae6c7136d557c66ff24ee57361cdcbf4c65dcb98a8ac233a831ba615e4

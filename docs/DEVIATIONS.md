@@ -325,3 +325,70 @@ K_eff_ana, à λ_boot et FPR_boot, et au DetRate et à l'ADD de la course à c =
 ρ̂ et K_eff_ana à K = 10 diffèrent d'un ulp (2,1e-16 et 1,5e-16, ordre de sommation de `np.corrcoef`). Le panel D2
 complet (2005–2025) n'y sert qu'à reproduire les valeurs publiées de l'Article B, comme l'identité R01 du stream 04 ;
 aucun choix de conception n'en dépend.
+
+## C-audit-debias — débiaisage du SR² de dérive et IC bootstrap (2026-10-17)
+
+La formule du prompt 11, SR²_S = 252·[Δμ̂ᵀΣ̂⁻¹Δμ̂ − d(1/n₁ + 1/n₂)]·(n − d − 1)/n, garde un biais de
+252·d·c·(d + 1)/ν, avec c = 1/n₁ + 1/n₂ et Σ̂ la covariance intra-phase poolée à ν = n₁ + n₂ − 2 degrés de liberté
+(E[Σ̂⁻¹] = ν/(ν − d − 1)·Σ⁻¹) : 3,8 en SR² à d = 30 et n₁ = n₂ = 250. Décision (GO H8) : `sr2_debiased` =
+252·[D̂²(ν − d − 1)/ν − d·c], sans biais sous normalité, sert aux IC, aux médianes, à la part du budget et aux gains
+prévus ; la formule littérale reste dans `sr2_spec`. `test_debiased_sr2_unbiased` (2000 réplications) vérifie l'absence
+de biais et chiffre celui de `sr2_spec`. IC : chaque réplique bootstrap rajoute le bruit d'échantillonnage à la
+différence de moyennes observée, si bien que les répliques se placent environ 252·d·c au-dessus de l'estimation
+débiaisée (exécution rapide sur D2, `lt_spy` : médiane `idio` de 16,6 pour un IC percentile brut de [175 ; 582]).
+L'IC retenu est l'intervalle percentile à 95 % décalé du biais bootstrap, moyenne(répliques) − estimation
+[Efron & Tibshirani, 1993, An Introduction to the Bootstrap, ch. 10] ; `test_drift_ci_brackets_the_estimate` échoue
+avec le percentile brut et passe avec le décalage. Le GO H9 disait « IC percentile » ; le prompt dit seulement « IC par
+bootstrap par blocs mobiles ».
+
+## C-audit-subspaces — sous-espaces de dimension ≤ 30 et caractéristiques (2026-10-17)
+
+Le prompt demande le « résiduel complet » (96 dimensions sur D2, 238 sur D3) avec d_S ≤ 30. Décision (GO H7) :
+PC2..PC(K+1) forment `factor` ; le bloc idiosyncratique PC(K+2)..PCN est découpé en blocs d'au plus 30 PC consécutives
+(`idio:b1`, …) ; `idio` est la somme des blocs et `residual_full` = `factor` + `idio`. Les covariances entre blocs
+sont ignorées : la somme est exacte si les blocs sont non corrélés dans les phases. Caractéristiques (GO H4) : D3
+seulement (D2 n'a pas de caractéristiques), les 15 colonnes de `chars.parquet`, NaN → 0 (lecture de
+`C-inject-F2-nan`), projection euclidienne sur le sous-espace idiosyncratique (I − V_fV_fᵀ, V_f = PC1..PC(K+1)),
+normalisée chaque jour ; le sous-espace `chars` est ainsi disjoint du marché et des facteurs. Les directions F2 de N2
+suivent en revanche la construction de `inject` (résidu GLS sur les chargements).
+
+## C-audit-transitions — transitions des datations SPY (2026-10-17)
+
+(GO H6) Lignes SPY des trois `phases_*.csv`. La phase k regroupe les jours datés dans (début_k, fin_k], convention de
+`T_days` ; la frontière fin_k appartient à [2005-01-01, 2019-12-31) ; les phases sont découpées à la fenêtre ; une
+transition est gardée si n₁ et n₂ ≥ 20 (un bloc de bootstrap). Sur SPY, `lt_spy` et `symmetric` sont identiques
+(30 phases) : les deux sont traités, sans déduplication. Transitions gardées : 9 (`lt_spy`, `symmetric`) et 10
+(`strict_ps`) ; `lt_spy` perd 2008-10-27, 2008-11-04 et 2008-11-20 (phases de 6 et 12 jours). Mise en garde : les
+frontières sont des points de retournement de SPY datés ex post ; le débiaisage du bruit ne corrige pas cette
+sélection, qui gonfle le SR² du sous-espace marché.
+
+## C-audit-ceilings — lectures de N1, N2 et N3 (2026-10-17)
+
+N1 (GO H10) : s²_t = moyenne des carrés des coordonnées blanchies du bloc PC(K+2)..PCN (blanchiment Ledoit–Wolf de
+la calib) ; N1 = moyenne(s²)·moyenne(1/s²) sur 2005–2019, brute et corrigée de la loi χ² (facteur (d − 2)/d). N2
+(GO H11) : Σ_t = Ledoit–Wolf des 60 lignes précédentes ; directions F1 = colonnes de B (`fit_background(X_calib,
+K + 1)`, PC1 compris), F2 = résidus GLS des caractéristiques ; Σ̄ et ā sont moyennés sur les mêmes jours, d'où un
+rapport ≥ 1 exactement. Ce rapport contient aussi l'écart de Jensen dû au bruit d'estimation de Σ_t (60 jours pour
+97 ou 239 titres) : il majore le gain du canal. N3 (GO H12) : loi t multivariée de localisation nulle ajustée par
+ECME [Liu & Rubin, 1995, Statistica Sinica 5, 19–39] ; variante citée `mvt_static` (bloc blanchi par la calib, lecture
+littérale) ; `mvt_garch` (chaque coordonnée divisée par son σ̂_{t|t−1} GARCH) et `t_garch` (loi t univariée par
+direction) restent dans le CSV.
+
+## C-audit-gains — gains prévus (2026-10-17)
+
+(GO H14) Les formules du tableau « Gains prévus » du plan v4 (§2.4) sont évaluées sur ρ̂ (corrélation moyenne des
+rendements sur 2005–2019), ρ̂_signe, N, K et les médianes des SR² débiaisés : G(1→2) = N/(1 + (N − 1)ρ̂), et sa
+version en signes ; G(2→3, F1) = SR²_factor/SR²_market, taxe M(1)/M(K) ; κ̂² = (SR²_idio/SR²_market)(1 − ρ̂)/
+(1 + (N − 1)ρ̂), d'où G(2→3, F2) = SR²_idio/SR²_market, taxe M(1)/M(N − 1) ; G(1→3) = N/(1 + (N − 1)ρ̂) + κ̂²N/(1 − ρ̂),
+sans taxe. M = `floors.mixture_multiplier`. Une médiane ≤ 0 (R9) donne NaN, sans substitution des valeurs de
+planification ; `test_planning_table_reproduced` redonne les valeurs du tableau (2,46 ; 3,74 ; 16,4 ; 42,9 pour
+N = 97 et κ = 0,5).
+
+## C-worktree-data-raw — `data/raw/` dans les worktrees de stream (2026-10-17)
+
+La recette d'AGENTS.md (un lien absolu unique `data/raw` vers l'arbre principal) fait échouer
+`tests/test_data_eurofidai.py::test_gitignore_blocks_eurofidai` dans tout worktree : `git check-ignore` refuse un
+chemin situé au-delà d'un lien symbolique (« pathspec 'data/raw/eurofidai/x' is beyond a symbolic link », y compris
+avec `--no-index`). Le worktree du stream 11 utilise un répertoire `data/raw/` réel qui contient des liens absolus vers
+`d3_yf` et `baf` seulement : aucune donnée EUROFIDAI n'y est exposée, et les trois tests EUROFIDAI sur données réelles
+y sont sautés (D4 absent). Le partage par liens absolus reste celui d'AGENTS.md, un niveau plus bas.
