@@ -100,3 +100,17 @@ The data-processing inequality (DPI) forbids any KL increase: gains come from co
 - Article B reference code: ~/The-Whitening-Advantage-Experiments (local checkout, read-only, used as-is at its current
   commit; never clone the remote github.com/TheWhiteningAdvantage-KDD2027/The-Whitening-Advantage-Experiments).
   Its code, not the text of its v87 manuscript, is the reference; read its docs/DEVIATIONS.md.
+
+## Worktrees and parallel streams
+- Each stream runs in its own git worktree on its own branch: `git worktree add <path> stream-XX`
+  (two worktrees cannot check out the same branch). Sequential streams may share the main worktree.
+- Shared local state (`.venv/`, `data/raw/`, `external/`) is exposed in each worktree by absolute
+  symlinks, so a single pinned environment produces stable hashes.
+- End of stream on `stream-XX`: commit, `make check`, then advance `main` by fast-forward —
+  `git fetch origin`, rebase `stream-XX` onto `origin/main`, `git push origin stream-XX:main` —
+  after the pushed-range check (no `data/raw/eurofidai/` or `data/derived/d4_eurofidai/` path, no
+  file over 50 MB).
+- Never run `git stash`, `git checkout` or `git reset` in a worktree owned by another instance;
+  never stage foreign files; re-run `git status` before every staging. The session fixture of
+  `tests/test_data_d1_d2.py` rewrites the tracked D1/D2 files during `make check`; a rebuild in
+  `.venv` reproduces the committed bytes — never stage those files.
