@@ -1,0 +1,390 @@
+{
+  "1014ee1972146296": {
+    "spec": {
+      "H": 750,
+      "K": "mp",
+      "alpha": 0.05,
+      "channels": [
+        4
+      ],
+      "dataset": "d2_us97",
+      "gamma": 20.0,
+      "mixture_s2": null,
+      "mode": "factor",
+      "pipeline": "P3-C",
+      "reading": "exact",
+      "shrinkage": "ledoit_wolf"
+    },
+    "state": {
+      "calib": [
+        2833,
+        3774
+      ],
+      "lattice_units": 45,
+      "level": 0.04394674134870057,
+      "representation": {
+        "class": "PCAOrthogonal",
+        "fit": {
+          "c_sha256": null,
+          "days": 941,
+          "first_day": "2016-04-07",
+          "last_day": "2019-12-31",
+          "x_sha256": "d2c30fdbf0543ca6d5fd854414a7cc1b2ea3d9c174ea7095e6640f9ffa3d588e"
+        },
+        "state_sha256": "65ff21c01771148f1b3770eac6f0b6742330f2489716c956e22785fd1bbdc0fe"
+      },
+      "threshold": 9.1
+    },
+    "summary": {
+      "H": 750,
+      "alpha": 0.05,
+      "channels": "[4]",
+      "fpr": 0.04,
+      "gamma": 20.0,
+      "hi": 0.0675589416840277,
+      "kind": "=",
+      "lo": 0.020334541013373435,
+      "n": 500,
+      "n_cal": null,
+      "ok": true,
+      "pipeline": "P3-C",
+      "reading": "exact",
+      "run_id": "1014ee1972146296",
+      "target": 0.04394674134870057,
+      "threshold": 9.1,
+      "variant": null
+    }
+  },
+  "303a889ed663fa69": {
+    "spec": {
+      "H": 750,
+      "K": "mp",
+      "alpha": 0.05,
+      "channels": [
+        3
+      ],
+      "dataset": "d2_us97",
+      "gamma": 20.0,
+      "mixture_s2": null,
+      "mode": "factor",
+      "pipeline": "P3-C",
+      "reading": "exact",
+      "shrinkage": "ledoit_wolf"
+    },
+    "state": {
+      "calib": [
+        2833,
+        3774
+      ],
+      "lattice_units": 45,
+      "level": 0.04394674134870057,
+      "representation": {
+        "class": "PCAOrthogonal",
+        "fit": {
+          "c_sha256": null,
+          "days": 941,
+          "first_day": "2016-04-07",
+          "last_day": "2019-12-31",
+          "x_sha256": "d2c30fdbf0543ca6d5fd854414a7cc1b2ea3d9c174ea7095e6640f9ffa3d588e"
+        },
+        "state_sha256": "65ff21c01771148f1b3770eac6f0b6742330f2489716c956e22785fd1bbdc0fe"
+      },
+      "threshold": 9.1
+    },
+    "summary": {
+      "H": 750,
+      "alpha": 0.05,
+      "channels": "[3]",
+      "fpr": 0.04,
+      "gamma": 20.0,
+      "hi": 0.0675589416840277,
+      "kind": "=",
+      "lo": 0.020334541013373435,
+      "n": 500,
+      "n_cal": null,
+      "ok": true,
+      "pipeline": "P3-C",
+      "reading": "exact",
+      "run_id": "303a889ed663fa69",
+      "target": 0.04394674134870057,
+      "threshold": 9.1,
+      "variant": null
+    }
+  },
+  "782d20e8e46e25d0": {
+    "spec": {
+      "H": 750,
+      "K": "mp",
+      "alpha": 0.05,
+      "channels": [
+        2
+      ],
+      "dataset": "d2_us97",
+      "gamma": 20.0,
+      "mixture_s2": null,
+      "mode": "factor",
+      "pipeline": "P3-C",
+      "reading": "exact",
+      "shrinkage": "ledoit_wolf"
+    },
+    "state": {
+      "calib": [
+        2833,
+        3774
+      ],
+      "lattice_units": 45,
+      "level": 0.04394674134870057,
+      "representation": {
+        "class": "PCAOrthogonal",
+        "fit": {
+          "c_sha256": null,
+          "days": 941,
+          "first_day": "2016-04-07",
+          "last_day": "2019-12-31",
+          "x_sha256": "d2c30fdbf0543ca6d5fd854414a7cc1b2ea3d9c174ea7095e6640f9ffa3d588e"
+        },
+        "state_sha256": "65ff21c01771148f1b3770eac6f0b6742330f2489716c956e22785fd1bbdc0fe"
+      },
+      "threshold": 9.1
+    },
+    "summary": {
+      "H": 750,
+      "alpha": 0.05,
+      "channels": "[2]",
+      "fpr": 0.046,
+      "gamma": 20.0,
+      "hi": 0.0675589416840277,
+      "kind": "=",
+      "lo": 0.020334541013373435,
+      "n": 500,
+      "n_cal": null,
+      "ok": true,
+      "pipeline": "P3-C",
+      "reading": "exact",
+      "run_id": "782d20e8e46e25d0",
+      "target": 0.04394674134870057,
+      "threshold": 9.1,
+      "variant": null
+    }
+  },
+  "9a83e5cd25176173": {
+    "spec": {
+      "H": 750,
+      "K": "mp",
+      "alpha": 0.05,
+      "channels": [
+        1
+      ],
+      "dataset": "d2_us97",
+      "gamma": 20.0,
+      "mixture_s2": null,
+      "mode": "factor",
+      "pipeline": "P3-C",
+      "reading": "exact",
+      "shrinkage": "ledoit_wolf"
+    },
+    "state": {
+      "calib": [
+        2833,
+        3774
+      ],
+      "lattice_units": 45,
+      "level": 0.04394674134870057,
+      "representation": {
+        "class": "PCAOrthogonal",
+        "fit": {
+          "c_sha256": null,
+          "days": 941,
+          "first_day": "2016-04-07",
+          "last_day": "2019-12-31",
+          "x_sha256": "d2c30fdbf0543ca6d5fd854414a7cc1b2ea3d9c174ea7095e6640f9ffa3d588e"
+        },
+        "state_sha256": "65ff21c01771148f1b3770eac6f0b6742330f2489716c956e22785fd1bbdc0fe"
+      },
+      "threshold": 9.1
+    },
+    "summary": {
+      "H": 750,
+      "alpha": 0.05,
+      "channels": "[1]",
+      "fpr": 0.032,
+      "gamma": 20.0,
+      "hi": 0.0675589416840277,
+      "kind": "=",
+      "lo": 0.020334541013373435,
+      "n": 500,
+      "n_cal": null,
+      "ok": true,
+      "pipeline": "P3-C",
+      "reading": "exact",
+      "run_id": "9a83e5cd25176173",
+      "target": 0.04394674134870057,
+      "threshold": 9.1,
+      "variant": null
+    }
+  },
+  "9bc7df8e2b1b07b9": {
+    "spec": {
+      "H": 750,
+      "K": "mp",
+      "alpha": 0.05,
+      "channels": [
+        0
+      ],
+      "dataset": "d2_us97",
+      "gamma": 20.0,
+      "mixture_s2": null,
+      "mode": "factor",
+      "pipeline": "P3-C",
+      "reading": "exact",
+      "shrinkage": "ledoit_wolf"
+    },
+    "state": {
+      "calib": [
+        2833,
+        3774
+      ],
+      "lattice_units": 45,
+      "level": 0.04394674134870057,
+      "representation": {
+        "class": "PCAOrthogonal",
+        "fit": {
+          "c_sha256": null,
+          "days": 941,
+          "first_day": "2016-04-07",
+          "last_day": "2019-12-31",
+          "x_sha256": "d2c30fdbf0543ca6d5fd854414a7cc1b2ea3d9c174ea7095e6640f9ffa3d588e"
+        },
+        "state_sha256": "65ff21c01771148f1b3770eac6f0b6742330f2489716c956e22785fd1bbdc0fe"
+      },
+      "threshold": 9.1
+    },
+    "summary": {
+      "H": 750,
+      "alpha": 0.05,
+      "channels": "[0]",
+      "fpr": 0.03,
+      "gamma": 20.0,
+      "hi": 0.0675589416840277,
+      "kind": "=",
+      "lo": 0.020334541013373435,
+      "n": 500,
+      "n_cal": null,
+      "ok": true,
+      "pipeline": "P3-C",
+      "reading": "exact",
+      "run_id": "9bc7df8e2b1b07b9",
+      "target": 0.04394674134870057,
+      "threshold": 9.1,
+      "variant": null
+    }
+  },
+  "b6f6bdf9762892ba": {
+    "spec": {
+      "H": 750,
+      "K": "mp",
+      "alpha": 0.05,
+      "channels": [
+        5
+      ],
+      "dataset": "d2_us97",
+      "gamma": 20.0,
+      "mixture_s2": null,
+      "mode": "factor",
+      "pipeline": "P3-C",
+      "reading": "exact",
+      "shrinkage": "ledoit_wolf"
+    },
+    "state": {
+      "calib": [
+        2833,
+        3774
+      ],
+      "lattice_units": 45,
+      "level": 0.04394674134870057,
+      "representation": {
+        "class": "PCAOrthogonal",
+        "fit": {
+          "c_sha256": null,
+          "days": 941,
+          "first_day": "2016-04-07",
+          "last_day": "2019-12-31",
+          "x_sha256": "d2c30fdbf0543ca6d5fd854414a7cc1b2ea3d9c174ea7095e6640f9ffa3d588e"
+        },
+        "state_sha256": "65ff21c01771148f1b3770eac6f0b6742330f2489716c956e22785fd1bbdc0fe"
+      },
+      "threshold": 9.1
+    },
+    "summary": {
+      "H": 750,
+      "alpha": 0.05,
+      "channels": "[5]",
+      "fpr": 0.038,
+      "gamma": 20.0,
+      "hi": 0.0675589416840277,
+      "kind": "=",
+      "lo": 0.020334541013373435,
+      "n": 500,
+      "n_cal": null,
+      "ok": true,
+      "pipeline": "P3-C",
+      "reading": "exact",
+      "run_id": "b6f6bdf9762892ba",
+      "target": 0.04394674134870057,
+      "threshold": 9.1,
+      "variant": null
+    }
+  },
+  "cf43327b6637826a": {
+    "spec": {
+      "H": 750,
+      "K": "mp",
+      "alpha": null,
+      "channels": "all",
+      "dataset": "d2_us97",
+      "gamma": 15000.0,
+      "mixture_s2": null,
+      "mode": "factor",
+      "pipeline": "P3-C",
+      "reading": "anytime-valid",
+      "shrinkage": "ledoit_wolf"
+    },
+    "state": {
+      "calib": [
+        2833,
+        3774
+      ],
+      "representation": {
+        "class": "PCAOrthogonal",
+        "fit": {
+          "c_sha256": null,
+          "days": 941,
+          "first_day": "2016-04-07",
+          "last_day": "2019-12-31",
+          "x_sha256": "d2c30fdbf0543ca6d5fd854414a7cc1b2ea3d9c174ea7095e6640f9ffa3d588e"
+        },
+        "state_sha256": "65ff21c01771148f1b3770eac6f0b6742330f2489716c956e22785fd1bbdc0fe"
+      },
+      "threshold": 15000.0
+    },
+    "summary": {
+      "H": 750,
+      "alpha": null,
+      "channels": "\"all\"",
+      "fpr": 0.0,
+      "gamma": 15000.0,
+      "hi": 0.07510607848902363,
+      "kind": "<=",
+      "lo": 0.02489392151097637,
+      "n": 500,
+      "n_cal": null,
+      "ok": true,
+      "pipeline": "P3-C",
+      "reading": "anytime-valid",
+      "run_id": "cf43327b6637826a",
+      "target": 0.05,
+      "threshold": 15000.0,
+      "variant": null
+    }
+  }
+}

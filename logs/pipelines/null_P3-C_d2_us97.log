@@ -1,0 +1,11 @@
+generator: python -m jepadrift.pipelines --pipeline P3-C --dataset d2_us97 --null-check --reps 500
+rows: 2005-01-04..2019-12-31 (3774 days before the monitor segment); D6 key [7, 3295378274]
+region: p +- z sqrt(p (1 - p) (1/n + 1/n_cal)), z = 2.5758 (99 %); overlap of windows ignored
+cf43327b6637826a P3-C anytime-valid variant=None channels="all" H=750 gamma=15000 alpha=None threshold=15000 n=500 fpr=0.0000 target <= 0.050000 region [0.0249, 0.0751] PASS
+9bc7df8e2b1b07b9 P3-C exact variant=None channels=[0] H=750 gamma=20 alpha=0.05 threshold=9.1 n=500 fpr=0.0300 target = 0.043947 region [0.0203, 0.0676] PASS
+9a83e5cd25176173 P3-C exact variant=None channels=[1] H=750 gamma=20 alpha=0.05 threshold=9.1 n=500 fpr=0.0320 target = 0.043947 region [0.0203, 0.0676] PASS
+782d20e8e46e25d0 P3-C exact variant=None channels=[2] H=750 gamma=20 alpha=0.05 threshold=9.1 n=500 fpr=0.0460 target = 0.043947 region [0.0203, 0.0676] PASS
+303a889ed663fa69 P3-C exact variant=None channels=[3] H=750 gamma=20 alpha=0.05 threshold=9.1 n=500 fpr=0.0400 target = 0.043947 region [0.0203, 0.0676] PASS
+1014ee1972146296 P3-C exact variant=None channels=[4] H=750 gamma=20 alpha=0.05 threshold=9.1 n=500 fpr=0.0400 target = 0.043947 region [0.0203, 0.0676] PASS
+b6f6bdf9762892ba P3-C exact variant=None channels=[5] H=750 gamma=20 alpha=0.05 threshold=9.1 n=500 fpr=0.0380 target = 0.043947 region [0.0203, 0.0676] PASS
+verdict: PASS

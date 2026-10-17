@@ -257,3 +257,71 @@ réelles, mais le jeu lui-même est artificiel. La dérive observée (augmentati
 fraude de 0,87 % au mois 2 à 1,47 % au mois 7) est une **dérive native d'un jeu synthétique**.
 Ne jamais décrire cette dérive comme « in-the-wild » ou « réelle » : les données sont
 synthétiques, générées par un processus connu des auteurs du jeu.
+
+## C-pipe-delay — convention de délai des pipelines (2026-10-16)
+
+`alarms.csv` (stream 07) définit `delay = alarm_index − tau_star + 1` : le nombre de jours surveillés jusqu'à l'alarme
+incluse, soit T_γ du Lemme 1 (convention d'E2 et de `jepadrift/floors.py`), la seule comparable aux planchers. Les
+délais de l'Article B (`bilateral_delay`, `strict_cusum`, course de R15) comptent à partir de 0 : délai Article B =
+`delay − 1`. Les portages de R15 gardent leur convention en interne (GO H1, `prompts/GO-stream-07.md`).
+
+## C-pipe-null-targets — garanties sous H₀ et cibles des tests (2026-10-16)
+
+Le prompt 07 demande un FPR sous H₀ « dans l'IC binomial à 99 % de la cible » pour P3-C, P3-CS (pari) et la lecture
+anytime-valid de P2-C. Les lectures anytime-valid sont des e-détecteurs CUSUM (P2-C, P3-C, P3-CS b ; Prop. « floors »
+(a), ARL₀ ≥ γ), un e-processus (P3-CS a, Ville : P₀(sup ≥ γ) ≤ 1/γ) et le CUSUM du LLR gaussien de P7 (borne seule)
+(GO H2). Un e-détecteur à γ = 20 dépasse 1/γ sur 750 jours (FPR 0,71 pour P3-C, 0,29 pour P2-C, sonde 4 du plan) sans
+violer sa garantie. Cibles retenues (GO H3) : borne de Lorden min(1, H/γ) testée à γ = 20H pour les e-détecteurs, 1/γ à
+γ = 20 pour l'e-processus, niveau exact du treillis canal par canal pour P3-C (test net du Lemme 2 sur D6), α pour les
+lectures calibrées. Région à 99 % : p ± z√(p(1 − p)(1/n + 1/n_cal)), z = 2,5758, où 1/n_cal (N_cal ou B tirages nuls)
+porte le bruit du quantile empirique ; le recouvrement des fenêtres est ignoré. L'ARL₀ des e-détecteurs revient à E3.
+
+## C-P2C-port — portage de R15 dans P2-C (2026-10-16)
+
+`composition_for`, `worker_null_window_real` et `worker_race_h1_real` sont recopiés de
+`exp_R15_cross_sectional_b.py` (segments AST identiques à l'octet). Adaptations (GO H4, H5) : (1) les fenêtres nulles du
+bootstrap sont tirées dans les lignes antérieures au segment de surveillance (2005–2019 avant J4), alors que R15 lisait
+le panel complet ; (2) une `SeedSequence` par tirage, clé `key + [1, i]`, au lieu des clés MD5 de R15 ;
+`composition_for` garde la graine MD5 % 2³² de R15, car elle fixe la composition (sur D2, les titres agrégés sont ceux
+de R15) ; (3) la lecture anytime-valid porte sur les signes bruts exacts (zéros tranchés par pièce : 2864 rendements
+nuls sur D2 avant 2020), sans recentrage par médiane ; (4) pour les fonds D6, le seuil se calibre sur une symétrisation
+(λ_boot = 33,25 contre 20,05 sur le brut à K = 20, sonde 7). L'identité R15 (`results/identity/articleB_R15.csv`)
+reproduit ρ̂, K_eff, λ_boot, FPR_boot et la course à c = 0,25 avec les graines de R15 ; le panel 2005–2025 n'y sert qu'à
+cette reproduction (`C-identity-R15`).
+
+## C-P3D-windows — fenêtres nulles de P3-D (2026-10-16)
+
+Le seuil de P3-D est le λ minimal dont le FPR à l'horizon H est ≤ α sur toutes les fenêtres de longueur H du segment de
+calib, énumérées (GO H8) ; λ_iid vient de trajectoires i.i.d. (χ²_D − D)/√(2D) et Γ_z^op = λ_req/λ_iid. L'énergie
+blanchie n'est pas stationnaire entre 2005 et 2019 : moyenne de q_t de 0,469 (factor) et 9,47 (full) sur le pretrain
+contre 0,024 et −0,332 sur la calib, d'où Γ^op ≈ 191 et 2346 sur des fenêtres 2005–2019, contre 7,64 et 25,19 sur la
+calib (H = 500). La calib compte 941 jours : un horizon plus long lève une `ValueError`, et l'horizon de 2000 jours
+d'E1 demande une décision au stream 12 (`null_rows="pre_monitor"` reste disponible).
+
+## C-P3CS-design — mises et calibration de P3-CS (2026-10-16)
+
+(a) Les pivots s_{t,k} = u_kᵀPx_t/‖Px_t‖ sont petits dans les directions de faible variance (médiane |p| = 0,057 en full
+sur D2) : l'e-processus de pari utilise les mises ±{0,1 ; 0,25 ; 0,5 ; 0,9}, jusqu'à la borne de validité |λ| < 1,
+et le CUSUM « à design fixe » divise chaque pivot par son RMS de calib (poids figés), puis retient le maximum sur
+directions et côtés ; seuil par inversion de signe, B = 2000, un signe par jour commun aux directions (GO H9). Avec
+les mises |λ| ≤ 0,4 du stream 04 et sans standardisation, une F2 de SR = 8 n'était détectée qu'à 35 % et 17,5 %
+(H = 2000), contre 100 %. (b) σ̄ = médiane de calib de ‖Px_t‖, c_j = 2η₀_j·σ̄, σ̂ repart de σ̄ au premier jour surveillé
+puis suit une moyenne exponentielle de demi-vie 20 ; λ_{t,j} = min(0,5 ; c_j/σ̂_{t|t−1}) (GO H10). La variante « rangs »
+est reportée (GO H14).
+
+## C-P3C-mixture-gate — test d'indépendance de l'option mélange (2026-10-16)
+
+L'option mélange sous-gaussien de P3-C n'est autorisée que si |ρ̂| < 3/√T sur toutes les paires de flux de signe
+résiduels de la calib (règle littérale du prompt, GO H7) ; un échec lève `ValueError`, sans repli. Sur D2 le test
+échoue dans les deux modes : factor, 1 paire sur 10 (max |ρ̂| = 0,1308 contre 0,0978) ; full, 13 paires sur 4560. En
+full, il échouerait même sous indépendance, par multiplicité (P ≈ 0,9973^4560 ≈ 4e-6) : une correction de multiplicité
+serait un changement de spécification.
+
+## C-identity-R15 — périmètre de l'identité R15 (2026-10-16)
+
+Le prompt 07 demande ρ̂ et K_eff pour K ∈ {5, 10, 20} à 1e-12. L'identité les étend (GO H12) aux compositions, à
+K_eff_ana, à λ_boot et FPR_boot, et au DetRate et à l'ADD de la course à c = 0,25, avec les graines de R15
+(`get_deterministic_seed`, recopié). Résultat : 56 cellules, toutes dans la porte de 1e-12, dont 54 identiques au bit ;
+ρ̂ et K_eff_ana à K = 10 diffèrent d'un ulp (2,1e-16 et 1,5e-16, ordre de sommation de `np.corrcoef`). Le panel D2
+complet (2005–2025) n'y sert qu'à reproduire les valeurs publiées de l'Article B, comme l'identité R01 du stream 04 ;
+aucun choix de conception n'en dépend.

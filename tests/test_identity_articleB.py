@@ -20,9 +20,13 @@ PORTS = (
     (R01, REPO / "jepadrift" / "stats" / "garch.py", ("_garch_nll", "fit_garch_qmle", "compute_gamma_exact")),
     (R01, REPO / "experiments" / "identity_articleB.py", ("wilson_ci",)),
     (R15, REPO / "jepadrift" / "monitors" / "cusum.py", ("bilateral_delay", "cusum_max_bilateral")),
+    (R15, REPO / "jepadrift" / "monitors" / "streams.py", ("fraction_stream",)),
+    (R15, REPO / "jepadrift" / "monitors" / "calibration.py", ("worker_null_window_real", "worker_race_h1_real")),
+    (R15, REPO / "jepadrift" / "pipelines.py", ("composition_for",)),
+    (R15, REPO / "experiments" / "identity_articleB.py", ("get_deterministic_seed",)),
     (B_EXP / "R09_eprocess_anytime" / "exp_R09_eprocess_anytime.py", REPO / "jepadrift" / "monitors" / "eprocess.py",
      ("build_mixture_kernel",)),
-    (B_EXP / "common" / "fair_harness.py", REPO / "experiments" / "identity_articleB.py", ("save_fair_csv",)),
+    (B_EXP / "common" / "fair_harness.py", REPO / "jepadrift" / "pipelines.py", ("save_fair_csv",)),
 )
 
 
@@ -82,3 +86,18 @@ def test_vectorized_cusum_on_r01_streams():
         concept = cusum.bilateral_delay_vec(label, 0.1, 10.0)
         assert concept.tolist() == [cusum.bilateral_delay(r["label"], 0.1, 10.0) for r in sub]
         assert (concept >= 0).any()
+
+
+def test_r15_identity_rng_free():
+    rows = ib.r15_rows(bootstrap=False, race=False)
+    assert len(rows) == 44 and rows["pass"].all(), rows.loc[~rows["pass"], ["source", "row", "column", "rel_diff"]]
+    rho = rows[rows["column"] == "rho_sign_meas"].set_index("row")["reproduced"].astype(float)
+    for K, value in ((5, 0.25774155995343417), (10, 0.25904514047705118), (20, 0.28810195766064206)):
+        assert abs(rho[K] / value - 1.0) <= 1e-12
+
+
+def test_r15_bootstrap_identity_k5():
+    rows = ib.r15_rows(ks=(5,), race=False)
+    assert rows["pass"].all()
+    cells = rows.set_index("column")["reproduced"]
+    assert float(cells["lambda_boot"]) == 34.200000000000003 and float(cells["FPR_boot"]) == 0.053

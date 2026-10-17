@@ -108,6 +108,17 @@ def log_subgaussian_mixture(z, s2):
     return -0.5 * z.shape[-1] * np.log1p(n * s2) + s2 * (S * S).sum(axis=-1) / (2.0 * (1.0 + n * s2))
 
 
+def log_average_betting_eprocess(x, lam):
+    """log of the average over bets lam (J,) and directions of x (..., T, K) of prod_{s<=t} (1 + lam_j x_{s,k})."""
+    x = _bounded(x)
+    lam = np.asarray(lam, dtype=np.float64)
+    if lam.ndim != 1 or lam.size == 0 or not (np.abs(lam) < 1.0).all():
+        raise ValueError("bets must form a non-empty 1-D array with |lam| < 1")
+    logs = np.cumsum(np.log1p(lam[:, None, None] * np.moveaxis(x, -1, -2)[..., None, :, :]), axis=-1)
+    flat = logs.reshape(logs.shape[:-3] + (-1, logs.shape[-1]))
+    return _logsumexp(flat, axis=-2) - np.log(flat.shape[-2])
+
+
 def first_alarm(log_m, gamma):
     """First index t with log_m[..., t] >= log(gamma) along the last axis; -1 when none."""
     hit = np.asarray(log_m) >= np.log(gamma)

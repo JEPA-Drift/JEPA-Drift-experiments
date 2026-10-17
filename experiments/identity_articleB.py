@@ -1,10 +1,12 @@
-"""Identity controls against the Article B reference code (prompt 04, item 8).
+"""Identity controls against the Article B reference code (prompt 04, item 8; prompt 07, item 3).
 
 R01: the six output tables of exp_R01_real_world_backtest.py (phases 1-3, l.257-416) are rebuilt with the ported
 primitives and the P1 constants, from the D1 loader (blocking control) and, as a diagnostic, from Article B's derived
 CSVs read as R01 l.249 reads them. R08: the exact_level column of R08_lattice_exact_law.csv is recomputed by
-jepadrift.monitors.lattice. Every cell is compared; the rows of the running environment replace its previous rows in
-results/identity/articleB_R01_R08.csv, and logs/identity/identity_articleB_<env>.log summarises them.
+jepadrift.monitors.lattice. R15 (b): the frozen compositions, the RNG-free diagnostics and, with R15's own seeds,
+lambda_boot, FPR_boot and the race at c = 0.25 are recomputed from the D2 loader for K in {5, 10, 20}. Every cell is
+compared; the rows of the running environment replace its previous rows in results/identity/articleB_R01_R08.csv and
+results/identity/articleB_R15.csv, and logs/identity/identity_articleB_<env>.log summarises them.
 
 Usage: python experiments/identity_articleB.py
 """
@@ -15,6 +17,7 @@ for _var in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"):
 os.environ["MKL_CBWR"] = "COMPATIBLE"
 
 import argparse
+import hashlib
 import sys
 from importlib.metadata import version
 from pathlib import Path
@@ -24,10 +27,12 @@ import pandas as pd
 from statsmodels.stats.diagnostic import acorr_ljungbox
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from jepadrift.data_loader.articleB import ARTICLE_B, ARTICLE_B_REF, _article_b_commit, load_d1
+from jepadrift.data_loader.articleB import ARTICLE_B, ARTICLE_B_REF, _article_b_commit, load_d1, load_d2
 from jepadrift.monitors import lattice
+from jepadrift.monitors.calibration import bootstrap_threshold, worker_null_window_real, worker_race_h1_real
 from jepadrift.monitors.cusum import P1, get_cusum_trajectory, get_multiple_alarms, strict_cusum
 from jepadrift.monitors.streams import energy_stream, label_stream
+from jepadrift.pipelines import H_DET, H_REF, N_CAL, TARGET_FPR, composition_for, save_fair_csv, sign_diagnostics
 from jepadrift.stats.garch import compute_gamma_exact, fit_garch_qmle
 
 pd.set_option("compute.use_bottleneck", False)
@@ -51,6 +56,11 @@ REL_TOL = 1e-12
 PACKAGES = ("numpy", "scipy", "pandas", "statsmodels")
 BLAS_SENSITIVE = ("lb_pvalue_warmup",)
 COLUMNS = ["env", "input", "source", "row", "column", "reference", "reproduced", "rel_diff", "bit_identical", "pass"]
+R15_DATA = ARTICLE_B / "results" / "R15_cross_sectional" / "data"
+R15_K_GRID = (1, 5, 10, 20, 30, 40, 50, 60, 75, 97)
+R15_C_GRID = (0.10, 0.25, 0.50, 0.75, 1.0)
+R15_C_INDEX = 1
+N_RACE = 2000
 
 
 def wilson_ci(p_hat, n, z=1.96):
@@ -58,13 +68,6 @@ def wilson_ci(p_hat, n, z=1.96):
     center = (p_hat + z**2 / (2*n)) / (1 + z**2 / n)
     half_width = z * np.sqrt(p_hat * (1 - p_hat) / n + z**2 / (4 * n**2)) / (1 + z**2 / n)
     return max(0.0, min(1.0, center - half_width)), max(0.0, min(1.0, center + half_width))
-
-
-def save_fair_csv(df: pd.DataFrame, path: Path):
-    """
-    Saves a DataFrame to CSV ensuring bit-for-bit reproducible floating point strings.
-    """
-    df.to_csv(path, float_format='%.17g', na_rep='NaN', lineterminator='\n', index=False)
 
 
 def r01_frames(input_mode):
@@ -267,21 +270,92 @@ def identity_table(inputs=INPUTS):
     return pd.concat(parts, ignore_index=True).assign(env=Path(sys.prefix).name.lstrip("."))[COLUMNS]
 
 
+def get_deterministic_seed(*args) -> int:
+    """
+    Derives a 128-bit collision-free seed from the semantic coordinates of a
+    task, returned as a scalar integer so no entropy is discarded. This is the
+    repository's canonical form, carried from exp_R11_multi_detector.py.
+
+    Floats are formatted through .hex() rather than str(): the decimal repr of a
+    float is platform-dependent at the last digit on some C libraries, which
+    would silently re-key a cell across machines. The native hash() is randomly
+    salted and is forbidden outright (§1.2).
+    """
+    def format_arg(arg):
+        if isinstance(arg, (float, np.floating)):
+            return float(arg).hex()
+        return str(arg)
+
+    s = "_".join(map(format_arg, args))
+    return int(hashlib.md5(s.encode('utf-8')).hexdigest(), 16)
+
+
+def _r15_rng(*key):
+    return np.random.default_rng(np.random.SeedSequence(get_deterministic_seed(*key)))
+
+
+def r15_rows(ks=(5, 10, 20), bootstrap=True, race=True):
+    """R15 (b) cells from the D2 loader: compositions, RNG-free diagnostics and, with R15's seeds, bootstrap and race."""
+    eps_real_full = load_d2()[0].T
+    comp = pd.read_csv(R15_DATA / "R15_panel_composition.csv", float_precision="round_trip")
+    diag = pd.read_csv(R15_DATA / "R15_panel_diagnostics.csv", float_precision="round_trip").set_index("K")
+    race_ref = pd.read_csv(R15_DATA / "R15_cross_sectional_race.csv", float_precision="round_trip")
+    cells = []
+    for K in ks:
+        k_index = R15_K_GRID.index(K)
+        idx = composition_for(K, eps_real_full.shape[0])
+        ref_idx = comp[comp["K"] == K].sort_values("position")["asset_index"].to_numpy()
+        cells += [_cell("R15_panel_composition", K, f"position_{j}", int(a), int(b))
+                  for j, (a, b) in enumerate(zip(ref_idx, idx))]
+        eps_K_full = eps_real_full[idx, :]
+        diagnostics = sign_diagnostics(eps_K_full)
+        cells += [_cell("R15_panel_diagnostics", K, col, diag.loc[K, col], diagnostics[name])
+                  for col, name in (("rho_sign_meas", "rho_sign"), ("K_eff_meas", "K_eff_meas"),
+                                    ("K_eff_ana", "K_eff_ana"))]
+        if not bootstrap:
+            continue
+        cal = [worker_null_window_real(_r15_rng("boot_calib", k_index, i), eps_K_full, H_REF, H_DET)
+               for i in range(N_CAL)]
+        lam_boot = bootstrap_threshold(cal, TARGET_FPR)
+        held = [worker_null_window_real(_r15_rng("fpr_window", k_index, i), eps_K_full, H_REF, H_DET)
+                for i in range(N_RACE)]
+        cells += [_cell("R15_panel_diagnostics", K, "lambda_boot", diag.loc[K, "lambda_boot"], lam_boot),
+                  _cell("R15_panel_diagnostics", K, "FPR_boot", diag.loc[K, "FPR_boot"],
+                        sum(1 for m in held if m > lam_boot) / N_RACE)]
+        if not race:
+            continue
+        delays = [worker_race_h1_real(_r15_rng("race_h1", k_index, R15_C_INDEX, i), eps_K_full, H_REF, H_DET,
+                                      R15_C_GRID[R15_C_INDEX], lam_boot) for i in range(N_RACE)]
+        valid = [v for v in delays if v != -1]
+        ref = race_ref[(race_ref["K"] == K) & (race_ref["c_index"] == R15_C_INDEX)].iloc[0]
+        cells += [_cell("R15_cross_sectional_race", K, "DetRate", ref["DetRate"], len(valid) / len(delays)),
+                  _cell("R15_cross_sectional_race", K, "ADD", ref["ADD"], np.mean(valid))]
+    return pd.DataFrame(cells).assign(input="d2_loader", env=Path(sys.prefix).name.lstrip("."))[COLUMNS]
+
+
+def _write_env_rows(frame, path):
+    env = frame["env"].iloc[0]
+    text = frame.assign(rel_diff=frame["rel_diff"].map(_text), **{"pass": frame["pass"].map(str)}).astype(str)
+    if path.exists():
+        old = pd.read_csv(path, dtype=str, keep_default_na=False)
+        text = pd.concat([old[old["env"] != env], text], ignore_index=True)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    save_fair_csv(text.sort_values(["env", "input", "source"], kind="mergesort"), path)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", type=Path, default=REPO_ROOT / "results" / "identity" / "articleB_R01_R08.csv")
+    ap.add_argument("--out-r15", type=Path, default=REPO_ROOT / "results" / "identity" / "articleB_R15.csv")
     ap.add_argument("--log-dir", type=Path, default=REPO_ROOT / "logs" / "identity")
     args = ap.parse_args(argv)
-    table = identity_table()
-    env = table["env"].iloc[0]
-    text = table.assign(rel_diff=table["rel_diff"].map(_text), **{"pass": table["pass"].map(str)}).astype(str)
-    if args.out.exists():
-        old = pd.read_csv(args.out, dtype=str, keep_default_na=False)
-        text = pd.concat([old[old["env"] != env], text], ignore_index=True)
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    save_fair_csv(text.sort_values(["env", "input", "source"], kind="mergesort"), args.out)
+    r01, r15 = identity_table(), r15_rows()
+    env = r01["env"].iloc[0]
+    _write_env_rows(r01, args.out)
+    _write_env_rows(r15, args.out_r15)
+    table = pd.concat([r01, r15], ignore_index=True)
 
-    ok = bool(table.loc[table["input"].isin(["d1_loader", "n/a"]), "pass"].all())
+    ok = bool(table.loc[table["input"].isin(["d1_loader", "n/a", "d2_loader"]), "pass"].all())
     lines = ["generator: python experiments/identity_articleB.py",
              f"article_b: {ARTICLE_B_REF} @ {_article_b_commit()} (read-only)",
              f"env: {env}; python {sys.version.split()[0]}; " + "; ".join(f"{p} {version(p)}" for p in PACKAGES),
@@ -291,7 +365,7 @@ def main(argv=None):
                      f"bit-identical {int(g['bit_identical'].sum()):5d}  max rel_diff {g['rel_diff'].fillna(0.0).max():.3g}")
     for (inp, src, col), g in table[~table["bit_identical"]].groupby(["input", "source", "column"], sort=True):
         lines.append(f"not bit-identical: {inp} {src}.{col}: {len(g)} cells, max rel_diff {g['rel_diff'].max():.3g}")
-    lines.append(f"verdict (d1_loader and R08 rows): {'PASS' if ok else 'FAIL'}")
+    lines.append(f"verdict (d1_loader, R08 and R15 rows): {'PASS' if ok else 'FAIL'}")
     args.log_dir.mkdir(parents=True, exist_ok=True)
     (args.log_dir / f"identity_articleB_{env}.log").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))

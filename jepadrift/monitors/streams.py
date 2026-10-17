@@ -26,3 +26,8 @@ def exact_sign_stream(y, rng):
 def energy_stream(r, mu, sigma):
     """Article B Data stream (r**2 - mu) / sigma."""
     return (_finite(r) ** 2 - mu) / sigma
+
+
+def fraction_stream(eps):
+    """Cross-sectional fraction of positive recentered signs (median=0 by symmetry)."""
+    return (eps>0.0).mean(axis=0) - 0.5

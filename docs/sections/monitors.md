@@ -15,10 +15,15 @@ B outputs.
 | `_garch_nll`, `fit_garch_qmle`, `compute_gamma_exact` | R01 (above) | 72–108 | `jepadrift/stats/garch.py` |
 | `build_mixture_kernel` | `experiments/R09_eprocess_anytime/exp_R09_eprocess_anytime.py` | 317–336 | `jepadrift/monitors/eprocess.py` |
 | `wilson_ci` | R01 (above) | 144–148 | `experiments/identity_articleB.py` |
-| `save_fair_csv` | `experiments/common/fair_harness.py` | 84–88 | `experiments/identity_articleB.py` |
+| `save_fair_csv` | `experiments/common/fair_harness.py` | 84–88 | `jepadrift/pipelines.py` (stream 07; imported by `experiments/identity_articleB.py`) |
+| `fraction_stream` | `experiments/R15_cross_sectional/exp_R15_cross_sectional_b.py` | 368–370 | `jepadrift/monitors/streams.py` (stream 07) |
+| `worker_null_window_real`, `worker_race_h1_real` | R15 (above) | 431–478 | `jepadrift/monitors/calibration.py` (stream 07) |
+| `composition_for` | R15 (above) | 409–426 | `jepadrift/pipelines.py` (stream 07) |
+| `get_deterministic_seed` | R15 (above), carried by R15 from R13 | 377–394 | `experiments/identity_articleB.py` (stream 07) |
 
 `tests/test_identity_articleB.py::test_ported_sources_byte_identical` compares the source text of each
-function with the Article B file, byte for byte. R15's own copy of `strict_cusum` (l.343–348) differs
+function (its `ast.get_source_segment`) with the Article B file, byte for byte; a comment after the last statement
+of a function, such as the one of R15 l.370, lies outside the segment and is not carried. R15's own copy of `strict_cusum` (l.343–348) differs
 from R01's in formatting only, and the same test checks that the two ASTs are equal. `make check` runs
 pyflakes on every file except `jepadrift/stats/garch.py`: the verbatim `fit_garch_qmle` binds an
 unused exception name (R01 l.99), and changing it would break byte identity (`C-garch-pyflakes`).
@@ -45,8 +50,10 @@ non-finite input, because Python's `max(0.0, nan)` returns 0.0 while `np.maximum
 - `label_stream(r, q_hat)` returns `(r > 0) − q̂`.
 - `exact_sign_stream(y, rng)` returns `1{y > 0} − 1/2`; each tie `y == 0` gets a fair coin from `rng`.
 - `energy_stream(r, mu, sigma)` returns `(r² − μ)/σ`.
+- `fraction_stream(eps)` (R15, stream 07) returns the cross-sectional fraction of positive entries of `eps` (K, T)
+  minus 1/2, the pooled-sign stream of P2-C.
 
-All three raise `ValueError` on non-finite input.
+The first three raise `ValueError` on non-finite input.
 
 **`lattice.py`.** This module computes the exact law of a CUSUM whose stream takes two values, with
 integer steps +a/−b in lattice units and P(S⁺ steps +a) = q.
@@ -104,7 +111,14 @@ natural logarithms, so strong drifts cannot overflow.
 - `log_subgaussian_mixture(z, s2)` is the closed-form mixture of Proposition 3:
   log L_n = −(D/2) log(1 + n s²) + s²‖S_n‖²/(2(1 + n s²)). It is valid only if the coordinates are
   independent under H₀.
+- `log_average_betting_eprocess(x, lam)` (stream 07), with x of shape (..., T, K) and bets lam (J,), |λ| < 1,
+  returns the log of the mean over bets and directions of Π(1 + λ_j x_{t,k}): an e-process, the P3-CS (a) pivot
+  monitor.
 - `first_alarm(log_m, gamma)` returns the first index with log M ≥ log γ, or −1.
+
+**`calibration.py`** (stream 07; `docs/sections/pipelines.md`). `worker_null_window_real` and `worker_race_h1_real`
+(R15 verbatim), `bootstrap_threshold(null_maxima, alpha)` (the R15 quantile rule) and
+`null_windows(x, length, n, rng, flip=False)` (random null windows, optionally sign-flipped day by day).
 
 ## Monte Carlo controls (prompt 04, item 10)
 
