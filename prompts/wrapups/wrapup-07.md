@@ -94,7 +94,7 @@
   - (4) The P3-CS (a) randomization null FPR at the fixed seeds (0.0640) sits near the upper end of its region (0.0678).
   - (5) P3-D cannot calibrate a horizon above 941 calib days (`ValueError`): E1's H_det = 2000 needs a decision in stream 12.
   - (6) The mixture option of P3-C raises on D2 (gate fails by design and by multiplicity in full mode).
-  - (7) Deferred minors: `_null_block` has an unused parameter `X`; `null_check(reps=0)` raises ZeroDivisionError; the CLI counts P3-C channels on a raw fit while `null_check` fits on a symmetrization (D equal on both datasets); `log_average_betting_eprocess` materializes (J, K, T) per path (about 1.6 GB per chunk in full mode at H = 2000); about a dozen new lines exceed 120 characters.
+  - (7) Deferred minors at handover: `_null_block` had an unused parameter `X` and `null_check(reps=0)` raised an unclear error (ZeroDivisionError / pandas concat) — both closed by the post-stream fix pass (Section 7); the CLI counts P3-C channels on a raw fit while `null_check` fits on a symmetrization (D equal on both datasets); `log_average_betting_eprocess` materializes (J, K, T) per path (about 1.6 GB per chunk in full mode at H = 2000); about a dozen new lines exceed 120 characters.
   - (8) Unknown untracked foreign file `codes_results_v20251231_monde_1_name_9334.csv` appeared at the repo root and was later removed by its owner; it was never staged.
 
 ## 4. Inventory of Attachments and Dependencies
@@ -179,3 +179,15 @@
   - (3) Stream 08's contracts should include `alarms.csv` determinism through `pl.main` and the import isolation of `pipelines.py`.
   - (4) E1/E3 should reuse `null_check` (stacked D6 blocks) and pass a `state` fitted on drift-free rows, never `state=None` with injected records.
 - Module notes: the kernel referenced by the wrap-up module is not injected in this session (handover written with the module's own skeleton and recorded as a file per AGENTS.md); `ENG_DEWATERMARKING.md` is not injected (no suspension to confirm).
+
+## 7. Post-Stream Fix Pass (2026-10-17, researcher-approved)
+
+After the push of `d5aa364`, the researcher approved closing two of the deferred minors of Section 3 (7). Recorded here in place — no new handover file. Commit: `fix(pipelines): drop the unused _null_block parameter and reject reps=0`.
+
+- `_null_block` (`jepadrift/pipelines.py`) no longer takes the unused `X` parameter (signature and call site). No behavior change; the existing null checks cover the path.
+- `null_check` raises a clear `ValueError` for `reps < 1` instead of an unclear failure (`ZeroDivisionError` on the summary path, pandas' "No objects to concatenate" on the concat path). Test: `test_null_check_rejects_zero_reps`.
+- Repo policy (separate commit `chore(repo): run each stream in its own git worktree`, `52a7efe`): each stream now runs in its own git worktree on its own branch, with `.venv/`, `data/raw/` and `external/` shared by absolute symlinks, and `main` advanced by fast-forward. Adopted after a foreign `git stash -u` wiped uncommitted stream 07 work (restored from the stash; no loss).
+
+Still deferred (no consumer yet): the CLI channel count on a raw fit (D is identical on both datasets), the 1.6 GB per chunk of `log_average_betting_eprocess` in full mode at H = 2000 (do not reorder the logsumexp: bit stability), and the long lines (no line-length linter in `make check`).
+
+End of fix pass: `make check` green (187 passed = 186 + 1 new, pyflakes clean); pushed range checked (no EUROFIDAI path, no file > 50 MB), then `git push origin main`.

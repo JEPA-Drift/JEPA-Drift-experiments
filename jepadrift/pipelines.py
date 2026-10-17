@@ -474,7 +474,7 @@ def null_specs(pipeline, dataset, n_channels):
     raise ValueError(f"{pipeline} has no null check (P7 needs a drift direction)")
 
 
-def _null_block(spec, state, X, base, seed, lo, hi, pre):
+def _null_block(spec, state, base, seed, lo, hi, pre):
     g = np.random.default_rng(np.random.SeedSequence(seed))
     start = int(g.integers(lo + pre, hi - spec["H"] + 1))
     eps = g.choice((-1.0, 1.0), size=pre + spec["H"])[:, None]
@@ -484,6 +484,8 @@ def _null_block(spec, state, X, base, seed, lo, hi, pre):
 
 def null_check(specs, X, splits, reps, key):
     """D6 null check: one symmetrization of X fits, fresh ones are monitored; returns (alarms rows, summary per spec)."""
+    if reps < 1:
+        raise ValueError(f"reps must be >= 1, got {reps}")
     X, key = _panel(X), [int(k) for k in key]
     X_fit, _ = symmetrize(X, np.random.default_rng(np.random.SeedSequence(key + [0])))
     frames, summary = [], []
@@ -498,7 +500,7 @@ def null_check(specs, X, splits, reps, key):
         base = X if state["rep"] is None else state["rep"].transform_panel(X)
         parts = []
         for c0 in range(0, reps, CHUNK):
-            draws = [_null_block(spec, state, X, base, key + [2, i, r], lo, hi, pre)
+            draws = [_null_block(spec, state, base, key + [2, i, r], lo, hi, pre)
                      for r in range(c0, min(reps, c0 + CHUNK))]
             blocks = [b for _, b in draws]
             data = (np.concatenate(blocks) if state["rep"] is None else

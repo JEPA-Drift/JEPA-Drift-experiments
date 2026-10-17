@@ -278,6 +278,12 @@ def test_null_fpr_d6(d2):
     assert head.equals(first.reset_index(drop=True))
 
 
+def test_null_check_rejects_zero_reps(d2):
+    X, _, splits = d2
+    with pytest.raises(ValueError, match="reps must be >= 1"):
+        pl.null_check(pl.null_specs("P3-C", "d2_us97", 6), X, splits, 0, [7, 70])
+
+
 def test_strong_f2_detected(d2):
     X, _, splits = d2
     T, N = X.shape
