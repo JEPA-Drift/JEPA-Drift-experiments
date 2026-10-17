@@ -2,11 +2,815 @@
   "dataset": "d4_eurofidai",
   "source": "EUROFIDAI (proprietary)",
   "extraction_date": null,
-  "markets": [],
-  "files": [],
-  "n_assets": 0,
-  "n_days": 0,
-  "first_date": null,
-  "last_date": null,
-  "outputs": {}
+  "markets": [
+    "AMS",
+    "BRU",
+    "EPA",
+    "LSE",
+    "MIL",
+    "XET"
+  ],
+  "files": [
+    {
+      "name": "AMS_2001.csv",
+      "sha256": "45cd6290490259001ec58d15bf23a4e12a6a84dd9841807460a951de7627ddf6",
+      "rows": 12390
+    },
+    {
+      "name": "AMS_2002.csv",
+      "sha256": "be4daa0481c544a5d68b310304f4d78a5a9253b67f186bdddec9f7150d716d18",
+      "rows": 12493
+    },
+    {
+      "name": "AMS_2003.csv",
+      "sha256": "3a386f34996936d888a0d2bbd7997f7ee337b329e24b6017939642e91b1769b1",
+      "rows": 12492
+    },
+    {
+      "name": "AMS_2004.csv",
+      "sha256": "a1818791fef25ecd456d5b2bb3e2f427de660d85771a69c978128dc5bebfb34b",
+      "rows": 12683
+    },
+    {
+      "name": "AMS_2005.csv",
+      "sha256": "d49aa9c95ce8fe34429d66bb15ca43e6205fb9cb71637fde184695e03989d559",
+      "rows": 12587
+    },
+    {
+      "name": "AMS_2006.csv",
+      "sha256": "5d543161501a078ca3eda0cef34e6e2fe508791c86882a15828bced999a5edb7",
+      "rows": 12495
+    },
+    {
+      "name": "AMS_2007.csv",
+      "sha256": "e9394373a696c49672794d43620980b9d50c34a22b4e6103ab29e1b025cd8b22",
+      "rows": 12494
+    },
+    {
+      "name": "AMS_2008.csv",
+      "sha256": "53a310e394cadacb0f74f829aa7d14b496f5e8a6ae8853e1cea0f9dd96e2a762",
+      "rows": 12540
+    },
+    {
+      "name": "AMS_2009.csv",
+      "sha256": "6cfe6f55bcbdcf6a1f0194802d766bf4899c00a037a26d3509c0b085b8c75b3e",
+      "rows": 12540
+    },
+    {
+      "name": "AMS_2010.csv",
+      "sha256": "9546a01bf8912e4dfab761305e73a23b490f73f90b9830284b9f9af0109fd69a",
+      "rows": 12638
+    },
+    {
+      "name": "AMS_2011.csv",
+      "sha256": "00b1fb66a96d5dd17c8aff757bb4a5ac72dd84fbed47bd465009383c18896b0f",
+      "rows": 12592
+    },
+    {
+      "name": "AMS_2012.csv",
+      "sha256": "d1d254802377bb56497b0f5a060f8187a0363d535516eb6b02d086251906544f",
+      "rows": 12513
+    },
+    {
+      "name": "AMS_2013.csv",
+      "sha256": "8462223df7d564d4a9511a552cc6f36fa77d8ffc6d51392d8c4ff4c0cec5fbb8",
+      "rows": 12484
+    },
+    {
+      "name": "AMS_2014.csv",
+      "sha256": "21bf7eb0e0cb9367330989470d82913904870b973be159ca5040d6a2199f6c52",
+      "rows": 12394
+    },
+    {
+      "name": "AMS_2015.csv",
+      "sha256": "8bb97c19906695bbcab159da733b68183103f081ddd3b234490d91e8f7ad91fd",
+      "rows": 12407
+    },
+    {
+      "name": "AMS_2016.csv",
+      "sha256": "614845f6f53f5c3adeace930284581f7e355c9ef90dde94b3f13507993129300",
+      "rows": 11973
+    },
+    {
+      "name": "AMS_2017.csv",
+      "sha256": "52d84d2f80a738d6058c432fb020410f7b7fcfb3356eff715f2a4f24e157db12",
+      "rows": 11418
+    },
+    {
+      "name": "AMS_2018.csv",
+      "sha256": "1ded09d0bc381ba105019c1a098e63f8c15c6f9fb4847f4c014d09496666471b",
+      "rows": 11428
+    },
+    {
+      "name": "AMS_2019.csv",
+      "sha256": "8ad9fed99fa19dcc1a8947003f3cec2673d2873c90245b982d6b1b21f6747695",
+      "rows": 11236
+    },
+    {
+      "name": "AMS_2020.csv",
+      "sha256": "c03dc2422b9656b135e5e17d25a7fb08e4a8e8161e7a95d1e4424227095df6d3",
+      "rows": 10794
+    },
+    {
+      "name": "AMS_2021.csv",
+      "sha256": "d5ea3a6ebe2d3de9918afa3fcf1cf7660708bddc9df58481d23d68ac29dca0b8",
+      "rows": 10752
+    },
+    {
+      "name": "AMS_2022.csv",
+      "sha256": "6f865b14da8ddaeb88ae6dba6e1ff0d08f6adfe91206fbbbb3c4521f805aaab7",
+      "rows": 10406
+    },
+    {
+      "name": "AMS_2023.csv",
+      "sha256": "991cd72991860816fe48d725896624fefd15be443f84f202cf232e39ff56e250",
+      "rows": 9679
+    },
+    {
+      "name": "AMS_2024.csv",
+      "sha256": "159ec7db22157a5520a74b0d6dc9901015485ee5225c5b9363704589909be657",
+      "rows": 8950
+    },
+    {
+      "name": "AMS_2025.csv",
+      "sha256": "0695d4c9940928b9c800afb13982a738a40798b173556c42a01613eef927e84f",
+      "rows": 8670
+    },
+    {
+      "name": "AMS_2026.csv",
+      "sha256": "8d6729b16bb3b6e406f6722f72cbbe73a0396f52fbe877eca4011698b524027b",
+      "rows": 4250
+    },
+    {
+      "name": "BRU_2001.csv",
+      "sha256": "b97ba92454a0039809bbb0841a9fdb3117c4512f030787bea6e5f2f36fd421fe",
+      "rows": 8300
+    },
+    {
+      "name": "BRU_2002.csv",
+      "sha256": "751e321bbab943cd23025aceac4a6801d80358e5e2b7373e152b34c91b124021",
+      "rows": 8315
+    },
+    {
+      "name": "BRU_2003.csv",
+      "sha256": "17e13b9e0c6e09f151c7379fa434e30a80b04f779934b3929cb0288ce77fe47f",
+      "rows": 8413
+    },
+    {
+      "name": "BRU_2004.csv",
+      "sha256": "abca7af2cf65c9b9a27228798dd7774bf58f06e68e965707c198ffcbba6cf6af",
+      "rows": 8547
+    },
+    {
+      "name": "BRU_2005.csv",
+      "sha256": "52a7faa198251d7e537dbd6fe82d5f7760de575d8e266c06714a46e8e85c7828",
+      "rows": 8481
+    },
+    {
+      "name": "BRU_2006.csv",
+      "sha256": "1659500abbc643f9398a438feaaf037b883f59d328b22017deeef7dff99bd105",
+      "rows": 8415
+    },
+    {
+      "name": "BRU_2007.csv",
+      "sha256": "730b48ffbd2f744dd991ad6a5076e1ba0130592bb0c6385d529bc7ecb9ba3210",
+      "rows": 8380
+    },
+    {
+      "name": "BRU_2008.csv",
+      "sha256": "aed392cd0696ec3d3290f9fd8bf51a0156770bbac04a4a02399ad7982ef1bb31",
+      "rows": 8447
+    },
+    {
+      "name": "BRU_2009.csv",
+      "sha256": "32cc48beb8484980d283f9158e1db156f538704ddbf37068bb5457bb2461decd",
+      "rows": 8432
+    },
+    {
+      "name": "BRU_2010.csv",
+      "sha256": "548a00c19aad0061e488a7b504f3952852fc839c057fa7a4c485503a39ef1f0c",
+      "rows": 8513
+    },
+    {
+      "name": "BRU_2011.csv",
+      "sha256": "3c72738e1c63424e46d42e9e17e43471e160778909f205c7e317bd1114cc75e8",
+      "rows": 8480
+    },
+    {
+      "name": "BRU_2012.csv",
+      "sha256": "0ba7ae0dd56f27c279acef19863d91b44d0427694d8bb48f7b470e920feaec3a",
+      "rows": 8434
+    },
+    {
+      "name": "BRU_2013.csv",
+      "sha256": "b89399e9fde0213b4e37df3597e4fd25bd9a83f594bd4216d7f61057c6499469",
+      "rows": 8413
+    },
+    {
+      "name": "BRU_2014.csv",
+      "sha256": "7de4033b2978374d4d581eb87cdc09880a5bead1a674ae60b722bea85e97e516",
+      "rows": 8351
+    },
+    {
+      "name": "BRU_2015.csv",
+      "sha256": "d71535afade49be7415aed78fb2e4d75c9e3fde07dadd3a1923853604fde7958",
+      "rows": 8384
+    },
+    {
+      "name": "BRU_2016.csv",
+      "sha256": "b8ea9291e214099fe508549e2c703553d55b2d7044132b97de5a7f76ab7b8cdb",
+      "rows": 8269
+    },
+    {
+      "name": "BRU_2017.csv",
+      "sha256": "adbdc9468ebb175c266de23c00f5f41c99ed8f8f16bb3f534a60b695d371daf1",
+      "rows": 8147
+    },
+    {
+      "name": "BRU_2018.csv",
+      "sha256": "64be3214f2cdd281a7c056424ab643f8b3317e8b569cf465576bfabea49a14d2",
+      "rows": 8127
+    },
+    {
+      "name": "BRU_2019.csv",
+      "sha256": "4d67ca68169b050cdf218a309a2237dd9f1e3ba7a8e094e232e94ffadb05d99e",
+      "rows": 8160
+    },
+    {
+      "name": "BRU_2020.csv",
+      "sha256": "e352461b22690314efb5756ce3140beee5d2619e13072afbbb0c332502eb0f6c",
+      "rows": 8218
+    },
+    {
+      "name": "BRU_2021.csv",
+      "sha256": "13b1cb1f0a4333e7f31ed31b396630fa5b015817b23ec9469db8944cf6c8727c",
+      "rows": 8082
+    },
+    {
+      "name": "BRU_2022.csv",
+      "sha256": "1784aaca9359fcfae548b6b80944bf90a415e323ac29924c5ddecf3c3eb8bf8b",
+      "rows": 7967
+    },
+    {
+      "name": "BRU_2023.csv",
+      "sha256": "b43304c3b90fe41915d6eacef26e91c5a30f530f3dbf51bdbbb8d890dc3ba009",
+      "rows": 7681
+    },
+    {
+      "name": "BRU_2024.csv",
+      "sha256": "fe66d37f1a22568ce2e8b772b923ba44d6fc98b3ba050185d37e8dd8a8b2e6d5",
+      "rows": 7668
+    },
+    {
+      "name": "BRU_2025.csv",
+      "sha256": "6c0555fcd3b6ecd4d57ab2f03ad1818ca48a72fa711d94076f436e8685347fbb",
+      "rows": 7526
+    },
+    {
+      "name": "BRU_2026.csv",
+      "sha256": "83204e82ff9bd3a6ad80f2c1d738cdaf682b107cbd79cacbb974c81d4a9d5e67",
+      "rows": 3625
+    },
+    {
+      "name": "EPA_2001.csv",
+      "sha256": "6092dd5217865fe280bb132152b8cff405d91a8e045a38904b42542c8d89d165",
+      "rows": 44067
+    },
+    {
+      "name": "EPA_2002.csv",
+      "sha256": "84041e266225680190334b5a16eda366973b86e389f3716c9c20336fecd18703",
+      "rows": 45868
+    },
+    {
+      "name": "EPA_2003.csv",
+      "sha256": "77dcb277a8730e312998dc922846a48df5ce9edd04dfdd872f8779612203f62c",
+      "rows": 46228
+    },
+    {
+      "name": "EPA_2004.csv",
+      "sha256": "f409bedf3f30e7faa2db22d29ece030c9bed5f5983b04ed53e8416165d3e0aef",
+      "rows": 47211
+    },
+    {
+      "name": "EPA_2005.csv",
+      "sha256": "c3c3c4d3fdd45f22c2b640134449a52fd89e3cb57ffc16658fd8529774d378d9",
+      "rows": 46754
+    },
+    {
+      "name": "EPA_2006.csv",
+      "sha256": "fdb9bdf74d36187b266736aecd6e2342fe74c8440a42d5d6d7dade02fec25855",
+      "rows": 46508
+    },
+    {
+      "name": "EPA_2007.csv",
+      "sha256": "d4b50dc7999e3b3c0120467d6abc15a3f9a108bc44d9a524abc7b7777776d4d8",
+      "rows": 46505
+    },
+    {
+      "name": "EPA_2008.csv",
+      "sha256": "7e6cd9956b7d16a38ccf62d43af58b288c0d41b78054c506acb19d2c7d5fe05d",
+      "rows": 46141
+    },
+    {
+      "name": "EPA_2009.csv",
+      "sha256": "4c78c291e6a610416a6ed5ea1565ff82763c78c0388178efd39ac4d1f892acab",
+      "rows": 46053
+    },
+    {
+      "name": "EPA_2010.csv",
+      "sha256": "6eeaaa0b709e034b2ce277d6b2dcefbae7380f9aafe2716dfe1516884157f6e5",
+      "rows": 45681
+    },
+    {
+      "name": "EPA_2011.csv",
+      "sha256": "15c6eaf3adc6ebc854b6b6037ef25894d158a1f4068404adda1b3b5f281c7b43",
+      "rows": 45215
+    },
+    {
+      "name": "EPA_2012.csv",
+      "sha256": "aad673176f7f595e744c2d26ef1d4a325d4d10920d4362c4b26dcb85e6d6642a",
+      "rows": 44478
+    },
+    {
+      "name": "EPA_2013.csv",
+      "sha256": "2b7ce19ed80ee9eb7d6b73ee01ffee4bad5c3a0d8a287e0472940fa3b0c00739",
+      "rows": 44080
+    },
+    {
+      "name": "EPA_2014.csv",
+      "sha256": "187b26f276e658b0bd0c6d339a1bf7b47801041fa09e6825a765e4751ea4c2d4",
+      "rows": 43312
+    },
+    {
+      "name": "EPA_2015.csv",
+      "sha256": "4e49b0b9432f2a74386c23fb45d9441f775058c6a38289704c182494ea401f36",
+      "rows": 42864
+    },
+    {
+      "name": "EPA_2016.csv",
+      "sha256": "8bf74f0379579be97a0c7adda2281935f680ce77b15e27c107bbbac8c3801d8b",
+      "rows": 42398
+    },
+    {
+      "name": "EPA_2017.csv",
+      "sha256": "27262b405c44ddf14d1f69b0a58ccd7a578198178ae3f79aa0790d4b106f1bc0",
+      "rows": 41496
+    },
+    {
+      "name": "EPA_2018.csv",
+      "sha256": "965b5e69563325ac3379e183ff4a825bd7cc866b0782a0a8ab8041b1b3a0d44b",
+      "rows": 40383
+    },
+    {
+      "name": "EPA_2019.csv",
+      "sha256": "699540f1504ce7832c5984e1e28c2a324b93f5a04a0688a515752b65f542e185",
+      "rows": 40038
+    },
+    {
+      "name": "EPA_2020.csv",
+      "sha256": "5cf6e981ec453258f9b392d684e5a0f5d99e46c7957235b92c14f1295c015eb5",
+      "rows": 39721
+    },
+    {
+      "name": "EPA_2021.csv",
+      "sha256": "1497ea631ac6da5251675c4f4d4465e104a45a6ad0f37f9a8bf50f2ce85b440d",
+      "rows": 38177
+    },
+    {
+      "name": "EPA_2022.csv",
+      "sha256": "7f8691aef6b0f604b6e3d6f455092b4bd9c0c13fe9fd653f5c0e1555a17becd0",
+      "rows": 37680
+    },
+    {
+      "name": "EPA_2023.csv",
+      "sha256": "05c340c86958c59f40c3298d2d3f7f92944af35d7ef5cf36d7347ae256c39c27",
+      "rows": 35581
+    },
+    {
+      "name": "EPA_2024.csv",
+      "sha256": "c5e03efaaf3419d38b56b6826b9ca83d326b98648d8a20e6d46378d44108f6a0",
+      "rows": 34588
+    },
+    {
+      "name": "EPA_2025.csv",
+      "sha256": "69cb10b3863bedf56534fa8a4832f3e25be7bcc5a97def6d9353aa53d9fe41fd",
+      "rows": 33412
+    },
+    {
+      "name": "EPA_2026.csv",
+      "sha256": "e6323be1be064cc511b359c06bb5bb81dd0462fe6e051a03a8d80d41b27fc6c0",
+      "rows": 15891
+    },
+    {
+      "name": "LSE_2001.csv",
+      "sha256": "2fbac52f35fcbaad688bd56029d1552b8132143b6fa94440c5735f19c9524cae",
+      "rows": 34661
+    },
+    {
+      "name": "LSE_2002.csv",
+      "sha256": "a7cbefa4a5e2cf0d97f15e98202d498be7e265d6023e2f561350af9ad272b33a",
+      "rows": 34172
+    },
+    {
+      "name": "LSE_2003.csv",
+      "sha256": "01b33ec88da3590d66ff62ae8aa6fb7696a5d0a1ad85afb407b6b8fc9112d1c5",
+      "rows": 34224
+    },
+    {
+      "name": "LSE_2004.csv",
+      "sha256": "25d436f9de0442939e314960130bb90f4eaa5af39dc64fdc164432674734a02d",
+      "rows": 34393
+    },
+    {
+      "name": "LSE_2005.csv",
+      "sha256": "b6dde8147c46800f1fcc43bef6acee6af6d33df6fd37cd17bd8e2dcacfbae737",
+      "rows": 34268
+    },
+    {
+      "name": "LSE_2006.csv",
+      "sha256": "827853ba47f966a59bb0b57ca5cd479db14e907f35b1caa43361f1f405ff92ba",
+      "rows": 34355
+    },
+    {
+      "name": "LSE_2007.csv",
+      "sha256": "e9b3cd709d847a91229604c4869a3158be0ef732d3d5e3ee54cd52fa5e91bbee",
+      "rows": 34534
+    },
+    {
+      "name": "LSE_2008.csv",
+      "sha256": "c1f7234fb5e7ad63bef4f936d3161f48ae7389a3302459fcae6f585db7f7bb6f",
+      "rows": 34670
+    },
+    {
+      "name": "LSE_2009.csv",
+      "sha256": "c38d05c833a458bb6f5c2f278b9bcc4466bef423a88cda44bcace5538af9114c",
+      "rows": 34534
+    },
+    {
+      "name": "LSE_2010.csv",
+      "sha256": "205f867265cf48567227b25e58467576f7345624dcfe7c95500e0d2f120a4c49",
+      "rows": 34534
+    },
+    {
+      "name": "LSE_2011.csv",
+      "sha256": "a282be7f9c49bbb04a19fc6db9527e9da25873e73ceefcf62929b7189100804c",
+      "rows": 34387
+    },
+    {
+      "name": "LSE_2012.csv",
+      "sha256": "1ee64e36c892997620dc81a3e416f57b0aca484d74eebbfd433753a3b48e852f",
+      "rows": 34524
+    },
+    {
+      "name": "LSE_2013.csv",
+      "sha256": "1ae604bd5be32a761359393917e8e6c664632318fa7227f75744640c95245240",
+      "rows": 34661
+    },
+    {
+      "name": "LSE_2014.csv",
+      "sha256": "70f8cb78e9a3877882b555900a422e74d2c5e89a020433f14ab613e7fd7b6025",
+      "rows": 34614
+    },
+    {
+      "name": "LSE_2015.csv",
+      "sha256": "5cd347741ecb1a5b6e2f187e088ed6a9165c6981b43636878e3946e77cc0d149",
+      "rows": 34600
+    },
+    {
+      "name": "LSE_2016.csv",
+      "sha256": "3e058a1dfbe257d6358ff0c1c82fcc9e6c5741bda307f3a53f230af21b049f03",
+      "rows": 34004
+    },
+    {
+      "name": "LSE_2017.csv",
+      "sha256": "a31a3559b66d62d95964a8941c8817ba4ac26076ad34c5cb5ae06b42720d9978",
+      "rows": 33514
+    },
+    {
+      "name": "LSE_2018.csv",
+      "sha256": "3dcf370249ae21b9c60b2a71821e7bdd3f7e58903b1899c410dbf5830cc016a1",
+      "rows": 33486
+    },
+    {
+      "name": "LSE_2019.csv",
+      "sha256": "696409747c323e42e91f67d40d630c4681c9a4e1a310cc233b3bd13e11fa2150",
+      "rows": 33396
+    },
+    {
+      "name": "LSE_2020.csv",
+      "sha256": "522fc7ae50151679b0734dc2ddc334e80860b98e54f779bbb83bd6f123ee42da",
+      "rows": 32540
+    },
+    {
+      "name": "LSE_2021.csv",
+      "sha256": "0a638533d2989c79f9143f0bf48a9d72efc153ebf803f04a623f1a277c75b822",
+      "rows": 32384
+    },
+    {
+      "name": "LSE_2022.csv",
+      "sha256": "73c73be2cda6e91c4d8b1404ec50a9a9712d68ec06470037bddd59ed89233459",
+      "rows": 32017
+    },
+    {
+      "name": "LSE_2023.csv",
+      "sha256": "8613a902663a82b88ca602903c7c981b16b57e7ecee08f4c5abf490152b064e5",
+      "rows": 32195
+    },
+    {
+      "name": "LSE_2024.csv",
+      "sha256": "4e813516d2cb749ba452a7bdd94673644f081bc0cd3e96e294a0eedf0175164c",
+      "rows": 31971
+    },
+    {
+      "name": "LSE_2025.csv",
+      "sha256": "136b1fd9ade04959521475e4045c9c852fd81a65e43f505a7a3895fb086887c6",
+      "rows": 31123
+    },
+    {
+      "name": "LSE_2026.csv",
+      "sha256": "78db56719cd5780546417a82bb197985ce1b4c1de616183145d4f9dbef31566b",
+      "rows": 14797
+    },
+    {
+      "name": "MIL_2001.csv",
+      "sha256": "77b2515a10f2c68eef44b3aeea5bc345fb2778db1555c1ad967feb0fe7c25592",
+      "rows": 4533
+    },
+    {
+      "name": "MIL_2002.csv",
+      "sha256": "1823969ededaf5fad127bdb13460691d98901f869bbe2130c495062741b26dc7",
+      "rows": 4468
+    },
+    {
+      "name": "MIL_2003.csv",
+      "sha256": "7e80834761c9748af1c351ded663f4e193c21fa7761fdcda27652ac18849ae96",
+      "rows": 4498
+    },
+    {
+      "name": "MIL_2004.csv",
+      "sha256": "7188a16fd1f0418c9f16cf26bc5437e4762b4aced5cc40af76c3d6dc61fceb87",
+      "rows": 4588
+    },
+    {
+      "name": "MIL_2005.csv",
+      "sha256": "cdc07123010185fbeb3a98d9fc2cb7eb0c4cf096c3592d0bc46da2519b1436a7",
+      "rows": 4589
+    },
+    {
+      "name": "MIL_2006.csv",
+      "sha256": "26891058966012de7691a5f636267aaf688ccf1a9ada090ff4cb6985206d7e8b",
+      "rows": 4566
+    },
+    {
+      "name": "MIL_2007.csv",
+      "sha256": "02449ed5a7650984dd90cea46cdba1957592a4cf43927f4d8dffc6bbc0a9fe15",
+      "rows": 4517
+    },
+    {
+      "name": "MIL_2008.csv",
+      "sha256": "0c4796d37074a779f6c8c844fa56952239e22a5207adb1a4c3ff928edf0e5251",
+      "rows": 4554
+    },
+    {
+      "name": "MIL_2009.csv",
+      "sha256": "4b37a84a7f3ab87dd54a2a11330467e0185efeb1d6849b4654f8ceb1b958e485",
+      "rows": 4572
+    },
+    {
+      "name": "MIL_2010.csv",
+      "sha256": "4919bced63fd6980bfee9955d3bcca0af89e420d6c5097417bea1058731da0ed",
+      "rows": 4608
+    },
+    {
+      "name": "MIL_2011.csv",
+      "sha256": "caf004b7a7fc74486b5c50fc6aca994a4d906aac8887781ae3dedf5790a87bab",
+      "rows": 4608
+    },
+    {
+      "name": "MIL_2012.csv",
+      "sha256": "13ad6b3a9fad56fe486390d51160df6ac0d719e163ad59ba5fb27460094d0d94",
+      "rows": 4553
+    },
+    {
+      "name": "MIL_2013.csv",
+      "sha256": "9a3de9cac3620ef9e334f898f9889cc75936eafa3a5cd77cbe218f4a1ae374a5",
+      "rows": 4536
+    },
+    {
+      "name": "MIL_2014.csv",
+      "sha256": "df98877a37b91444ec0bc12d75cd3fb3a08050419d1bf2fa273408efb777585a",
+      "rows": 4536
+    },
+    {
+      "name": "MIL_2015.csv",
+      "sha256": "8cad6ef50beccb1ee77c18c9502f224299ae1e7ed12494363f4889faf6711e70",
+      "rows": 4572
+    },
+    {
+      "name": "MIL_2016.csv",
+      "sha256": "709a98d758b718f9572cb2ecfaff2028e8afba995d66d5206edd68434a9248bc",
+      "rows": 4535
+    },
+    {
+      "name": "MIL_2017.csv",
+      "sha256": "0d30001532a06dbd0d2c53e2dde3879a4790c54d95d1675478fdc13c54b2cda7",
+      "rows": 4086
+    },
+    {
+      "name": "MIL_2018.csv",
+      "sha256": "fea8a93960eb4bd52f1d770544f0e017fa9fc92129e46881026eb08eeb7029f1",
+      "rows": 3447
+    },
+    {
+      "name": "MIL_2019.csv",
+      "sha256": "335491394ad592b08b9e05b5867e938c4b600a14cc127edee48ccba4f221be04",
+      "rows": 2823
+    },
+    {
+      "name": "MIL_2020.csv",
+      "sha256": "2a1146b47016ea49b2664c08177f95b3585582162bf81438f42494c2b187f2ef",
+      "rows": 566
+    },
+    {
+      "name": "MIL_2021.csv",
+      "sha256": "c2d1d7b190cb63e050d1be48cc1540a4349652bbf87efa4a1486999a4f496914",
+      "rows": 512
+    },
+    {
+      "name": "MIL_2022.csv",
+      "sha256": "03aa5732d39060e8d465ca58cb8f038d4b2a8ae06b9790a6f716b5823268ba3a",
+      "rows": 515
+    },
+    {
+      "name": "MIL_2023.csv",
+      "sha256": "a07437cb87715885980d0560b376189a3e29309b58e4f060a4ef85aff0f49adb",
+      "rows": 81
+    },
+    {
+      "name": "XET_2001.csv",
+      "sha256": "1de1d3a1a96945237683dd90d23b0df865aa118d8a69f61d89e8f2fa435ccf76",
+      "rows": 19460
+    },
+    {
+      "name": "XET_2002.csv",
+      "sha256": "1ea2f36f35717fa1c1a56d50dea1029ca472b06f63e17ec82698a24e5aef6111",
+      "rows": 18335
+    },
+    {
+      "name": "XET_2003.csv",
+      "sha256": "e5986fa8239730fa2a7a5f6cfd29c2a0f65692e127637d9b45c869d2a2b16e37",
+      "rows": 17617
+    },
+    {
+      "name": "XET_2004.csv",
+      "sha256": "40ff5e08b06b434d7de9e5f2c94978ef7f4e39fb20250c1fc7f9a1087983ee35",
+      "rows": 17760
+    },
+    {
+      "name": "XET_2005.csv",
+      "sha256": "e4af71705cde192f6632653379d757555ef54bf8aff26ae4d7a76ac81a4b3cee",
+      "rows": 17873
+    },
+    {
+      "name": "XET_2006.csv",
+      "sha256": "439776d15cea50fae6695aa3b99ccb4ec9d1a6679fb09ed01455d9a581e85d64",
+      "rows": 18563
+    },
+    {
+      "name": "XET_2007.csv",
+      "sha256": "7d01ce75d16fb94b5f82112371c6fddb0af2e364e9dbdea9091f5504b85f1e6b",
+      "rows": 18774
+    },
+    {
+      "name": "XET_2008.csv",
+      "sha256": "c1fc2314b26af6cabc87f8f5be01a7aeef4f634f82419d614fba94352fc72ba0",
+      "rows": 19029
+    },
+    {
+      "name": "XET_2009.csv",
+      "sha256": "61b2b8feaed19fa4d2d4fc73cff6958f804a8061510ffdd66e5b604fc42f225f",
+      "rows": 19286
+    },
+    {
+      "name": "XET_2010.csv",
+      "sha256": "fd762b8f6ff1dffa9e25bbc32b5c09ce94d9ecf6e96c59f0a6c34eb6639ee4e9",
+      "rows": 19760
+    },
+    {
+      "name": "XET_2011.csv",
+      "sha256": "cc5648a96eee4c0fb2d879502628cdb079ba932fd7f370bf1a8f277da0c756a2",
+      "rows": 19968
+    },
+    {
+      "name": "XET_2012.csv",
+      "sha256": "aacdd30d56c0accf8b234e9c9b49694e4a8bc9247d36ae9372c3285ebfb896e4",
+      "rows": 19812
+    },
+    {
+      "name": "XET_2013.csv",
+      "sha256": "07a51585267c714325e64f2946ab813af5c731a8f9962ca4465e4c201eb0f2c9",
+      "rows": 19734
+    },
+    {
+      "name": "XET_2014.csv",
+      "sha256": "15bd5210a64efaabd90afa1ded64f507b6fd72bc859dbc2bb6291b7edf34d576",
+      "rows": 19567
+    },
+    {
+      "name": "XET_2015.csv",
+      "sha256": "c8f22feead4d033343b9ea2a11ddccb2a214f7c278ce4c144ab915834741a0f7",
+      "rows": 19652
+    },
+    {
+      "name": "XET_2016.csv",
+      "sha256": "96083e118b0961d2aceab82e5e62945483c957cfccd60e99a17c21f4c4424c35",
+      "rows": 19676
+    },
+    {
+      "name": "XET_2017.csv",
+      "sha256": "85d18769f91d88b803498d15b309f70b26a2b45b5b6c2c1deb76d1b69a3fa134",
+      "rows": 19608
+    },
+    {
+      "name": "XET_2018.csv",
+      "sha256": "51182ee62e46e35a2dd36571f792e27ec3775639dcbc3254ddb2f4c2db4f37ec",
+      "rows": 19261
+    },
+    {
+      "name": "XET_2019.csv",
+      "sha256": "31e45c003598e7f1f3e615a719dcb343eeda9e488fac857726078f8d3b12ae3e",
+      "rows": 19119
+    },
+    {
+      "name": "XET_2020.csv",
+      "sha256": "3c5817c94fd9c659f5b1a0af10bba42fd3b7e1819e6f99b5c9f368f59a8e371f",
+      "rows": 19118
+    },
+    {
+      "name": "XET_2021.csv",
+      "sha256": "bfc73adf2b5621d9438db5e880e8a89a833e4a44ecca6e02271e7d65a78d33c0",
+      "rows": 18553
+    },
+    {
+      "name": "XET_2022.csv",
+      "sha256": "e1d4e21d45a15e01f970cdee7b1ff59af9b577c1b5b73dbaabdc67a7e2c92bd0",
+      "rows": 18302
+    },
+    {
+      "name": "XET_2023.csv",
+      "sha256": "ceb01daf63a2b1a7a5cbf14b435f667ebc279b353b71b18a4124f1cb8daa31ac",
+      "rows": 17574
+    },
+    {
+      "name": "XET_2024.csv",
+      "sha256": "88c1d2ae03d64838e20d21afdc1af73d2b3d757bdc2d3d564d5a3d522b7b231c",
+      "rows": 17337
+    },
+    {
+      "name": "XET_2025.csv",
+      "sha256": "ac527644bfc2f8ba355232a4a82496d40062919991f5337c51ba9180072b6d8d",
+      "rows": 17060
+    },
+    {
+      "name": "XET_2026.csv",
+      "sha256": "a731efbb35f7df1d8591836165e1ff3b42dcbf7c3b6bcd553c887f7be3d68171",
+      "rows": 8375
+    }
+  ],
+  "n_assets": 498,
+  "n_days": 6541,
+  "first_date": "2001-01-02",
+  "last_date": "2026-06-30",
+  "outputs": {
+    "panel.parquet": {
+      "sha256": "e5db60011ab30a8492d5e4e8fa746ef41b8c3c10bf5921152f6c231b1f7a5bda",
+      "rows": 3257418
+    },
+    "ret_wide.npy": {
+      "sha256": "3846d0bb8f403facb6a3c3c0f405beaac3a42927d7119159d40b2f0ca01019ce",
+      "shape": [
+        6541,
+        498
+      ]
+    },
+    "dates.npy": {
+      "sha256": "79dc477dbcd6d18842c0f624db78b10cae758380f43de25fc5c6a61f7a173d29",
+      "rows": 6541,
+      "first_date": "2001-01-02",
+      "last_date": "2026-06-30"
+    },
+    "assets.json": {
+      "sha256": "4f55c068b798e6f430bc8a5ba16193f6b9cb38956667f3c99981f546f4c59140",
+      "assets": 498
+    },
+    "chars.parquet": {
+      "sha256": "057586170636ded99a81af04ec28e2f3a7c37cf96a915982f02679788921f263"
+    },
+    "splits.yaml": {
+      "sha256": "622d3e8979c1b47adda4f0d8aa52db43c13cc216d3a049cca8b82dad2ccf7b23"
+    },
+    "flags.csv": {
+      "sha256": "a78c0b4ed89d89123897b0889b252057aab2e38ca77d825e3a86c28cf3c0b3d6"
+    }
+  }
 }

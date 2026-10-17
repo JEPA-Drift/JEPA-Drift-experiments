@@ -5,17 +5,17 @@
 # dans les fichiers CSV exportes depuis le portail EUROFIDAI.
 
 fields:
-  id_stable: "id_eurofidai"        # identifiant stable EUROFIDAI
-  isin: "isin"                     # code ISIN
-  market: "market"                 # place de cotation (EPA, ETR, LSE, ...)
-  date: "date"                     # date de cotation (AAAA-MM-JJ)
-  adjusted_close: "close_adj"      # cours ajuste (splits + dividendes)
-  adjustment_factor: "facteur_ajust"  # facteur d'ajustement cumule (alternative)
-  total_return: "rendement_total"  # rendement total si disponible
-  market_cap: "capitalisation"     # capitalisation boursiere
-  listing_status: "statut_cotation"  # statut : cote, suspendu, radie
-  delisting_date: "date_radiation"  # date de radiation (si applicable)
-  index_membership: "indice_appartenance"  # appartenance aux indices
+  id_stable: "eurofidai_code"      # identifiant stable EUROFIDAI (15 chiffres)
+  isin: "isin_code"                # code ISIN
+  market: "stock_exchange_name"    # place de cotation (Euronext Paris, Xetra, LSE, ...)
+  date: "quotation_date"           # date de cotation (AAAA-MM-JJ)
+  adjusted_close: "adjusted_close" # cours ajuste reconstruit depuis adjusted_return
+  adjustment_factor: "adjust_coef" # coefficient d'ajustement (jours de split uniquement)
+  total_return: "adjusted_return"  # rendement ajuste quotidien
+  market_cap: "capitalization"     # capitalisation boursiere
+  listing_status: ""               # non fourni par le portail (vide = ignore)
+  delisting_date: ""               # non fourni (radiations detectees via absence de donnees)
+  index_membership: ""             # non fourni
 
 # Filtre de liquidite : un titre est liquide a t ssi :
 # - le volume de t est >= min_volume (0 = pas de filtre sur le volume)
