@@ -74,7 +74,10 @@ The data-processing inequality (DPI) forbids any KL increase: gains come from co
 - Root: `AGENTS.md` (canonical project memory; `CLAUDE.md` is a relative symlink to it), `Makefile`, `requirements.txt`, `requirements.lock`, `.gitignore`, `conftest.py`.
 
 ## Engineering rules
-- Python 3.12. Before importing numpy: OMP_NUM_THREADS=MKL_NUM_THREADS=OPENBLAS_NUM_THREADS=1,
+- Python 3.12. Interpreter: `.venv/bin/python` — the venv is built on the Trading 3.12.9 binary
+  (`/home/m53/miniforge3/envs/Trading/bin/python`); activating Trading then the venv is fine, but
+  never run Trading's python alone: its numpy 1.26.4 breaks bit-reproducibility tests and rebuilds.
+  Before importing numpy: OMP_NUM_THREADS=MKL_NUM_THREADS=OPENBLAS_NUM_THREADS=1,
   MKL_CBWR=COMPATIBLE, PYTHONHASHSEED=42. Seeds: np.random.SeedSequence keyed on
   (stream, cell, replicate); results must not depend on the number of workers.
 - jepadrift/monitors/ imports numpy only (never torch, jepadrift.jepa or jepadrift.representations).
