@@ -392,3 +392,37 @@ chemin situé au-delà d'un lien symbolique (« pathspec 'data/raw/eurofidai/x' 
 avec `--no-index`). Le worktree du stream 11 utilise un répertoire `data/raw/` réel qui contient des liens absolus vers
 `d3_yf` et `baf` seulement : aucune donnée EUROFIDAI n'y est exposée, et les trois tests EUROFIDAI sur données réelles
 y sont sautés (D4 absent). Le partage par liens absolus reste celui d'AGENTS.md, un niveau plus bas.
+
+## C-audit-n2-noise — bruit d'estimation de N2 : fond permuté et valeur nette (2026-10-18)
+
+Le GO 11b demandait de mesurer le bruit de N2 sur des fonds D6 (`injection.symmetrize`) et de rapporter
+`value − bruit`. Décision du chercheur (2026-10-18) : le fond « bruit seul » est une **permutation aléatoire des jours
+entiers** de 2005–2019. D6 multiplie chaque jour par un signe de Rademacher : |x_t|, les corrélations transversales et
+le clustering de volatilité survivent, donc la dynamique de Σ_t aussi ; une sonde le confirme (rapport N2 de PC1 :
+5,44 sur D6 contre 5,54 sur D2, 11,2 contre 11,33 sur D3). La permutation garde la coupe de chaque jour et efface la
+dynamique temporelle : chaque fenêtre Ledoit–Wolf de 60 jours estime le même Σ̄, et le rapport y mesure l'écart de
+Jensen pur de l'estimation. Seules les lignes de X sont permutées ; les directions F1 et F2 gardent l'ordre du
+calendrier. B = 2000 fonds, graines `SeedSequence([11, 11, crc32(jeu), b])`, calcul parallèle indépendant du nombre de
+processus. Valeur nette : `lw60_net` = `lw60` / `lw60_shuffle` (écart de Jensen multiplicatif ; vaut 1 sous le nul et
+annule le facteur de variation des directions F2, qui ne dépend pas de l'ordre des jours), et non la différence du
+GO. Schéma inchangé : variantes `lw60_shuffle` (médiane du rapport sur les fonds) et `lw60_net` dans
+`channel_ceilings.csv`. Borne documentée : sur données i.i.d. gaussiennes, le rapport « bruit » n'est pas proche de 1
+aux dimensions réelles (3 à 8 à N = 97/239 et 60 jours), puisqu'il mesure le bruit lui-même ; sous un Σ constant, la
+valeur nette vaut 1 (`test_n2_noise_null_and_workers`), et elle dépasse 1,5 avec des régimes de volatilité
+(`test_n2_noise_volatility_regimes`).
+
+## C-audit-placebo — frontières placebo par rotation circulaire et facteur de sélection (2026-10-18)
+
+Décision du chercheur (2026-10-18) : chaque jeu placebo est une **rotation circulaire** de la chaîne réelle des phases
+SPY dans la fenêtre (départ uniforme, retour au début de la fenêtre) ; le multiset des (n₁, n₂) et le nombre de
+transitions sont ceux de la datation réelle, et la phase qui enjambe le joint rassemble ses deux segments de lignes.
+P = 2000 rotations, graines `SeedSequence([11, 12, crc32(jeu), crc32(datation)])` ; IC de la médiane placebo par
+bootstrap i.i.d. des P médianes (B tirages, `SeedSequence([11, 13, …])`). Constat d'exécution : les médianes placebo du
+SR² de marché débiaisé sont négatives (l'estimateur débiaisé a une loi asymétrique dont la médiane est négative près de
+0), si bien que le rapport réel/placebo du GO n'a pas de sens. `selection_factor` vaut donc NaN quand la médiane
+placebo est ≤ 0, et le CSV dédié `placebo_selection.csv` rapporte aussi `selection_excess` = réel − placebo (unités de
+SR²) et `p_placebo` = (1 + #{placebo ≥ réel})/(1 + P). Les tests suivent : contrôle positif (frontières sur les vrais
+changements de moyenne : excès > 0, p < 0,05) et nul (panel sans structure : p dans [0,025 ; 0,975]) dans
+`test_placebo_controls` ; sur les données réelles, excès > 0 et p < 0,05 pour les deux jeux et les trois datations
+(`test_placebo_selection_committed`), à la place de « rapport > 1 ». Niveau `placebo` ajouté à
+`drift_sharpe_transitions.csv` (colonnes inchangées).

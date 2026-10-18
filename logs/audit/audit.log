@@ -1,5 +1,5 @@
 generator: python experiments/audit_information.py --datasets d2_us97 d3_239 --out results/audit
-window 2005-01-01..2019-12-31; moving-block bootstrap, blocks of 20 days, B = 2000; phases >= 20 days; subspace blocks <= 30; seeds SeedSequence([11, crc32(dataset), crc32(dating), phase_id])
+window 2005-01-01..2019-12-31; moving-block bootstrap, blocks of 20 days, B = 2000; phases >= 20 days; subspace blocks <= 30; seeds SeedSequence([11, crc32(dataset), crc32(dating), phase_id]); N2 noise on 2000 day-permuted backgrounds; 2000 circular rotations of each phase chain
 d2_us97: 2005-01-04..2019-12-31, 3774 days x 97 assets; calib rows (2833, 3774); K = 5 (6 eigenvalues above the MP edge 1.74521); calib basis 85147fd9f553130e = prompt 6 sidecar
   sha256 data/derived/d2_us97/ret_wide.npy 333d2b079e7048fe3f996884c1fad4d987218017b3fe2be47b92630a72d04b33
   sha256 data/derived/d2_us97/z_85147fd9f553130ea70a7492770fa3ea4b068f0edf421d878a9e31bed7296f3d.json 90e4e17efd28bcdc03d4b335e74183e9dd2bcf2570b258bdff9679c1f83bebd9
@@ -50,18 +50,31 @@ R9 d3_239 symmetric median residual_full: -151.3 [-628.4, 591]
 R9 d3_239 symmetric median chars: 5.446 [-39.66, 68.54]
 symmetry d2_us97: Holm rejections binomial ['PC1', 'PC3'], triples ['PC1']; GARCH not converged []
 symmetry d3_239: Holm rejections binomial ['PC1', 'PC2', 'PC3', 'char:rev_21'], triples ['PC1', 'PC2']; GARCH not converged []
+N2 d2_us97 lw60: F1:PC1 5.54, F1:PC2 4.27, F1:PC3 4.67, F1:PC4 3.97, F1:PC5 3.63, F1:PC6 4.17
+N2 d2_us97 lw60_shuffle: F1:PC1 2.31, F1:PC2 2.43, F1:PC3 2.26, F1:PC4 2.29, F1:PC5 2.08, F1:PC6 2.22
+N2 d2_us97 lw60_net: F1:PC1 2.4, F1:PC2 1.76, F1:PC3 2.06, F1:PC4 1.74, F1:PC5 1.74, F1:PC6 1.88
+N2 d3_239 lw60: F1:PC1 11.3, F1:PC2 10.4, F1:PC3 9.54, F1:PC4 7.77, F1:PC5 7.89, F1:PC6 6.12, F1:PC7 6.17, F1:PC8 5.63, F1:PC9 5.95, F1:PC10 5.37, F1:PC11 5.21, F2:beta_252 10.8, F2:vol_63 12, F2:mom_12_1 70, F2:rev_21 501, F2:gics_communication_services 2.88, F2:gics_consumer_discretionary 3.89, F2:gics_consumer_staples 3.79, F2:gics_energy 3.09, F2:gics_financials 3.9, F2:gics_health_care 3.76, F2:gics_industrials 3.54, F2:gics_information_technology 3.92, F2:gics_materials 3.58, F2:gics_real_estate 5.14, F2:gics_utilities 4.61
+N2 d3_239 lw60_shuffle: F1:PC1 3.72, F1:PC2 4.01, F1:PC3 3.69, F1:PC4 3.6, F1:PC5 3.41, F1:PC6 3.07, F1:PC7 3.08, F1:PC8 2.88, F1:PC9 2.95, F1:PC10 2.72, F1:PC11 2.75, F2:beta_252 6.19, F2:vol_63 7.41, F2:mom_12_1 48.3, F2:rev_21 535, F2:gics_communication_services 1.82, F2:gics_consumer_discretionary 2.29, F2:gics_consumer_staples 2.19, F2:gics_energy 1.92, F2:gics_financials 2.25, F2:gics_health_care 2.21, F2:gics_industrials 2.12, F2:gics_information_technology 2.28, F2:gics_materials 2.11, F2:gics_real_estate 2.74, F2:gics_utilities 2.5
+N2 d3_239 lw60_net: F1:PC1 3.04, F1:PC2 2.59, F1:PC3 2.58, F1:PC4 2.16, F1:PC5 2.31, F1:PC6 1.99, F1:PC7 2, F1:PC8 1.95, F1:PC9 2.02, F1:PC10 1.97, F1:PC11 1.89, F2:beta_252 1.74, F2:vol_63 1.62, F2:mom_12_1 1.45, F2:rev_21 0.937, F2:gics_communication_services 1.58, F2:gics_consumer_discretionary 1.7, F2:gics_consumer_staples 1.73, F2:gics_energy 1.6, F2:gics_financials 1.73, F2:gics_health_care 1.7, F2:gics_industrials 1.67, F2:gics_information_technology 1.72, F2:gics_materials 1.69, F2:gics_real_estate 1.88, F2:gics_utilities 1.84
+placebo d2_us97 lt_spy: real median 40.77, placebo median -2.457 [-2.476, -2.423], excess 43.23, p 0.0009995, factor nan
+placebo d2_us97 strict_ps: real median 19.25, placebo median -1.685 [-1.725, -1.649], excess 20.94, p 0.0004998, factor nan
+placebo d2_us97 symmetric: real median 40.77, placebo median -2.461 [-2.48, -2.421], excess 43.23, p 0.0009995, factor nan
+placebo d3_239 lt_spy: real median 38.18, placebo median -2.617 [-2.717, -2.476], excess 40.8, p 0.0004998, factor nan
+placebo d3_239 strict_ps: real median 22.35, placebo median -1.744 [-1.776, -1.712], excess 24.09, p 0.0009995, factor nan
+placebo d3_239 symmetric: real median 38.18, placebo median -2.519 [-2.635, -2.465], excess 40.7, p 0.001499, factor nan
 N3 d2_us97 mvt_static (cited variant): nu = 5.026, J/Sigma^-1 = 1.247, 148 ECME iterations, converged True
 N3 d2_us97 mvt_garch: nu = 9.215, J/Sigma^-1 = 1.068, 89 ECME iterations, converged True
 N3 d3_239 mvt_static (cited variant): nu = 5.43, J/Sigma^-1 = 1.207, 154 ECME iterations, converged True
 N3 d3_239 mvt_garch: nu = 10.89, J/Sigma^-1 = 1.049, 62 ECME iterations, converged True
 caveat: phase boundaries are SPY turning points dated ex post; the noise debiasing does not remove this selection, which inflates the market SR^2
 caveat: N2 with a 60-day Ledoit-Wolf Sigma_t also holds the Jensen gap of its estimation noise
-duration 200 s
+duration 809 s
 sha256 spectrum.csv ee434bec8acecb19418b470033cd4d3cd40da66c99d8b3fbba5d9589a1dddf51
 sha256 eta_by_year.csv b3485185d6150011f88b5cf7ca1e9ecc057be3c178a0525ec0bfb9b109f0c53d
 sha256 sign_corr.csv 92560c88c821bd4182b4ca39b8757a666c85e181275199b60c800f66ee5af813
 sha256 symmetry_tests.csv 1bcd55d4c0a735ad1da2d0f78ed816dcfd0107e28ff62f1f99b3958b45272f20
-sha256 drift_sharpe_transitions.csv b6a6715273428249bcaf62a4a80bee1d8617912b4aa8feec17ae6105da58d4e8
-sha256 channel_ceilings.csv 407539600581a9a5c0f77c191ff126de9dadacdd76f6f4b45c29082cb1f73c10
+sha256 drift_sharpe_transitions.csv 4b196a3e003953bd0022d4985df9c985698c17d77953ca6259ead66975769b29
+sha256 channel_ceilings.csv ce6d159ec6c31b10bc60f9cfdbbed55209d64857993dcc47e47bd7cce97d5b10
 sha256 budget_share.csv 80ac03d3d9c32f674010fa7d8f7a353152d5508a23b5cb443f3fd861224ff193
 sha256 predicted_gains.csv ac2568ae6c7136d557c66ff24ee57361cdcbf4c65dcb98a8ac233a831ba615e4
+sha256 placebo_selection.csv 9d56e2ca8ca1f358735c4a19a2878597893a6251d4823a9c357544f0d4e1eac0

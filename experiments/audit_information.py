@@ -8,9 +8,11 @@ Items (prompts/streams/prompt-11-audit.md)
                   triples test of Randles, Fligner, Policello & Wolfe (1980) on u'x_t / sigma_{t|t-1} (GARCH(1,1)),
                   Holm correction over the joint family of a dataset
   4 drift Sharpe  debiased SR_S^2 at the boundaries of the SPY datings, pooled within-phase covariance, subspaces of
-                  dimension <= 30, moving-block bootstrap (20 days, 2000 draws), median over transitions
+                  dimension <= 30, moving-block bootstrap (20 days, 2000 draws), median over transitions; selection of
+                  the market SR^2 against 2000 circular rotations of each phase chain (placebo_selection.csv)
   5 ceilings      N1 = E[s^2] E[s^-2] (idiosyncratic dispersion), N2 = conditional over static information
-                  (rolling 60-day Ledoit-Wolf), N3 = multivariate t fit and J / Sigma^-1 = (nu+1) nu / ((nu+3)(nu-2))
+                  (rolling 60-day Ledoit-Wolf) with its noise on 2000 day-permuted backgrounds and the net ratio,
+                  N3 = multivariate t fit and J / Sigma^-1 = (nu+1) nu / ((nu+3)(nu-2))
   6 budget        share of dated phases with L * I_hat >= ln(gamma), gamma in {20, 252} (budget reading, Lemma 1)
   7 gains         section 2.4 planning formulas evaluated on the estimates -> predicted_gains.csv (input of E1)
 Outputs: results/audit/*.csv, figures/audit/*.{png,pdf} drawn from the CSVs only, logs/audit/audit.log.
@@ -25,12 +27,15 @@ os.environ["MKL_CBWR"] = "COMPATIBLE"
 os.environ["MPLBACKEND"] = "Agg"
 
 import argparse
+import concurrent.futures
 import hashlib
 import json
 import math
+import multiprocessing
 import sys
 import time
 import zlib
+from itertools import repeat
 from pathlib import Path
 
 import numpy as np
@@ -83,6 +88,8 @@ COLUMNS = {
     "predicted_gains": ["dataset", "dating", "step", "gamma", "N", "K", "rho_ret", "rho_sign", "kappa_hat",
                         "sr2_market", "sr2_factor", "sr2_idio", "D_A", "D_B", "M_A", "M_B", "G_floor",
                         "G_floor_sign", "G_tax"],
+    "placebo_selection": ["dataset", "dating", "n_transitions", "n_placebo", "sr2_real_median", "sr2_placebo_median",
+                          "ci_lo", "ci_hi", "selection_factor", "selection_excess", "p_placebo"],
 }
 
 
@@ -377,6 +384,37 @@ def drift_rows(name, dating, phases, Ys, B):
     return rows
 
 
+def rotate_phases(phases, T, offset):
+    """Phases moved by `offset` rows around the window (circular); a phase crossing the seam keeps its rows pooled."""
+    return [(pid, start, end, np.sort((rows + offset) % T)) for pid, start, end, rows in phases]
+
+
+def placebo_rows(name, dating, phases, y, P, B):
+    """Selection of the market SR^2 by the dated boundaries: real median against P circular rotations of the chain."""
+    pairs, T = transitions(phases), len(y)
+    if not pairs:
+        return None
+
+    def chain_median(ph):
+        return np.median([debiased_sr2(y[ph[i][3]], y[ph[j][3]]) for i, j in pairs], axis=0)
+
+    key = [zlib.crc32(name.encode()), zlib.crc32(dating.encode())]
+    offsets = np.random.default_rng(np.random.SeedSequence([STREAM, 12, *key])).integers(0, T, P)
+    real = chain_median(phases)
+    placebo = np.array([chain_median(rotate_phases(phases, T, o)) for o in offsets])
+    med = np.median(placebo, axis=0)
+    draws = np.random.default_rng(np.random.SeedSequence([STREAM, 13, *key])).integers(0, P, (B, P))
+    lo, hi = np.percentile(np.median(placebo[draws, 1], axis=1), [2.5, 97.5])
+    row = {"dataset": name, "dating": dating, "level": "placebo", "transition": "placebo", "boundary": "",
+           "n1": math.nan, "n2": math.nan, "n_transitions": len(pairs), "subspace": "market", "d": y.shape[1],
+           "sr2_raw": med[0], "sr2_debiased": med[1], "sr2_spec": med[2], "ci_lo": lo, "ci_hi": hi, "n_boot": B}
+    selection = {"dataset": name, "dating": dating, "n_transitions": len(pairs), "n_placebo": P,
+                 "sr2_real_median": real[1], "sr2_placebo_median": med[1], "ci_lo": lo, "ci_hi": hi,
+                 "selection_factor": real[1] / med[1] if med[1] > 0 else math.nan,
+                 "selection_excess": real[1] - med[1],
+                 "p_placebo": (1 + int((placebo[:, 1] >= real[1]).sum())) / (1 + P)}
+    return row, selection
+
 def n1(Z):
     """N1 = mean(s^2) mean(1/s^2), s_t^2 = mean squared whitened idiosyncratic coordinate; raw and chi-square corrected."""
     s2 = (Z ** 2).mean(axis=1)
@@ -388,6 +426,30 @@ def rolling_lw(X, days=LW_DAYS):
     """Ledoit-Wolf covariance of the `days` rows before t, for t = days .. len(X) - 1 (past rows only)."""
     for t in range(days, len(X)):
         yield ledoit_wolf(X[t - days:t])[0]
+
+
+def _directions(B, F2, T):
+    """Directions a_t (N, m) of N2 for t = LW_DAYS .. T - 1: the F1 loadings, then the day's F2 residuals (D3)."""
+    for t in range(LW_DAYS, T):
+        yield B if F2 is None else np.concatenate([B, F2[t]], axis=1)
+
+
+def _noise_chunk(X, B, F2, keys):
+    """Noise-only N2 ratios on day-permuted copies of X, one per key; the directions keep their calendar order."""
+    return [info_ratio(_directions(B, F2, len(X)),
+                       rolling_lw(X[np.random.default_rng(np.random.SeedSequence(key)).permutation(len(X))]))[0]
+            for key in keys]
+
+
+def n2_noise(X, B, F2, keys, jobs=1):
+    """N2 ratio of each day-permuted background (one row per key) over `jobs` spawned processes; independent of jobs."""
+    if jobs <= 1 or len(keys) < 2:
+        return np.array(_noise_chunk(X, B, F2, keys))
+    size = -(-len(keys) // jobs)
+    chunks = [keys[i:i + size] for i in range(0, len(keys), size)]
+    with concurrent.futures.ProcessPoolExecutor(jobs, mp_context=multiprocessing.get_context("spawn")) as pool:
+        parts = list(pool.map(_noise_chunk, repeat(X), repeat(B), repeat(F2), chunks))
+    return np.array([ratio for part in parts for ratio in part])
 
 
 def info_ratio(A, sigmas):
@@ -432,8 +494,8 @@ def t_ratio(nu):
     return (nu + 1) * nu / ((nu + 3) * (nu - 2)) if nu > 2 else math.nan
 
 
-def ceiling_rows(d, proj, scales):
-    """Channel ceilings on the window (item 5): N1, N2 (rolling 60-day Ledoit-Wolf) and N3 (Student t fits)."""
+def ceiling_rows(d, proj, scales, n_noise=BOOT, jobs=1):
+    """Channel ceilings on the window (item 5): N1, N2 with its day-permutation noise, N3 (Student t fits)."""
     X, V, eigval, K = d["X"], d["eigvec"], d["eigval"], d["K"]
     T, N = X.shape
     Z = X @ (V[:, K + 1:] / np.sqrt(eigval[K + 1:]))
@@ -449,16 +511,18 @@ def ceiling_rows(d, proj, scales):
     a, b = d["seg"]["calib"]
     fit = fit_background(X[a:b], K + 1)
     labels = [f"F1:PC{k + 1}" for k in range(K + 1)]
-    if d["C"] is None:
-        dirs = (fit["B"] for _ in range(LW_DAYS, T))
-    else:
+    F2 = None
+    if d["C"] is not None:
         F2 = gls_residual(d["C"].transpose(0, 2, 1).reshape(-1, N), fit["B"], fit["psi"])
         F2 = F2.reshape(T, -1, N).transpose(0, 2, 1)
         labels += [f"F2:{c.removeprefix('c_')}" for c in d["chars"]]
-        dirs = (np.concatenate([fit["B"], F2[t]], axis=1) for t in range(LW_DAYS, T))
-    ratio, i_cond, i_stat = info_ratio(dirs, rolling_lw(X))
+    ratio, i_cond, i_stat = info_ratio(_directions(fit["B"], F2, T), rolling_lw(X))
     rows += [row("N2", "lw60", label, r, i_cond=ic, i_static=ist, n_days=T - LW_DAYS, d=N)
              for label, r, ic, ist in zip(labels, ratio, i_cond, i_stat)]
+    keys = [[STREAM, 11, zlib.crc32(d["name"].encode()), b] for b in range(n_noise)]
+    noise = np.median(n2_noise(X, fit["B"], F2, keys, jobs), axis=0)
+    for variant, values in (("lw60_shuffle", noise), ("lw60_net", ratio / noise)):
+        rows += [row("N2", variant, label, v, n_days=T - LW_DAYS, d=N) for label, v in zip(labels, values)]
     sigma = np.column_stack([garch_scale(Z[:, k])[0] for k in range(dim)])
     for variant, data in (("mvt_static", Z), ("mvt_garch", Z / sigma)):
         nu, iterations, converged = mvt_nu(data)
@@ -635,6 +699,12 @@ def _summary(frames):
         lines.append(f"symmetry {name}: Holm rejections binomial {g.direction[g.binom_reject].tolist()}, "
                      f"triples {g.direction[g.triples_reject].tolist()}; "
                      f"GARCH not converged {g.direction[~g.garch_converged.astype(bool)].tolist()}")
+    for (name, variant), g in ceil[ceil.variant.isin(["lw60", "lw60_shuffle", "lw60_net"])].groupby(
+            ["dataset", "variant"], sort=False):
+        lines.append(f"N2 {name} {variant}: " + ", ".join(f"{r.direction} {r.value:.3g}" for r in g.itertuples()))
+    lines += [f"placebo {r.dataset} {r.dating}: real median {r.sr2_real_median:.4g}, placebo median "
+              f"{r.sr2_placebo_median:.4g} [{r.ci_lo:.4g}, {r.ci_hi:.4g}], excess {r.selection_excess:.4g}, "
+              f"p {r.p_placebo:.4g}, factor {r.selection_factor:.4g}" for r in frames["placebo_selection"].itertuples()]
     for r in ceil[ceil.variant.isin(["mvt_static", "mvt_garch"])].itertuples():
         cited = " (cited variant)" if r.variant == "mvt_static" else ""
         lines.append(f"N3 {r.dataset} {r.variant}{cited}: nu = {r.nu:.4g}, J/Sigma^-1 = {r.value:.4g}, "
@@ -652,17 +722,19 @@ def main(argv=None):
     ap.add_argument("--fig-dir", type=Path, default=REPO_ROOT / "figures" / "audit")
     ap.add_argument("--log-dir", type=Path, default=REPO_ROOT / "logs" / "audit")
     ap.add_argument("--boot", type=int, default=BOOT, help="moving-block bootstrap draws per phase")
-    ap.add_argument("--quick", action="store_true", help="smoke test: 50 draws, PC1-PC3 only")
+    ap.add_argument("--jobs", type=int, default=os.cpu_count(), help="processes for the N2 noise backgrounds")
+    ap.add_argument("--quick", action="store_true", help="smoke test: 50 draws and rotations, 8 backgrounds, PC1-PC3")
     args = ap.parse_args(argv)
-    if args.boot < 1:
-        ap.error("--boot must be >= 1")
-    B, n_pc = (50, 3) if args.quick else (args.boot, N_PC)
+    if args.boot < 1 or args.jobs < 1:
+        ap.error("--boot and --jobs must be >= 1")
+    B, n_pc, n_noise, P = (50, 3, 8, 50) if args.quick else (args.boot, N_PC, args.boot, args.boot)
     started = time.time()
     shown = " ".join(_shown(a) for a in (sys.argv[1:] if argv is None else argv))
     log = [f"generator: python experiments/audit_information.py {shown}".rstrip(),
            f"window {WINDOW[0]}..{WINDOW[1]}; moving-block bootstrap, blocks of {BLOCK} days, B = {B}; phases >= "
            f"{MIN_PHASE} days; subspace blocks <= {MAX_DIM}; seeds SeedSequence([{STREAM}, crc32(dataset), "
-           f"crc32(dating), phase_id])"]
+           f"crc32(dating), phase_id]); N2 noise on {n_noise} day-permuted backgrounds; {P} circular rotations of each "
+           f"phase chain"]
     tables = {stem: [] for stem in COLUMNS}
     dims = {}
     for name in args.datasets:
@@ -693,8 +765,12 @@ def main(argv=None):
             log.append(f"  {dating}: {len(kept)} transitions kept, dropped (< {MIN_PHASE} days): "
                        f"{', '.join(dropped) or 'none'}")
             tables["drift_sharpe_transitions"] += drift_rows(name, dating, phases, Ys, B)
+            placebo = placebo_rows(name, dating, phases, Ys["market"], P, B)
+            if placebo is not None:
+                tables["drift_sharpe_transitions"].append(placebo[0])
+                tables["placebo_selection"].append(placebo[1])
         log.append(f"  lt_spy and symmetric SPY chains identical in the window: {chains['lt_spy'] == chains['symmetric']}")
-        tables["channel_ceilings"] += ceiling_rows(d, proj, scales)
+        tables["channel_ceilings"] += ceiling_rows(d, proj, scales, n_noise, args.jobs)
     frames = {stem: pd.DataFrame(rows, columns=COLUMNS[stem]) for stem, rows in tables.items()}
     frames["budget_share"] = pd.DataFrame(budget_rows(frames["drift_sharpe_transitions"]),
                                           columns=COLUMNS["budget_share"])

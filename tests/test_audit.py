@@ -275,6 +275,69 @@ def test_t_ratio():
     assert au.t_ratio(1e6) == pytest.approx(1.0, abs=1e-5)
 
 
+def _vol_panel(regimes):
+    rng = np.random.default_rng(np.random.SeedSequence([11, 21]))
+    T, N = 400, 12
+    X = rng.standard_normal((T, N)) @ np.linalg.cholesky(np.cov(rng.standard_normal((50, N)), rowvar=False)).T
+    if regimes:
+        X *= np.repeat(np.where(np.arange(T // 100) % 2 == 0, 1.0, 3.0), 100)[:, None]
+    return X, rng.standard_normal((N, 3))
+
+
+def test_n2_noise_null_and_workers():
+    X, A = _vol_panel(False)
+    keys = [[11, 11, 0, b] for b in range(8)]
+    noise = au.n2_noise(X, A, None, keys, 1)
+    assert noise.shape == (8, 3) and (noise > 1).all()
+    assert np.array_equal(noise, au.n2_noise(X, A, None, keys, 2))
+    value = au.info_ratio(au._directions(A, None, len(X)), au.rolling_lw(X))[0]
+    assert np.abs(value / np.median(noise, axis=0) - 1).max() < 0.05
+
+
+def test_n2_noise_volatility_regimes():
+    X, A = _vol_panel(True)
+    noise = au.n2_noise(X, A, None, [[11, 11, 0, b] for b in range(8)], 1)
+    value = au.info_ratio(au._directions(A, None, len(X)), au.rolling_lw(X))[0]
+    assert (value / np.median(noise, axis=0) > 1.5).all()
+
+
+def test_rotate_phases():
+    phases = [(0, "a", "b", np.arange(0, 30)), (1, "b", "c", np.arange(30, 75)), (2, "c", "d", np.arange(75, 100))]
+    same = au.rotate_phases(phases, 100, 0)
+    assert all(np.array_equal(p[3], q[3]) for p, q in zip(phases, same))
+    moved = au.rotate_phases(phases, 100, 80)
+    assert [p[3].size for p in moved] == [30, 45, 25]
+    assert np.array_equal(np.sort(np.concatenate([p[3] for p in moved])), np.arange(100))
+    assert np.array_equal(moved[0][3], np.r_[np.arange(0, 10), np.arange(80, 100)])
+    assert np.array_equal(moved[1][3], np.arange(10, 55))
+
+
+def _chain(lengths):
+    edges = np.r_[0, np.cumsum(lengths)]
+    return [(k, f"2010-{k + 1:02d}-01", f"2010-{k + 2:02d}-01", np.arange(edges[k], edges[k + 1]))
+            for k in range(len(lengths))]
+
+
+def test_placebo_controls():
+    lengths = [120, 80, 150, 100, 130, 90, 110, 140]
+    phases, T = _chain(lengths), sum(lengths)
+    rng = np.random.default_rng(np.random.SeedSequence([11, 22]))
+    shift = np.concatenate([np.full(n, 0.004 if k % 2 == 0 else -0.004) for k, n in enumerate(lengths)])
+    y = (0.01 * rng.standard_normal(T) + shift)[:, None]
+    row, sel = au.placebo_rows("toy", "test", phases, y, 400, 200)
+    assert sel["selection_excess"] > 0 and sel["p_placebo"] < 0.05 and sel["selection_factor"] > 1
+    assert row["level"] == "placebo" and row["subspace"] == "market" and row["n_transitions"] == len(lengths) - 1
+    assert row["ci_lo"] <= row["sr2_debiased"] <= row["ci_hi"] and row["n_boot"] == 200
+    _, null = au.placebo_rows("toy", "test", phases, (0.01 * rng.standard_normal(T))[:, None], 400, 200)
+    assert 0.025 <= null["p_placebo"] <= 0.975
+
+
+def test_placebo_selection_committed():
+    sel = pd.read_csv(REPO / "results" / "audit" / "placebo_selection.csv", float_precision="round_trip")
+    assert set(sel.dataset) == set(REF) and set(sel.dating) == set(au.DATINGS)
+    assert (sel.selection_excess > 0).all() and (sel.p_placebo < 0.05).all()
+
+
 def test_budget_share():
     base = {"dataset": "toy", "dating": "x", "level": "transition", "subspace": "market", "n2": 300}
     drift = pd.DataFrame([{**base, "sr2_debiased": 10.0}, {**base, "sr2_debiased": 9.0},
@@ -338,12 +401,14 @@ COLUMNS = {
     "predicted_gains": ["dataset", "dating", "step", "gamma", "N", "K", "rho_ret", "rho_sign", "kappa_hat",
                         "sr2_market", "sr2_factor", "sr2_idio", "D_A", "D_B", "M_A", "M_B", "G_floor",
                         "G_floor_sign", "G_tax"],
+    "placebo_selection": ["dataset", "dating", "n_transitions", "n_placebo", "sr2_real_median", "sr2_placebo_median",
+                          "ci_lo", "ci_hi", "selection_factor", "selection_excess", "p_placebo"],
 }
 
 
 def test_cli_quick_d2(tmp_path):
     out, fig, log = tmp_path / "out", tmp_path / "fig", tmp_path / "log"
-    assert au.main(["--datasets", "d2_us97", "--quick", "--out", str(out), "--fig-dir", str(fig),
+    assert au.main(["--datasets", "d2_us97", "--quick", "--jobs", "2", "--out", str(out), "--fig-dir", str(fig),
                     "--log-dir", str(log)]) == 0
     frames = {name: pd.read_csv(out / f"{name}.csv", float_precision="round_trip") for name in COLUMNS}
     for name, cols in COLUMNS.items():
@@ -357,6 +422,10 @@ def test_cli_quick_d2(tmp_path):
     assert set(drift.dating) == set(au.DATINGS) and (drift.n_boot == 50).all()
     assert frames["symmetry_tests"].direction.tolist() == ["PC1", "PC2", "PC3"]
     assert set(frames["channel_ceilings"].ceiling) == {"N1", "N2", "N3"}
+    n2 = frames["channel_ceilings"][frames["channel_ceilings"].ceiling == "N2"]
+    assert set(n2.variant) == {"lw60", "lw60_shuffle", "lw60_net"}
+    assert (drift[drift.level == "placebo"].subspace == "market").all()
+    assert len(drift[drift.level == "placebo"]) == len(au.DATINGS) == len(frames["placebo_selection"])
     assert len(frames["predicted_gains"]) == len(au.DATINGS) * 4 * len(au.GAMMAS)
 
 
