@@ -255,6 +255,8 @@ def symmetry_rows(name, series, scales):
     for label, y in series.items():
         sigma, garch = scales[label]
         k, n = int((y > 0).sum()), int((y != 0).sum())
+        if n == 0 or sigma.min() <= 0:
+            raise ValueError(f"{name}: direction {label} is degenerate on the window (zero series or scale)")
         T, z, p = triples_test(y / sigma)
         rows.append({"dataset": name, "direction": label, "n": n, "q_hat": k / n,
                      "binom_p": stats.binomtest(k, n, 0.5).pvalue, "triples_T": T, "triples_z": z, "triples_p": p,
@@ -593,6 +595,7 @@ def _save(plt, fig, fig_dir, stem):
 def plot(out, fig_dir):
     """Four figures drawn from the CSVs of `out` only, PNG + PDF: spectrum and eta, symmetry, drift Sharpe, budget."""
     import matplotlib.pyplot as plt
+    saved = dict(plt.rcParams)
     plt.rcParams.update({"font.size": 7, "axes.edgecolor": MUTED, "axes.labelcolor": INK, "text.color": INK,
                          "xtick.color": MUTED, "ytick.color": MUTED, "axes.grid": True, "grid.color": GRID,
                          "grid.linewidth": 0.6, "axes.spines.top": False, "axes.spines.right": False,
@@ -673,6 +676,7 @@ def plot(out, fig_dir):
             ax.set(ylim=(0, 1), ylabel="share of phases in budget", title=f"{name}, {dating}: L I_hat >= ln gamma")
         axes[r, 0].legend()
     _save(plt, fig, fig_dir, "budget_share")
+    plt.rcParams.update(saved)
 
 
 def _sha256(path):

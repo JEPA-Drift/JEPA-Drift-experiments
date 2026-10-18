@@ -149,6 +149,12 @@ def test_symmetry_holm_joint():
     assert got == pytest.approx(_holm(p_all), rel=1e-12)
 
 
+def test_symmetry_rows_rejects_degenerate_series():
+    flat = {"omega": 1.0, "alpha": 0.0, "beta": 0.0, "converged": True}
+    with pytest.raises(ValueError, match="degenerate"):
+        au.symmetry_rows("toy", {"PC1": np.zeros(10)}, {"PC1": (np.zeros(10), flat)})
+
+
 def test_debiased_sr2_unbiased():
     rng = np.random.default_rng(np.random.SeedSequence([11, 3]))
     d, n1, n2, reps = 30, 250, 250, 2000
@@ -427,6 +433,13 @@ def test_cli_quick_d2(tmp_path):
     assert (drift[drift.level == "placebo"].subspace == "market").all()
     assert len(drift[drift.level == "placebo"]) == len(au.DATINGS) == len(frames["placebo_selection"])
     assert len(frames["predicted_gains"]) == len(au.DATINGS) * 4 * len(au.GAMMAS)
+
+
+def test_plot_restores_rcparams(tmp_path):
+    import matplotlib.pyplot as plt
+    before = dict(plt.rcParams)
+    au.plot(REPO / "results" / "audit", tmp_path)
+    assert dict(plt.rcParams) == before
 
 
 def test_cli_rejects_bad_boot():
