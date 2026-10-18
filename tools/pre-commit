@@ -42,6 +42,9 @@ if [ "$violations" -gt 0 ]; then
 fi
 
 # --- Run make check ---
+# Unset the git hook environment: GIT_DIR would redirect the test fixture's
+# `git -C ~/The-Whitening-Advantage-Experiments rev-parse HEAD` to this repo's HEAD.
+unset GIT_DIR GIT_INDEX_FILE GIT_WORK_TREE GIT_QUARANTINE_PATH
 echo "[pre-commit] running make check..."
 make check
 

@@ -107,8 +107,11 @@ The data-processing inequality (DPI) forbids any KL increase: gains come from co
 ## Worktrees and parallel streams
 - Each stream runs in its own git worktree on its own branch: `git worktree add <path> stream-XX`
   (two worktrees cannot check out the same branch). Sequential streams may share the main worktree.
-- Shared local state (`.venv/`, `data/raw/`, `external/`) is exposed in each worktree by absolute
-  symlinks, so a single pinned environment produces stable hashes.
+- Shared local state (`.venv/`, `external/`) is exposed in each worktree by absolute symlinks, and
+  `data/raw/` is a real directory holding one absolute symlink per subdirectory (`d3_yf`, `baf`;
+  link `eurofidai` only when the stream needs D4), so a single pinned environment produces stable
+  hashes. A single `data/raw` symlink breaks `git check-ignore` beyond a link: every worktree then
+  fails `test_gitignore_blocks_eurofidai`.
 - End of stream on `stream-XX`: commit, `make check`, then advance `main` by fast-forward —
   `git fetch origin`, rebase `stream-XX` onto `origin/main`, `git push origin stream-XX:main` —
   after the pushed-range check (no `data/raw/eurofidai/` or `data/derived/d4_eurofidai/` path, no
