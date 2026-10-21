@@ -100,9 +100,9 @@ Points encore ouverts :
 
 ## 2. Configuration
 
-### 2.1 `AGENTS.md`
+### 2.1 `CLAUDE.md`
 
-`CLAUDE.md` n'est qu'un lien vers ce fichier : rien à modifier séparément. Il y a huit modifications.
+`AGENTS.md` n'est qu'un lien vers `CLAUDE.md` : rien à modifier séparément. Il y a huit modifications.
 
 **A1. Glossaire, puce « e-detector »** — remplacer :
 ```text

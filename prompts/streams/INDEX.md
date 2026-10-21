@@ -22,10 +22,10 @@ Tous les prompts qui référençaient le dépôt distant `github.com/TheWhitenin
 - **Claude Code** charge automatiquement `CLAUDE.md` à chaque session.
 - **Mistral Vibe** charge automatiquement `AGENTS.md` (niveau projet), pas `CLAUDE.md`.
 
-Le prompt 1 écrit la mémoire dans `AGENTS.md` (contenu canonique) et crée le lien symbolique
-relatif `CLAUDE.md` -> `AGENTS.md` : les deux agents chargent automatiquement la même mémoire,
-sans copie ni dérive. Les prompts disant explicitement « Lire `CLAUDE.md` » restent valides
-(lecture à travers le lien).
+Le prompt 1 écrit la mémoire dans `CLAUDE.md` (contenu canonique) et crée le lien symbolique
+relatif `AGENTS.md` -> `CLAUDE.md` : les deux agents chargent automatiquement la même mémoire,
+sans copie ni dérive. Les prompts disant explicitement « Lire `CLAUDE.md` » visent le fichier
+canonique.
 Le `AGENTS.md` projet s'ajoute au `~/.vibe/AGENTS.md` utilisateur (pas de conflit).
 
 Note : le seul « Claude Code » littéral des 28 prompts est dans `prompt-10-eurofidai.md`
