@@ -58,7 +58,7 @@ Définitions :
    - Parts placebo par `rotate_phases` (2 000 rotations). Les deux parts sont rapportées. L'Î intra-phase est gonflé par la sélection des frontières (`C-audit-placebo`) : les parts sont présentées comme des bornes supérieures.
    - Alarmes dans les phases sur données brutes :
      - P1-C, en flux d'étiquettes Article B avec q̂ de calib ;
-     - P3-C, avec recentrage sur q̂ de calib pour les canaux dont la symétrie est rejetée (AGENTS.md).
+     - P3-C, avec recentrage sur q̂ de calib pour les canaux dont la symétrie est rejetée (`CLAUDE.md`).
 
      Ce bras est descriptif : aucune exactitude n'est revendiquée.
    - `results/audit/predicted_gains.csv` est cité tel quel (NaN conservés), jamais complété.

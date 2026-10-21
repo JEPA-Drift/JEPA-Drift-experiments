@@ -21,7 +21,7 @@ Sur BAF, domaine tabulaire, JEPA-Drift utilise T-JEPA (Thimonier et al., ICLR 20
 `jepadrift/jepa/tjepa.py` (ou une enveloppe), `experiments/tjepa_baf.py`, `configs/tjepa_baf.yaml`, plongements et JSON, `tests/test_tjepa.py`, `docs/sections/tjepa_baf.md` (source, écarts à l'article).
 
 ### Contraintes techniques
-- CPU ; torch installé dans `.venv` selon AGENTS.md (par le stream 14 ; si ce stream démarre avant, l'installer à l'identique et réconcilier `requirements.lock` au rebase) ; déterminisme comme au prompt 14.
+- CPU ; torch installé dans `.venv` selon `CLAUDE.md` (par le stream 14 ; si ce stream démarre avant, l'installer à l'identique et réconcilier `requirements.lock` au rebase) ; déterminisme comme au prompt 14.
 - Aucune information des mois 4–7 dans l'entraînement ou la lecture.
 
 ### Critères de succès

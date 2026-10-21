@@ -11,7 +11,7 @@ La porte J4 (8 novembre) décide du titre de l'article. Lire `CLAUDE.md`.
 Définitions :
 - **Rétention** : r(D) = I_z/I_x.
 - **Taxe** : M(D) (`floors.mixture_multiplier`) pour un mélange ; pour un dictionnaire, le multiplicateur de `floors.dictionary_multiplier` avec l'alignement mesuré a_max.
-- **Lecture** : anytime-valid à γ_H = H/α, avec H = 2 000 (AGENTS.md).
+- **Lecture** : anytime-valid à γ_H = H/α, avec H = 2 000 (`CLAUDE.md`).
 
 ### Tâche
 Écrire `experiments/e5_jepa.py`, exécuté via `jepadrift.benchmark_runner` avec la configuration gelée. Avant le gel, seules les lignes 2005–2019 sont lues.

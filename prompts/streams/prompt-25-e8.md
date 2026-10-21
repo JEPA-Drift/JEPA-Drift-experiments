@@ -24,7 +24,7 @@ E8 ne s'exécute qu'avec la configuration gelée au J4. Lire `CLAUDE.md`.
 2. **Placebo.** 2 000 rotations circulaires de chaque chaîne de phases (`stats.drift.rotate_phases`). Chaque mesure par phase est rapportée avec sa distribution placebo.
 3. **Pipelines.**
    - P1 à P5, avec D* et seuils gelés.
-   - Sur données brutes, les flux de signe sont recentrés sur q̂ de calib pour les canaux dont la symétrie est rejetée (AGENTS.md). Aucune exactitude n'est revendiquée.
+   - Sur données brutes, les flux de signe sont recentrés sur q̂ de calib pour les canaux dont la symétrie est rejetée (`CLAUDE.md`). Aucune exactitude n'est revendiquée.
 4. **Mesures**, par phase et par datation :
    - Î débiaisé du sous-espace du pipeline ;
    - part des phases dans le budget (L·Î ≥ ln γ, γ ∈ {20, 252}), en lecture budget. À cause de la sélection, c'est une borne supérieure ;

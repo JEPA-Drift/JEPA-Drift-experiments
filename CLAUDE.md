@@ -94,9 +94,10 @@ The data-processing inequality (DPI) forbids any KL increase: gains come from co
 - `tests/`: unit and contract tests (pytest).
 - `paper/`: Article C LaTeX sources (section 3, appendix A, bibliography addendum).
 - `prompts/`: stream prompts and orchestration — `prompts/streams/` stores the prompts of the planned streams (one `prompt-NN-<slug>.md` per stream, plus `INDEX.md`: routing table and stream conventions); `prompts/plans/` stores the implementation plans of the streams (one `plan-[XX].md` per stream, [XX] = stream number, recorded before the plan's execution); `prompts/wrapups/` stores the processing summaries of the streams (one `wrapup-[XX].md` per stream, [XX] = stream number, written by the wrap-up directive before each commit); `prompts/GO-stream-[XX].md` stores the researcher's GO review of a stream plan (decision trace,
-committed with the stream); the master collection `Prompts_Claude_Code_v5.md` (kept in sync with
-`prompts/streams/` by `tools/check_prompts.py`) and `Orchestration_Streams_v5.md` (historical wave
-plan, superseded by the routing table of `prompts/streams/INDEX.md`) live at this level.
+committed with the stream); the master collection `Prompts_Claude_Code_v5.md` (derived from
+`prompts/streams/`, kept in sync by Mistral Vibe via `tools/check_prompts.py`) and
+`Orchestration_Streams_v5.md` (historical wave plan, superseded by the routing table of
+`prompts/streams/INDEX.md`) live at this level.
 - `configs/`: experiment configurations (YAML); `FROZEN.json` after milestone J4.
 - `tools/`: repository tooling — `reindex_graphify_jcodemunch.sh` (end-of-stream reindexation of jCodeMunch and Graphify), plus the `pre-commit`/`pre-push` hooks and the freeze/trace scripts added by later streams.
 - `docs/`: `sections/` (section notes), `audits/` (lot audits), `manifests/` (hash manifests of

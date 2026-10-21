@@ -33,13 +33,13 @@ chiffres du §2 (INDEX : priorité xhigh).
    — pour le §2, jamais le rapport brut `lw60` (wrapup-11b).
 5. **Correctif d'environnement appliqué** (`985353b`, dont `4ea0ee4`) : le hook pre-commit n'exporte plus
    `GIT_DIR` vers `make check` (`data/derived/MANIFEST.json` et `logs/data/build.log` ne sont plus réécrits) ;
-   la recette AGENTS.md prescrit `data/raw/` en liens par sous-dossier. Aucun contournement à prévoir.
+   la recette `CLAUDE.md` prescrit `data/raw/` en liens par sous-dossier. Aucun contournement à prévoir.
 
 ## Exécution
 
 - Créer le worktree depuis `origin/main` à jour (`985353b`) :
   `git worktree add -b stream-12 ~/JEPA-Drift-stream-12 origin/main`, liens absolus `.venv` et `external`,
-  `data/raw/` en liens par sous-dossier (`d3_yf`, `baf`) — recette AGENTS.md.
+  `data/raw/` en liens par sous-dossier (`d3_yf`, `baf`) — recette `CLAUDE.md`.
 - Enregistrer le plan dans `prompts/plans/plan-12.md` avant toute ligne de code (règle C-plan-recording),
   avec les hypothèses à trancher au GO (revue de plan comme au stream 11).
 - Interpréteur `.venv/bin/python` (chaîne `conda activate Trading` puis venv). Fenêtres 2005–2019 par défaut ;

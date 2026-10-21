@@ -90,7 +90,7 @@ Incidents déjà corrigés :
 Points encore ouverts :
 - le fixture D1/D2 réécrit des fichiers suivis à chaque `make check` ;
 - le pivot des caractéristiques, le débiaisage et le placebo de phases n'existent qu'en copies locales, alors que les streams 12, 14 et 17 vont tourner en parallèle ;
-- l'étape 4 de fin de stream d'AGENTS.md (`git push origin <current-branch>`) contredit la recette des worktrees (`stream-XX:main`) ;
+- l'étape 4 de fin de stream de `CLAUDE.md` (`git push origin <current-branch>`) contredit la recette des worktrees (`stream-XX:main`) ;
 - la fidélité du master des prompts n'est plus vérifiée.
 
 ### 1.5 Calendrier
@@ -182,12 +182,13 @@ Remplacer la puce `docs/` par :
   `MAPPING.md` (traceability of reported numbers, created by stream 21).
 ```
 
-Dans la puce `prompts/`, remplacer la fin `; the master collection Prompts_Claude_Code_v5.md and Orchestration_Streams_v5.md live at this level.` (ces deux noms de fichiers sont entre accents graves dans AGENTS.md) par :
+Dans la puce `prompts/`, remplacer la fin `; the master collection Prompts_Claude_Code_v5.md and Orchestration_Streams_v5.md live at this level.` (ces deux noms de fichiers sont entre accents graves dans `CLAUDE.md`) par :
 ```text
 ; `prompts/GO-stream-[XX].md` stores the researcher's GO review of a stream plan (decision trace,
-committed with the stream); the master collection `Prompts_Claude_Code_v5.md` (kept in sync with
-`prompts/streams/` by `tools/check_prompts.py`) and `Orchestration_Streams_v5.md` (historical wave
-plan, superseded by the routing table of `prompts/streams/INDEX.md`) live at this level.
+committed with the stream); the master collection `Prompts_Claude_Code_v5.md` (derived from
+`prompts/streams/`, kept in sync by Mistral Vibe via `tools/check_prompts.py`) and
+`Orchestration_Streams_v5.md` (historical wave plan, superseded by the routing table of
+`prompts/streams/INDEX.md`) live at this level.
 ```
 
 **A5. Section « Engineering rules », étape (4) de fin de stream** — remplacer `(4) git push origin <current-branch>.` (commande entre accents graves dans le fichier) par :
@@ -251,7 +252,7 @@ par :
 ```text
 Révision du 2026-10-18 : prompts 12 à 28 révisés d'après les streams 1 à 11 et 11b ; nouveau prompt
 `prompt-08b-hygiene.md` ; routage replanifié (section « Replanification du 18 octobre 2026 »).
-Le master est resynchronisé par `python tools/check_prompts.py --sync-master` (stream 8b).
+Le master est resynchronisé depuis les fichiers stream ; l'outil de contrôle `tools/check_prompts.py` et la cible `make prompts-check` sont livrés par le stream 8b.
 ```
 
 **I2. Fin de stream, étape 4** — remplacer `4. git push origin <branche courante>.` par :
@@ -368,7 +369,7 @@ Remplacer :
 ```
 par :
 ```text
-- CPU ; torch installé dans `.venv` selon AGENTS.md (par le stream 14 ; si ce stream démarre avant, l'installer à l'identique et réconcilier `requirements.lock` au rebase) ; déterminisme comme au prompt 14.
+- CPU ; torch installé dans `.venv` selon `CLAUDE.md` (par le stream 14 ; si ce stream démarre avant, l'installer à l'identique et réconcilier `requirements.lock` au rebase) ; déterminisme comme au prompt 14.
 ```
 
 **`prompt-16-pretrain-rankme.md`**
@@ -450,7 +451,7 @@ Remplacer :
 par :
 ```text
    - (B) mélange isotrope sur le sous-espace résiduel de dimension D, valide seulement si les coordonnées sont indépendantes : le comparer sur fonds D5 (coordonnées indépendantes) et, sur D6, rapporter l'état de la porte d'indépendance corrigée de la multiplicité (prompt 12) ;
-   - mesurer cos²ϑ et les délais, puis comparer à `floors.dictionary_multiplier` et `floors.mixture_multiplier` (angles de bascule) ; lecture anytime-valid à γ_H = H/α (AGENTS.md).
+   - mesurer cos²ϑ et les délais, puis comparer à `floors.dictionary_multiplier` et `floors.mixture_multiplier` (angles de bascule) ; lecture anytime-valid à γ_H = H/α (`CLAUDE.md`).
 ```
 
 **`prompt-21-freeze-runner.md`**
@@ -521,7 +522,7 @@ Remplacer :
 ```
 par :
 ```text
-2. **Comparaison avec P5-C gelé**, sur F1 et F2 injectées sur fonds D6 de `d3_239`, avec τ_a/τ_γ ∈ {0.5, 1, 2, 4, 8}, en lecture anytime-valid à γ_H = H/α (AGENTS.md). Comparer les délais mesurés à la prédiction calculée avec le τ_a mesuré (`floors.absorption_delay`).
+2. **Comparaison avec P5-C gelé**, sur F1 et F2 injectées sur fonds D6 de `d3_239`, avec τ_a/τ_γ ∈ {0.5, 1, 2, 4, 8}, en lecture anytime-valid à γ_H = H/α (`CLAUDE.md`). Comparer les délais mesurés à la prédiction calculée avec le τ_a mesuré (`floors.absorption_delay`).
 3. **Vieillissement** : sous H₀, ARL₀ par tranche annuelle depuis la fin du pré-entraînement, sur fonds symétrisés. Avant J4, tranches 2016–2019 seulement ; 2020 et au-delà uniquement avec la configuration gelée.
 ```
 
@@ -533,7 +534,7 @@ Remplacer :
 ```
 par :
 ```text
-   S'y ajoutent D6 et le placebo D2–D3 brut (fenêtres antérieures à 2020 avant J4), avec ses violations naturelles mesurées par l'audit (symétrie rejetée sur PC1, PC2, PC3 et `rev_21` selon le jeu, AGENTS.md) et ses rendements nuls (2 864 sur D2 avant 2020, tranchés par pièce).
+   S'y ajoutent D6 et le placebo D2–D3 brut (fenêtres antérieures à 2020 avant J4), avec ses violations naturelles mesurées par l'audit (symétrie rejetée sur PC1, PC2, PC3 et `rev_21` selon le jeu, `CLAUDE.md`) et ses rendements nuls (2 864 sur D2 avant 2020, tranchés par pièce).
 ```
 
 Remplacer :
@@ -553,7 +554,7 @@ Remplacer :
 ```
 par :
 ```text
-1. Télécharger le jeu depuis le dépôt UCI : chercher « ElectricityLoadDiagrams20112014 » sur archive.ics.uci.edu et consigner l'URL exacte. Agréger au pas quotidien ; prendre la log-différence de la charge quotidienne par client. Dans un worktree, exposer `data/raw/electricity` par un lien absolu (AGENTS.md).
+1. Télécharger le jeu depuis le dépôt UCI : chercher « ElectricityLoadDiagrams20112014 » sur archive.ics.uci.edu et consigner l'URL exacte. Agréger au pas quotidien ; prendre la log-différence de la charge quotidienne par client. Dans un worktree, exposer `data/raw/electricity` par un lien absolu (`CLAUDE.md`).
 ```
 
 Remplacer :
@@ -568,7 +569,7 @@ par :
 ## 4. Ordre d'application
 
 1. Les huit prompts complets (8b, 12, 13, 14, 19, 22, 23, 25) ont déjà été enregistrés. Il reste à appliquer les dix modifications ciblées dans `prompts/streams/`.
-2. Appliquer les modifications de `AGENTS.md`, `INDEX.md` et `Orchestration_Streams_v5.md`, en un commit `docs(config): …` du chercheur, sans fichier de code.
+2. Appliquer les modifications de `CLAUDE.md`, `INDEX.md` et `Orchestration_Streams_v5.md`, en un commit `docs(config): …` du chercheur, sans fichier de code.
 
 **[Strategic Advice]**
 

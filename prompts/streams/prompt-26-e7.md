@@ -6,7 +6,7 @@ Un encodeur mis à jour en ligne absorbe la dérive. Le critère d'absorption de
 ### Tâche
 Écrire `experiments/e7_absorption.py`.
 1. **P5-ADAPT** : CA-T-JEPA ajusté en ligne sur une fenêtre glissante, avec un taux d'apprentissage qui fixe une mémoire effective. τ_a est mesuré empiriquement par la décroissance de Δz après l'onset.
-2. **Comparaison avec P5-C gelé**, sur F1 et F2 injectées sur fonds D6 de `d3_239`, avec τ_a/τ_γ ∈ {0.5, 1, 2, 4, 8}, en lecture anytime-valid à γ_H = H/α (AGENTS.md). Comparer les délais mesurés à la prédiction calculée avec le τ_a mesuré (`floors.absorption_delay`).
+2. **Comparaison avec P5-C gelé**, sur F1 et F2 injectées sur fonds D6 de `d3_239`, avec τ_a/τ_γ ∈ {0.5, 1, 2, 4, 8}, en lecture anytime-valid à γ_H = H/α (`CLAUDE.md`). Comparer les délais mesurés à la prédiction calculée avec le τ_a mesuré (`floors.absorption_delay`).
 3. **Vieillissement** : sous H₀, ARL₀ par tranche annuelle depuis la fin du pré-entraînement, sur fonds symétrisés. Avant J4, tranches 2016–2019 seulement ; 2020 et au-delà uniquement avec la configuration gelée.
 
 ### Entrées

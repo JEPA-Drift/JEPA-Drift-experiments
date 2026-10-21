@@ -35,7 +35,7 @@ Définitions :
    - Γ^spec contre Γ^op pour chaque statistique à amplitude.
 4. **Asymétrie des données brutes.**
    - Sur le placebo brut, mesurer le FPR de chaque canal de P3-C et de P1-C, en flux exact (1/2) et en flux recentré (q̂ de calib).
-   - Une inflation du FPR est attendue sur les canaux dont la symétrie est rejetée (AGENTS.md). La relier à `results/audit/symmetry_tests.csv`.
+   - Une inflation du FPR est attendue sur les canaux dont la symétrie est rejetée (`CLAUDE.md`). La relier à `results/audit/symmetry_tests.csv`.
 5. **Pénalité de dépassement**, à reproduire à ±5 % avec 2 000 trajectoires. CUSUM de premier ordre sur x/σ_inconditionnel, GARCH(0,08 ; 0,90) gaussien :
    - δ = 0,5, λ = 6 : ARL₀ ≈ 2 587 en i.i.d. contre ≈ 889 sous GARCH ;
    - δ = 1, λ = 3 : 1 894 contre 669 ;

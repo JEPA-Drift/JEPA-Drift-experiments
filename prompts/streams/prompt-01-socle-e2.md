@@ -28,7 +28,7 @@ JEPA-Drift (« Article C ») teste si une représentation de la coupe transversa
    - écart maximal par bras ;
    - tableau des six cellules G1 à SR = 1 (mesuré, prédit, premier ordre) ;
    - verdict J1.
-9. Fin de stream (voir AGENTS.md, règles d'ingénierie) : invoquer sa directive de wrapup et enregistrer le résumé dans `prompts/wrapups/wrapup-01.md`, puis `tools/reindex_graphify_jcodemunch.sh`, `make check`, commit explicite `lot1: floors, E2, section 3; J1 run`, `git push origin main`.
+9. Fin de stream (voir `CLAUDE.md`, règles d'ingénierie) : invoquer sa directive de wrapup et enregistrer le résumé dans `prompts/wrapups/wrapup-01.md`, puis `tools/reindex_graphify_jcodemunch.sh`, `make check`, commit explicite `lot1: floors, E2, section 3; J1 run`, `git push origin main`.
 
 ```markdown
 # JEPA-Drift (Article C) — project memory for coding agents

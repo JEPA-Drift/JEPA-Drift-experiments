@@ -11,7 +11,7 @@ L'exactitude des flux de signe de JEPA-Drift suppose la symétrie centrale condi
    - choc commun asymétrique (dépendance de queue asymétrique) ;
    - part de rendements nuls ∈ {0, 2 %, 5 %}, par arrondi.
 
-   S'y ajoutent D6 et le placebo D2–D3 brut (fenêtres antérieures à 2020 avant J4), avec ses violations naturelles mesurées par l'audit (symétrie rejetée sur PC1, PC2, PC3 et `rev_21` selon le jeu, AGENTS.md) et ses rendements nuls (2 864 sur D2 avant 2020, tranchés par pièce).
+   S'y ajoutent D6 et le placebo D2–D3 brut (fenêtres antérieures à 2020 avant J4), avec ses violations naturelles mesurées par l'audit (symétrie rejetée sur PC1, PC2, PC3 et `rev_21` selon le jeu, `CLAUDE.md`) et ses rendements nuls (2 864 sur D2 avant 2020, tranchés par pièce).
 2. **Pipelines** : P1-C, P3-C, P5-C, avec et sans recentrage sur q̂_u estimé sur `calib`.
 3. **Mesures** : FPR contre niveau nominal, G_ADD sur F1 et F2 (lecture γ_H = H/α).
 

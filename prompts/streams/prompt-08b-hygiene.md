@@ -24,13 +24,13 @@ JEPA-Drift (« Article C ») entre dans sa vague la plus parallèle : E1, E3, CA
    - Le fixture de session reconstruit D1 et D2 sous une racine temporaire qui reproduit l'arborescence du dépôt. Il passe par un monkeypatch de `REPO_ROOT` et des chemins dérivés de `jepadrift.data_loader.articleB`, lus à l'appel.
    - Les tests comparent les SHA-256 des fichiers reconstruits à ceux des fichiers commités. Ils comparent aussi les entrées D1/D2 du manifeste reconstruit (jeux `d1_etf4` et `d2_us97`, résultat `d1_d2_profile`, source) à celles du manifeste commité.
    - Après `make check` sur un arbre propre, `git status --porcelain` doit être vide.
-   - Dans AGENTS.md (« Worktrees and parallel streams »), supprimer la phrase sur la réécriture des fichiers D1/D2 par le fixture.
+   - Dans `CLAUDE.md` (« Worktrees and parallel streams »), supprimer la phrase sur la réécriture des fichiers D1/D2 par le fixture.
 5. **Fidélité des prompts** `tools/check_prompts.py`, avec une cible `make prompts-check`.
    - Mode par défaut : vérifier que chaque `prompts/streams/prompt-*.md` est une sous-chaîne exacte de `prompts/Prompts_Claude_Code_v5.md`.
    - `--sync-master` : remplacer dans le master chaque bloc de prompt (repéré par son titre `## PROMPT <id> —`) par le contenu du fichier de stream ; ajouter les blocs absents en fin de section 4.
-   - Exécuter `--sync-master` (prompts 8b et 12 à 28 révisés le 2026-10-18), puis `make prompts-check` : 29/29.
+   - Exécuter `--sync-master` (idempotent : le master est synchronisé depuis les fichiers stream), puis `make prompts-check` : 29/29.
 6. **Registre des écarts** (`docs/DEVIATIONS.md`, en français, en fin de fichier) : ajouter verbatim les deux entrées du bloc ci-dessous.
-7. **AGENTS.md** :
+7. **`CLAUDE.md`** (mémoire canonique ; `AGENTS.md` en est le lien symbolique) :
    - ajouter `chars` à la liste de `data_loader/` et `drift` à celle de `stats/` dans la puce `jepadrift/` du « Repository layout » ;
    - ajouter `check_prompts.py` à la puce `tools/`.
 
@@ -60,7 +60,7 @@ pas de secteur GICS : F2 n'y utilise que les quatre caractéristiques continues.
 ### Livrables
 - Code : `jepadrift/data_loader/chars.py`, `jepadrift/stats/drift.py`, `horizon_gamma` dans `jepadrift/pipelines.py`, `tools/check_prompts.py`.
 - Tests : `tests/test_chars.py`, `tests/test_drift_stats.py`, fixture révisé de `tests/test_data_d1_d2.py`.
-- Configuration : cible `prompts-check` du `Makefile`, master resynchronisé, entrées de `docs/DEVIATIONS.md`, AGENTS.md mis à jour.
+- Configuration : cible `prompts-check` du `Makefile`, master resynchronisé, entrées de `docs/DEVIATIONS.md`, `CLAUDE.md` mis à jour.
 
 ### Contraintes techniques
 - Déplacements sans modification de corps, contrôlés par `ast` sur les segments.
@@ -73,7 +73,7 @@ pas de secteur GICS : F2 n'y utilise que les quatre caractéristiques continues.
 - `tests/test_audit.py`, `tests/test_chars.py` et `tests/test_drift_stats.py` au vert.
 - `git status --porcelain` vide après `make check` sur un arbre propre.
 - `make prompts-check` : 29/29.
-- Écarts et mise à jour d'AGENTS.md commités.
+- Écarts et mise à jour de `CLAUDE.md` commités.
 
 ### Commandes de vérification
 ```bash

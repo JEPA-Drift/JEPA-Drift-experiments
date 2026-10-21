@@ -1,13 +1,15 @@
-# Index des prompts extraits — streams Claude Code & Mistral Vibe
+# Index des prompts — streams Claude Code & Mistral Vibe
 
-Date : 2026-10-16. Source : `prompts/Prompts_Claude_Code_v5.md` (28 prompts, section 4).
-Extraction : verbatim, un fichier par prompt. **Fidélité vérifiée** : chacun des 28 fichiers est une
-sous-chaîne exacte de la source ; les 7 sections requises (Contexte, Tâche, Entrées, Livrables,
+Date : 2026-10-16. `prompts/streams/` stocke les configurations canoniques des streams (29
+fichiers, un par stream) ; `prompts/Prompts_Claude_Code_v5.md` en est la collection dérivée
+(section 4), synchronisée par Mistral Vibe. **Fidélité vérifiée** : chacun des 29 fichiers est une
+sous-chaîne exacte du master ; les 7 sections requises (Contexte, Tâche, Entrées, Livrables,
 Contraintes techniques, Critères de succès, Commandes de vérification) sont présentes dans chacun.
 
 Révision du 2026-10-18 : prompts 12 à 28 révisés d'après les streams 1 à 11 et 11b ; nouveau prompt
 `prompt-08b-hygiene.md` ; routage replanifié (section « Replanification du 18 octobre 2026 »).
-Le master est resynchronisé par `python tools/check_prompts.py --sync-master` (stream 8b).
+Le master est resynchronisé depuis les fichiers stream ; l'outil de contrôle
+`tools/check_prompts.py` et la cible `make prompts-check` sont livrés par le stream 8b.
 
 Les prompts sont **agent-neutres** : ils sont autoporteurs et instructent « Lire `CLAUDE.md` » (une
 lecture de fichier, exécutable par tout agent). Ils fonctionnent donc tels quels pour **Claude Code**
@@ -63,7 +65,7 @@ publication (dépôt compagnon d'une soumission anonyme : commits anonymisés, a
 identifiant d'auteur ou d'institution ; le chercheur a confirmé le 2026-10-16 que le dépôt,
 public, n'est connu de personne). Les données EUROFIDAI ne quittent jamais la machine : rien sous
 `data/raw/eurofidai/` ou `data/derived/d4_eurofidai/` ne peut être commité ni pushé, et aucun
-fichier de plus de 50 Mo. Voir AGENTS.md (règles d'ingénierie et « Repository layout »).
+fichier de plus de 50 Mo. Voir `CLAUDE.md` (règles d'ingénierie et « Repository layout »).
 
 ## Routage par stream
 
