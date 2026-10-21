@@ -1,5 +1,8 @@
 # Orchestration des streams — `Prompts_Claude_Code_v5.md`
 
+> Statut (2026-10-18) : les vagues de ce document sont historiques. Le routage en vigueur est la table de
+> `prompts/streams/INDEX.md` et sa section « Replanification du 18 octobre 2026 ».
+
 Date : 2026-10-16. Sources : `prompts/Prompts_Claude_Code_v5.md` (28 prompts) et
 `prompts/Plan_Claude_Opus_v4_correction.md` (lot 1, étape 2).
 
