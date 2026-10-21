@@ -11,8 +11,8 @@ JEPA-Drift doit montrer ce que chaque représentation transmet d'une dérive. Le
    - représentations : JEPA, MAE, temporel, ACP, IPCA.
 2. Écrire `experiments/dictionary_vs_subspace.py`, sur fonds D6 de `d3_239` avec F1 et F2 :
    - (A) moyenne de K e-détecteurs le long d'atomes, K ∈ {10, 20, 50} ;
-   - (B) mélange isotrope sur le sous-espace résiduel de dimension D ;
-   - mesurer cos²ϑ et les délais, puis comparer à `floors.dictionary_multiplier` et `floors.mixture_multiplier` (angles de bascule).
+   - (B) mélange isotrope sur le sous-espace résiduel de dimension D, valide seulement si les coordonnées sont indépendantes : le comparer sur fonds D5 (coordonnées indépendantes) et, sur D6, rapporter l'état de la porte d'indépendance corrigée de la multiplicité (prompt 12) ;
+   - mesurer cos²ϑ et les délais, puis comparer à `floors.dictionary_multiplier` et `floors.mixture_multiplier` (angles de bascule) ; lecture anytime-valid à γ_H = H/α (AGENTS.md).
 
 ### Entrées
 Prompts 16 à 18 ; `CLAUDE.md`.

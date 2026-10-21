@@ -6,7 +6,8 @@ E9 évalue la surveillance de JEPA-Drift hors finance, sur la dérive mensuelle 
 ### Tâche
 Écrire `experiments/e9_baf.py`.
 1. **P6-D.**
-   - Score de non-conformité : distance au 10ᵉ plus proche voisin dans un échantillon de référence (50 000 lignes des mois 0–2), sur les plongements T-JEPA, ACP et bruts.
+   - Score de non-conformité : distance au 10ᵉ plus proche voisin dans un échantillon de référence (50 000 lignes des mois 0–2), sur les plongements T-JEPA, ACP et bruts (`device_fraud_count`, constant, exclu).
+   - Échangeabilité : tester l'ordre intra-mois (test des runs et autocorrélation des scores sur le mois 3) ; en cas de rejet, permuter les lignes de chaque mois avec une graine fixe et consigner `C-BAF-order`.
    - p-valeurs conformes lissées.
    - Martingale de puissance mélangée sur ε ∈ {0.1, …, 0.9} (Vovk et al., 2003), alarme à 1/α.
    - Mesures : délai en lignes après chaque frontière de mois ; FPR dans des mois stables (lignes permutées dans un mois).

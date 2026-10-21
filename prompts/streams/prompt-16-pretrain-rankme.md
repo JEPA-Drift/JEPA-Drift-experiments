@@ -6,7 +6,7 @@ J3 (1er novembre) exige une représentation non effondrée : le RankMe de la tê
 Définition : RankMe(Z) = exp(−Σ_k p_k log p_k), avec p_k = σ_k/Σσ + ε (Garrido et al., ICML 2023).
 
 ### Tâche
-1. Entraîner, sur `d3_239` (segment `pretrain`), les objectifs `jepa`, `mae` et `temporal`, chacun avec 3 graines (0, 1, 2) ; enregistrer les points de contrôle.
+1. Entraîner, sur `d3_239` (segment `pretrain`), les objectifs `jepa`, `mae` et `temporal`, chacun avec 3 graines (0, 1, 2) ; une exécution par processus et un thread par exécution (`--jobs`, résultats indépendants du nombre de processus) ; enregistrer les points de contrôle. La lecture D ∈ {2, 4, 8, 16} est une ACP post hoc : un seul entraînement par (objectif, graine).
 2. Pour chaque point de contrôle et chaque D ∈ {2, 4, 8, 16} :
    - ajuster la lecture sur `calib` et extraire Z ;
    - calculer le RankMe du tronc et de la lecture, la variance par dimension et la part de dimensions de variance inférieure à 1e-3.
@@ -21,13 +21,13 @@ Prompt 14 ; D3 ; `CLAUDE.md`.
 `ckpt/<hash>/` (ignoré par git, empreintes versionnées), `results/jepa_pretrain/{runs.csv,rankme.csv,losses.csv,J3_gate.txt}`, `figures/jepa_pretrain/*`.
 
 ### Contraintes techniques
-CPU ; exécutions séquentielles déterministes ; durée totale consignée.
+CPU (48 cœurs) ; exécutions parallèles déterministes, une par processus ; durée totale consignée ; contrats, dont les quatre gardes torch, au vert sur chaque point de contrôle extrait.
 
 ### Critères de succès
 12 exécutions principales et 6 de variantes terminées ; porte J3 évaluée ; résultats reproductibles au SHA-256 près pour une graine relancée.
 
 ### Commandes de vérification
 ```bash
-python experiments/jepa_campaign.py --dataset d3_239 --seeds 0 1 2 --objectives jepa mae temporal
+python experiments/jepa_campaign.py --dataset d3_239 --seeds 0 1 2 --objectives jepa mae temporal --jobs 9
 cat results/jepa_pretrain/J3_gate.txt
 ```

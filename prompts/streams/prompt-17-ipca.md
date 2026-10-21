@@ -9,7 +9,7 @@ JEPA-Drift compare le JEPA à des facteurs latents pilotés par les caractérist
    - Γ mis à jour par la régression empilée ;
    - normalisation ΓᵀΓ = I, facteurs orthogonaux ;
    - critère d'arrêt sur la variation relative de Γ (≤ 1e-8).
-2. Apprendre Γ sur `pretrain` ; choisir K ∈ {1, …, 6} par R² hors échantillon sur `calib` ; blanchir f_t sur `calib`.
+2. Caractéristiques : `data_loader.chars.load_chars_tensor` (stream 8b) ; 15 colonnes sur D3 (4 continues, 11 GICS), 4 sur D4 ; NaN → 0 comptés. `d3_500` et D4 sont déséquilibrés : régressions transversales restreintes aux titres `in_universe` du jour, sans imputation de rendement. Apprendre Γ sur `pretrain` ; choisir K ∈ {1, …, 6} par R² hors échantillon sur `calib` ; blanchir f_t sur `calib`.
 3. Option « cash-neutral » : retirer le facteur de marché (constante ou bêta) avant extraction.
 4. Enregistrer la représentation et les pipelines P4-C (signes des facteurs, e-détecteur de dictionnaire) et P4-D (énergie).
 5. **Tests** :
@@ -18,7 +18,7 @@ JEPA-Drift compare le JEPA à des facteurs latents pilotés par les caractérist
    - contrats du prompt 8.
 
 ### Entrées
-`d3_239` et `d3_500` avec leurs caractéristiques ; interface Z ; `CLAUDE.md`.
+`d3_239`, `d3_500` (et D4) avec leurs caractéristiques ; interface Z ; stream 8b ; `CLAUDE.md`.
 
 ### Livrables
 `jepadrift/representations/ipca.py`, `tests/test_ipca.py`, extractions, `results/ipca/k_selection.csv`, `docs/sections/ipca.md`.

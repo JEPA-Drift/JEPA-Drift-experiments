@@ -5,11 +5,11 @@ Au jalon J4 (8 novembre), JEPA-Drift gèle sa configuration (empreinte unique) a
 
 ### Tâche
 1. **`jepadrift/benchmark_runner.py`.**
-   - Point d'entrée unique : `--config configs/<stream>.yaml`.
+   - Point d'entrée unique : `--config configs/<stream>.yaml`. Il appelle le `main(argv)` des scripts existants (`experiments/e1_problem.py`, `e3_calibration.py`, …) sans les réimplémenter.
    - `run_hash` = SHA-256 de la configuration en JSON canonique, du commit git et des empreintes du manifeste de données.
    - Sortie `results/<stream>/<run_hash>.csv`, une ligne par réplication : `seed, family, D, gamma, reading, ADD, alarm, ...`.
 2. **`tools/freeze_config.py`.**
-   - Écrit `configs/FROZEN.json` (empreintes de toutes les configurations d'expérience plus commit).
+   - Écrit `configs/FROZEN.json` : empreintes de toutes les configurations d'expérience, commit, et empreintes de `data/derived/MANIFEST.json` et `docs/manifests/d4_manifest.json` ; cible `make freeze`.
    - Le runner refuse `--include-test-window` si l'empreinte courante diffère du gel.
 3. **`figures/make_<fig>.py`** : un script par figure, lecture des CSV seulement, export PNG et PDF. Inclure la figure d'E2 : délais mesurés contre prédits, avec les trois lectures et le premier ordre.
 4. **`tools/trace_numbers.py`.**
@@ -23,10 +23,10 @@ Au jalon J4 (8 novembre), JEPA-Drift gèle sa configuration (empreinte unique) a
 Scripts E1, E3 et suivants ; `CLAUDE.md`.
 
 ### Livrables
-Les outils ci-dessus, `configs/FROZEN.json` (au J4), `docs/MAPPING.md` initial, `tests/test_tools.py`.
+Les outils ci-dessus, `configs/FROZEN.json` (au J4), `docs/MAPPING.md` initialisé avec les nombres déjà cités (E2/J1, identités R01/R08/R15, audit, E1, E3), `tests/test_tools.py`.
 
 ### Contraintes techniques
-Aucune figure lue depuis un état en mémoire ; aucun nombre saisi à la main dans `paper/`.
+Aucune figure lue depuis un état en mémoire ; aucun nombre saisi à la main dans `paper/`. `results/e2/e2_cells.csv` est en fins de ligne CRLF (empreinte de référence) : ne pas le normaliser ; `make j1` réécrit la ligne de durée du résumé. Fusion requise avant le stream 22 et avant toute exécution sur la fenêtre de test.
 
 ### Critères de succès
 - Une exécution E1 via le runner reproduit `results/e1/e1_cells.csv` bit à bit.

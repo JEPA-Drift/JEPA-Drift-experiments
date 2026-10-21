@@ -4,8 +4,8 @@
 CD-DFM (Alouadi & Lehalle, arXiv:2607.24410, code public) construit des facteurs cash-neutral à partir des caractéristiques et prévoit la covariance. JEPA-Drift l'utilise comme deuxième modèle latent piloté par les caractéristiques (P4) et comme blanchiment conditionnel (canal N2). Ses entrées d'origine (fondamentaux) ne sont pas disponibles : on l'adapte aux caractéristiques tirées des rendements. Lire `CLAUDE.md`.
 
 ### Tâche
-1. Cloner `https://github.com/alexouadi/CD-DFM`, épingler le commit, lire la licence et les dépendances. Installer dans `external/cddfm/.venv` si les dépendances entrent en conflit.
-2. Adapter les entrées : caractéristiques de `d3_239` (prompt 3) au format attendu. Entraîner sur `pretrain` selon la recette du dépôt, avec K = 11 (marché plus dix facteurs cash-neutral).
+1. Réutiliser le clone `external/cd-dfm/` du stream 3, dont le commit est épinglé dans `data/derived/MANIFEST.json` ; ne pas recloner. Lire la licence et les dépendances ; le README indique que le panel d'origine n'est pas redistribuable. Installer dans `external/cddfm-venv/` si ses dépendances (torch notamment) entrent en conflit avec `.venv`.
+2. Adapter les entrées : caractéristiques de `d3_239`, lues par `data_loader.chars.load_chars_tensor` (stream 8b), au format attendu. Entraîner sur `pretrain` selon la recette du dépôt, avec K = 11 (marché plus dix facteurs cash-neutral).
 3. Extraire :
    - les rendements de facteurs, linéaires en x_t avec appartenances connues en t−1, donc impairs ;
    - la covariance prévue Σ̂(t), pour le blanchiment conditionnel.
