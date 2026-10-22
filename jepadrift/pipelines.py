@@ -434,6 +434,11 @@ PIPELINES = {"P2-C": (_rep_none, _stream_p2c, _detect_p2c, _cal_p2c),
              "P7": (_rep_none, _stream_p7, _detect_p7, _cal_p7)}
 
 
+def horizon_gamma(H, alpha=TARGET_FPR):
+    """gamma_H = H / alpha: an e-detector alarming at gamma_H has P_inf(alarm before H) <= H / gamma_H = alpha."""
+    return H / alpha
+
+
 def null_target(spec, state):
     """(p, kind, n_cal): the null guarantee of a reading as a false-alarm probability by the horizon H (pipelines.md)."""
     if spec["reading"] == "exact":

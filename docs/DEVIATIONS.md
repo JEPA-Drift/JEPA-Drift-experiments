@@ -426,3 +426,33 @@ changements de moyenne : excès > 0, p < 0,05) et nul (panel sans structure : p 
 `test_placebo_controls` ; sur les données réelles, excès > 0 et p < 0,05 pour les deux jeux et les trois datations
 (`test_placebo_selection_committed`), à la place de « rapport > 1 ». Niveau `placebo` ajouté à
 `drift_sharpe_transitions.csv` (colonnes inchangées).
+
+## C-D3-survivor-correction — biais de survie de D3 (2026-10-18)
+
+Correction de `C-D3-survivor`. Un univers formé des constituants actuels du S&P 500, projeté en
+arrière jusqu'en 2000, est biaisé par la survie : un titre n'y figure que parce qu'il a survécu et a
+rejoint l'indice. `d3_239` (les 239 plus longs historiques parmi ces constituants, `C-D3-no239`) l'est
+doublement. Portée : les expériences sur fonds symétrisés D6 avec dérives injectées en dépendent peu ;
+les mesures sur données brutes (recensement, E8, placebos) héritent du biais et servent d'appui, jamais
+de preuve de détectabilité. Aucune donnée n'est modifiée.
+
+## C-D4-survivor — sélection de D4 (2026-10-18)
+
+D4 contient 498 titres EUROFIDAI retenus pour au moins 5 000 observations entre 2001 et 2026 (places
+AMS, BRU, EPA, LSE, MIL, XET). Cette sélection sur la longueur d'historique est une sélection par la
+survie ; l'export ne fournit ni date de radiation ni statut (radiations inférées par l'absence de
+données), et MIL n'a pas de données pour 2024–2026. `in_universe` couvre 91 % des cellules : les
+appelants choisissent des sous-panels complets sur leur fenêtre (`inject` exige un panel fini). D4 n'a
+pas de secteur GICS : F2 n'y utilise que les quatre caractéristiques continues.
+
+## C-stats-drift — statistiques de dérive partagées dans `jepadrift/stats/drift.py` (2026-10-22)
+
+Stream 8b. `debiased_sr2`, `mbb_indices`, `transitions` et `rotate_phases` quittent
+`experiments/audit_information.py` sans modification de corps, et `_ci` y est exportée sous le nom
+`shifted_percentile_ci` (seule la ligne `def` change). Le transfert verbatim impose de déplacer aussi le helper `_sr2`
+(appelé par `debiased_sr2` et par `drift_rows`) et les constantes `WINDOW`, `MIN_PHASE` et `BLOCK` que lisent ces corps :
+`transitions` reste donc borné à la fenêtre 2005–2019 dans le module partagé, et une expérience postérieure à J4 (E8)
+devra le paramétrer. L'audit importe ces noms et garde les anciens (`tests/test_audit.py` inchangé). Contrôles : les
+SHA-256 des segments `ast.get_source_segment` des neuf nœuds égalent ceux de `5048a96` (figés dans
+`tests/test_drift_stats.py`), le reste de l'AST de l'audit est inchangé, et les neuf CSV de
+`audit_information.py --datasets d2_us97 d3_239 --quick` sont identiques au SHA-256 avant et après le déplacement.
