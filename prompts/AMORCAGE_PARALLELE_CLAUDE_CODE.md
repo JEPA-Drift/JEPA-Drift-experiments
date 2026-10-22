@@ -60,7 +60,7 @@ cd ~/JEPA-stream-18 && source .venv/bin/activate && claude --model claude-opus-5
 
 Les sessions 14 et 17 peuvent coder en parallèle, puis intégrer leurs modifications du registre
 partagé successivement. La session 18 développe l'adaptateur en parallèle et enregistre sa variante
-P4 après 17. Les compléments 23/P4-D et 27/P5-C restent soumis aux portes 17 et 16.
+P4 après 17. Les compléments 23/P4-D, 27/F2 et 27/P5-C restent soumis aux portes 17, 8b et 16.
 
 Pour chaque session, transmettre à l'orchestrateur le plan, les questions de Claude Code, les
 commandes de vérification prévues et les écarts proposés. Après implémentation, transmettre le

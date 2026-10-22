@@ -23,6 +23,7 @@ JEPA-Drift (« Article C ») entre dans sa vague la plus parallèle : E1, E3, CA
 4. **Fixture sans effet de bord** (`tests/test_data_d1_d2.py`).
    - Le fixture de session reconstruit D1 et D2 sous une racine temporaire qui reproduit l'arborescence du dépôt. Il passe par un monkeypatch de `REPO_ROOT` et des chemins dérivés de `jepadrift.data_loader.articleB`, lus à l'appel.
    - Les tests comparent les SHA-256 des fichiers reconstruits à ceux des fichiers commités. Ils comparent aussi les entrées D1/D2 du manifeste reconstruit (jeux `d1_etf4` et `d2_us97`, résultat `d1_d2_profile`, source) à celles du manifeste commité.
+   - Dans `.gitignore`, ignorer les nœuds `.venv` et `external` aussi lorsqu'ils sont des liens symboliques de worktree (les motifs actuels avec `/` final ne les couvrent pas). Vérifier `git check-ignore .venv external` dans un worktree, sans masquer d'autres modifications suivies.
    - Après `make check` sur un arbre propre, `git status --porcelain` doit être vide.
    - Dans `CLAUDE.md` (« Worktrees and parallel streams »), supprimer la phrase sur la réécriture des fichiers D1/D2 par le fixture.
 5. **Fidélité des prompts** `tools/check_prompts.py`, avec une cible `make prompts-check`.
@@ -60,7 +61,7 @@ pas de secteur GICS : F2 n'y utilise que les quatre caractéristiques continues.
 ### Livrables
 - Code : `jepadrift/data_loader/chars.py`, `jepadrift/stats/drift.py`, `horizon_gamma` dans `jepadrift/pipelines.py`, `tools/check_prompts.py`.
 - Tests : `tests/test_chars.py`, `tests/test_drift_stats.py`, fixture révisé de `tests/test_data_d1_d2.py`.
-- Configuration : cible `prompts-check` du `Makefile`, master resynchronisé, entrées de `docs/DEVIATIONS.md`, `CLAUDE.md` mis à jour.
+- Configuration : cible `prompts-check` du `Makefile`, master resynchronisé, `.gitignore` adapté aux liens de worktree, entrées de `docs/DEVIATIONS.md`, `CLAUDE.md` mis à jour.
 
 ### Contraintes techniques
 - Déplacements sans modification de corps, contrôlés par `ast` sur les segments.

@@ -118,12 +118,12 @@ Streams **Opus** restants (quota compté) : **12, 13, 14, 22**. Tous les autres 
 
 | Porte | Sessions parallèles | Limite de la livraison initiale |
 | ----- | -------------------- | ------------------------------- |
-| Maintenant | 8b, 23, 27 | 23 : phase 1 P1-D/P3-D ; 27 : étape linéaire P1-C/P3-C |
+| Maintenant | 8b, 23, 27 | 23 : phase 1 P1-D/P3-D ; 27 : étape linéaire F1 avec P1-C/P3-C |
 | Après fusion de 8b | 12, 13, 14, 17, 18 | 18 : adaptateur en parallèle, enregistrement P4 après 17 |
 
 Les plans peuvent avancer en parallèle ; l'exécution du code de chaque stream attend le GO de
 son plan. Les modifications au registre partagé de 14, 17 et 18 sont intégrées l'une après l'autre.
-Les compléments 23/P4-D et 27/P5-C attendent respectivement 17 et 16.
+Les compléments 23/P4-D, 27/F2 et 27/P5-C attendent respectivement 17, 8b et 16.
 
 ## Replanification du 18 octobre 2026 (historique)
 

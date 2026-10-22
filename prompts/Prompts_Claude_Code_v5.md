@@ -1578,11 +1578,11 @@ L'exactitude des flux de signe de JEPA-Drift suppose la symétrie centrale condi
    - part de rendements nuls ∈ {0, 2 %, 5 %}, par arrondi.
 
    S'y ajoutent D6 et le placebo D2–D3 brut (fenêtres antérieures à 2020 avant J4), avec ses violations naturelles mesurées par l'audit (symétrie rejetée sur PC1, PC2, PC3 et `rev_21` selon le jeu, `CLAUDE.md`) et ses rendements nuls (2 864 sur D2 avant 2020, tranchés par pièce).
-2. **Pipelines en deux étapes** : P1-C et P3-C dès maintenant, avec et sans recentrage sur q̂_u estimé sur `calib` ; P5-C seulement après disponibilité d'un point de contrôle gelé du stream 16. Une option explicite sélectionne l'étape et l'exécution initiale ne dépend pas de P5-C.
-3. **Mesures** : FPR observé avec IC contre le niveau nominal et le niveau atteint sous le nul valide ; G_ADD sur F1, et F2 sur D3 uniquement (D2 n'a pas de caractéristiques), à γ_H = H/α. Sur les placebos bruts asymétriques, ne pas qualifier la lecture de garantie exacte. Rapporter le FPR atteint à côté de chaque gain ; si les FPR diffèrent, ne pas conclure à un gain à fausse alarme égale.
+2. **Pipelines par portes** : P1-C et P3-C sur F1 dès maintenant, avec et sans recentrage sur q̂_u estimé sur `calib` ; F2 sur D3 seulement après le chargeur partagé du stream 8b, sans pivot local dupliqué ; P5-C seulement après disponibilité d'un point de contrôle gelé du stream 16. Le P1-C existant est dans `monitors/cusum.py`, pas dans `pipelines.PIPELINES` : réutiliser ce noyau avant d'envisager une entrée de registre. Une option explicite sélectionne les familles et l'exécution initiale ne dépend ni de 8b ni de P5-C.
+3. **Mesures** : FPR observé avec IC contre le niveau nominal et le niveau atteint sous le nul valide ; G_ADD sur F1 immédiatement, puis F2 sur D3 uniquement (D2 n'a pas de caractéristiques), à γ_H = H/α. Sur les placebos bruts asymétriques, ne pas qualifier la lecture de garantie exacte. Rapporter le FPR atteint à côté de chaque gain ; si les FPR diffèrent, ne pas conclure à un gain à fausse alarme égale.
 
 ### Entrées
-Étape initiale : prompts 5 et 7. Étape P5-C : stream 16 et son point de contrôle gelé ; `CLAUDE.md`.
+Étape initiale F1 : prompts 5 et 7. Complément F2 : stream 8b. Complément P5-C : stream 16 et son point de contrôle gelé ; `CLAUDE.md`.
 
 ### Livrables
 `experiments/e10_robustness.py`, `configs/e10.yaml`, `results/e10/e10_cells.csv`, `figures/e10/*`.
@@ -1595,7 +1595,7 @@ Inflation du FPR quantifiée par violation, avec IC ; effet du recentrage rappor
 
 ### Commandes de vérification
 ```bash
-python experiments/e10_robustness.py --stage linear --quick --out results/e10_quick
+python experiments/e10_robustness.py --stage linear --families F1 --quick --out results/e10_quick
 ```
 ````
 
@@ -1688,6 +1688,7 @@ JEPA-Drift (« Article C ») entre dans sa vague la plus parallèle : E1, E3, CA
 4. **Fixture sans effet de bord** (`tests/test_data_d1_d2.py`).
    - Le fixture de session reconstruit D1 et D2 sous une racine temporaire qui reproduit l'arborescence du dépôt. Il passe par un monkeypatch de `REPO_ROOT` et des chemins dérivés de `jepadrift.data_loader.articleB`, lus à l'appel.
    - Les tests comparent les SHA-256 des fichiers reconstruits à ceux des fichiers commités. Ils comparent aussi les entrées D1/D2 du manifeste reconstruit (jeux `d1_etf4` et `d2_us97`, résultat `d1_d2_profile`, source) à celles du manifeste commité.
+   - Dans `.gitignore`, ignorer les nœuds `.venv` et `external` aussi lorsqu'ils sont des liens symboliques de worktree (les motifs actuels avec `/` final ne les couvrent pas). Vérifier `git check-ignore .venv external` dans un worktree, sans masquer d'autres modifications suivies.
    - Après `make check` sur un arbre propre, `git status --porcelain` doit être vide.
    - Dans `CLAUDE.md` (« Worktrees and parallel streams »), supprimer la phrase sur la réécriture des fichiers D1/D2 par le fixture.
 5. **Fidélité des prompts** `tools/check_prompts.py`, avec une cible `make prompts-check`.
@@ -1725,7 +1726,7 @@ pas de secteur GICS : F2 n'y utilise que les quatre caractéristiques continues.
 ### Livrables
 - Code : `jepadrift/data_loader/chars.py`, `jepadrift/stats/drift.py`, `horizon_gamma` dans `jepadrift/pipelines.py`, `tools/check_prompts.py`.
 - Tests : `tests/test_chars.py`, `tests/test_drift_stats.py`, fixture révisé de `tests/test_data_d1_d2.py`.
-- Configuration : cible `prompts-check` du `Makefile`, master resynchronisé, entrées de `docs/DEVIATIONS.md`, `CLAUDE.md` mis à jour.
+- Configuration : cible `prompts-check` du `Makefile`, master resynchronisé, `.gitignore` adapté aux liens de worktree, entrées de `docs/DEVIATIONS.md`, `CLAUDE.md` mis à jour.
 
 ### Contraintes techniques
 - Déplacements sans modification de corps, contrôlés par `ast` sur les segments.
