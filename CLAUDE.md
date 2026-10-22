@@ -86,8 +86,8 @@ The data-processing inequality (DPI) forbids any KL increase: gains come from co
   P2-C, P3-C, P3-D, P3-CS, P7; the only module importing both representations and monitors) and
   the subpackages `monitors/` (numpy only: `cusum`, `streams`, `lattice`, `gamma`, `eprocess`,
   `calibration`), `representations/` (interface Z-1: `base`, `pca`, `cross_section`, `extract`),
-  `jepa/` (torch), `data_loader/` (`articleB`, `sp500`, `baf`, `eurofidai`), `stats/`
-  (`covariance`; `garch`, a verbatim R01 port excluded from pyflakes).
+  `jepa/` (torch), `data_loader/` (`articleB`, `sp500`, `baf`, `eurofidai`, `chars`), `stats/`
+  (`covariance`, `drift`; `garch`, a verbatim R01 port excluded from pyflakes).
 - `experiments/`: one script per experiment or audit (`e2_floor_validation.py`,
   `identity_articleB.py`, `audit_information.py`, then E1, E3, ...), argparse and
   `if __name__ == "__main__":`; a function moves to `jepadrift/` when a second consumer appears.
@@ -99,7 +99,7 @@ committed with the stream); the master collection `Prompts_Claude_Code_v5.md` (d
 `Orchestration_Streams_v5.md` (historical wave plan, superseded by the routing table of
 `prompts/streams/INDEX.md`) live at this level.
 - `configs/`: experiment configurations (YAML); `FROZEN.json` after milestone J4.
-- `tools/`: repository tooling — `reindex_graphify_jcodemunch.sh` (end-of-stream reindexation of jCodeMunch and Graphify), plus the `pre-commit`/`pre-push` hooks and the freeze/trace scripts added by later streams.
+- `tools/`: repository tooling — `reindex_graphify_jcodemunch.sh` (end-of-stream reindexation of jCodeMunch and Graphify), `check_prompts.py` (stream prompts as exact substrings of the master collection: `make prompts-check`, `--sync-master`), plus the `pre-commit`/`pre-push` hooks and the freeze/trace scripts added by later streams.
 - `docs/`: `sections/` (section notes), `audits/` (lot audits), `manifests/` (hash manifests of
   proprietary data, e.g. `d4_manifest.json`), `DEVIATIONS.md` (deviations under `C-<topic>`),
   `MAPPING.md` (traceability of reported numbers, created by stream 21).
@@ -184,6 +184,4 @@ committed with the stream); the master collection `Prompts_Claude_Code_v5.md` (d
   after the pushed-range check (no `data/raw/eurofidai/` or `data/derived/d4_eurofidai/` path, no
   file over 50 MB).
 - Never run `git stash`, `git checkout` or `git reset` in a worktree owned by another instance;
-  never stage foreign files; re-run `git status` before every staging. The session fixture of
-  `tests/test_data_d1_d2.py` rewrites the tracked D1/D2 files during `make check`; a rebuild in
-  `.venv` reproduces the committed bytes — never stage those files.
+  never stage foreign files; re-run `git status` before every staging.

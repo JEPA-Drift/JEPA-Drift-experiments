@@ -7,7 +7,7 @@ export PYTHONHASHSEED := 42
 SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 
-.PHONY: test j1 check hooks
+.PHONY: test j1 check hooks prompts-check
 
 test:
 	pytest -q --ignore=external
@@ -22,6 +22,9 @@ hooks:
 	@echo "hooks installed: pre-commit, pre-push"
 
 check:
-	pyflakes $(filter-out jepadrift/stats/garch.py,$(shell find jepadrift experiments tests -name '*.py'))
+	pyflakes $(filter-out jepadrift/stats/garch.py,$(shell find jepadrift experiments tests tools -name '*.py'))
 	pytest -q --ignore=external tests/test_contracts.py tests/test_decoupling.py
 	pytest -q --ignore=external --ignore=tests/test_contracts.py --ignore=tests/test_decoupling.py
+
+prompts-check:
+	python tools/check_prompts.py

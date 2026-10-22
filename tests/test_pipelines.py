@@ -338,6 +338,12 @@ def test_cross_independence_gate(d2):
     assert len(out) == 20 and out["detected"].dtype == bool
 
 
+def test_horizon_gamma():
+    assert pl.horizon_gamma(750) == 15000.0 and pl.horizon_gamma(500, 0.1) == 5000.0
+    spec = pl.make_spec("P3-C", gamma=pl.horizon_gamma(pl.H_DET))
+    assert pl.null_target(spec, None) == (pytest.approx(pl.TARGET_FPR, rel=1e-12), "<=", None)
+
+
 def test_cli_null_check_smoke(tmp_path):
     outs = []
     for name in ("a", "b"):

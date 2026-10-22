@@ -1,6 +1,7 @@
 """Contract tests for the D1 (ETF-4) and D2 (US-97) derived datasets (pytest)."""
 import hashlib
 import json
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -15,9 +16,17 @@ D1_EXPECTED = {"SPY": (6414, "2000-01-04"), "PFF": (4403, "2007-12-27"),
                "VNQ": (5014, "2005-01-04"), "BWX": (4451, "2007-10-09")}
 
 
-@pytest.fixture(scope="session", autouse=True)
-def _built():
-    ab.build()
+@pytest.fixture(scope="session")
+def rebuilt(tmp_path_factory):
+    root = tmp_path_factory.mktemp("repo")
+    (root / "data" / "derived").mkdir(parents=True)
+    shutil.copyfile(ab.DERIVED / "MANIFEST.json", root / "data" / "derived" / "MANIFEST.json")
+    with pytest.MonkeyPatch.context() as mp:
+        for name, rel in (("REPO_ROOT", "."), ("DERIVED", "data/derived"), ("RESULTS_DATA", "results/data"),
+                          ("LOGS_DATA", "logs/data")):
+            mp.setattr(ab, name, root / rel)
+        ab.build()
+    return root
 
 
 def _sha256(path):
@@ -231,3 +240,19 @@ def test_manifest_hashes_and_source():
     d2_in = man["datasets"]["d2_us97"]["inputs"][0]
     assert d2_in["rows"] == 5154
     assert d2_in["first_date"] == "2005-01-04" and d2_in["last_date"] == "2025-06-30"
+
+
+def test_rebuild_reproduces_committed_files(rebuilt):
+    files = sorted(p.relative_to(rebuilt) for p in rebuilt.rglob("*") if p.is_file())
+    assert len(files) == 16
+    for rel in files:
+        assert _sha256(rebuilt / rel) == _sha256(ab.REPO_ROOT / rel), rel
+
+
+def test_rebuild_manifest_matches_committed(rebuilt):
+    new = json.loads((rebuilt / "data" / "derived" / "MANIFEST.json").read_text())
+    old = json.loads((ab.DERIVED / "MANIFEST.json").read_text())
+    assert new["source"] == old["source"]
+    for ds in ("d1_etf4", "d2_us97"):
+        assert new["datasets"][ds] == old["datasets"][ds], ds
+    assert new["results"]["d1_d2_profile"] == old["results"]["d1_d2_profile"]
