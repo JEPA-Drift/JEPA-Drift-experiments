@@ -5,7 +5,10 @@ Vérifie d'abord que le stream 8b est fusionné sur `main`. Lis `CLAUDE.md`,
 `stream-14`. Reste en mode `plan`. Résous sans installer la compatibilité de torch CPU issu
 exclusivement de `conda-forge` dans `.venv`, avec Python 3.12.9, numpy/scipy/pandas épinglés et les tests
 existants. Propose un environnement reproductible ; signale toute incompatibilité avant le GO.
+Chiffre le dry-run et l'effet d'une installation sur la `.venv` commune avant toute mutation ;
+coordonne l'extracteur et les contrats partagés avec le stream 17, sans casser D2/PCA.
 Le protocole principal n'emploie que les quatre caractéristiques continues causales. Prévois
 des générateurs torch locaux, des gardes sur le vrai modèle et le hash J1. Présente les fichiers
 touchés et les questions ; attends le GO de l'orchestrateur. Après ce GO, enregistre
 `prompts/plans/plan-14.md` avec « Décision GO intégrée » et implémente.
+Rédige les nouveaux audits en anglais et arrête-toi au commit local vérifié avant fetch, fusion ou push.

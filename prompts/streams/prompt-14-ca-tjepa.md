@@ -10,6 +10,7 @@ Une tête impaire, obtenue par antisymétrisation, alimente les flux de signe ex
 ### Tâche
 0. **Dépendance torch reproductible.**
    - Dans le plan, résoudre torch CPU depuis `conda-forge` uniquement, pour le `.venv` obligatoire du projet (Python 3.12.9 et versions épinglées de numpy, scipy et pandas). Montrer la commande de résolution et les versions avant toute installation ; si l'intégration reproductible dans `.venv` est impossible, arrêter au GO au lieu d'utiliser un autre interpréteur ou un index de roues externe.
+   - Torch est absent de `.venv` : faire un dry-run de résolution conda-forge CPU avec numpy 2.4.4, scipy 1.17.1 et pandas 3.0.6 inchangés ; expliciter la contradiction avec la mention de roue CPU dans `CLAUDE.md`. `.venv` est partagée par les worktrees : coordonner toute installation après le GO, hors vérifications et runs des autres streams.
    - Consigner les dépendances exactes dans le verrou approprié au mode d'intégration approuvé. numpy, scipy et pandas ne doivent pas bouger ; `make j1` doit redonner `e315e537…`.
    - Tous les tests et scripts du stream utilisent `.venv/bin/python`, jamais l'interpréteur Trading seul.
 1. **`jepadrift/jepa/ca_tjepa.py`** (torch, CPU, au plus 1 M de paramètres) :
@@ -34,10 +35,11 @@ Une tête impaire, obtenue par antisymétrisation, alimente les flux de signe ex
    - `_fit` n'ajuste que la lecture, sur les lignes de calib ;
    - `_day` n'utilise que x_t et C_t ;
    - `transform_panel` peut traiter les jours par lots seulement si le résultat est identique au bit près à l'empilement de `transform_day` ; sinon, boucle jour par jour.
+   - Étendre l'extraction pour passer les caractéristiques C alignées à la calib et à chaque jour, tout en conservant le chemin D2 sans caractéristiques et les segments distincts `pretrain`/`calib` ; ne pas ajuster le tronc ou le checkpoint sur la calib.
 6. **Enregistrement et extraction.**
    - Ajouter une entrée paresseuse `ca_tjepa` dans `representations/extract.REGISTRY` : torch est importé dans la fabrique, jamais à l'import de `jepadrift.representations`.
    - Extraction par la CLI existante, étendue d'une option `--ckpt` : `python -m jepadrift.representations.extract --dataset d3_239 --rep ca_tjepa --ckpt ckpt/<hash>`. Les lignes extraites suivent `C-repr-rows`.
-7. **Contrats.** Les tests paramétrés sur le registre s'appliquent. Les quatre gardes torch de `tests/test_contracts.py` doivent tourner dans `make check`, et non être sautées. Remplacer les gardes qui n'inspectent que des modèles jouets ou qui ne peuvent détecter une normalisation temporelle par des assertions sur le CA-T-JEPA réel ; une violation introduite intentionnellement doit faire échouer chaque garde concernée.
+7. **Contrats.** Les tests paramétrés sur le registre s'appliquent avec une fixture D3 et un checkpoint figé pour `ca_tjepa` : le parcours actuel de tout `REGISTRY` sur D2 avec `cls()` ne convient pas aux représentations qui demandent C et un checkpoint. Préserver les contrats D2/PCA ; coordonner `extract.py` et `tests/test_contracts.py` avec le stream 17. Les quatre gardes torch de `tests/test_contracts.py` doivent tourner dans `make check`, et non être sautées. Remplacer les gardes qui n'inspectent que des modèles jouets ou qui ne peuvent détecter une normalisation temporelle par des assertions sur le CA-T-JEPA réel ; une violation introduite intentionnellement doit faire échouer chaque garde concernée.
 8. **Test de fumée** : 2 époques sur 200 jours, extraction, puis contrats.
 
 ### Entrées
@@ -53,6 +55,7 @@ D3 et caractéristiques (stream 3, chargeur partagé du stream 8b) ; interface Z
 - Aucune méthode non publiée.
 - Aucune donnée de `monitor` vue à l'entraînement ou à l'ajustement de la lecture.
 - `jepadrift/jepa/` n'importe ni `jepadrift.injection` ni `jepadrift.monitors`.
+- Nouveaux comptes rendus d'audit en anglais ; installation de la dépendance partagée sérialisée avec les autres streams.
 
 ### Critères de succès
 - Contrats au vert, dont imparité ≤ 1e-6, avec les gardes torch exécutées.
@@ -62,8 +65,8 @@ D3 et caractéristiques (stream 3, chargeur partagé du stream 8b) ; interface Z
 
 ### Commandes de vérification
 ```bash
-python experiments/jepa_pretrain.py --config configs/ca_tjepa.yaml --smoke
-python -m jepadrift.representations.extract --dataset d3_239 --rep ca_tjepa --ckpt ckpt/<hash>
-pytest -q -rs tests/test_ca_tjepa.py tests/test_contracts.py
+.venv/bin/python experiments/jepa_pretrain.py --config configs/ca_tjepa.yaml --smoke
+.venv/bin/python -m jepadrift.representations.extract --dataset d3_239 --rep ca_tjepa --ckpt ckpt/<hash>
+.venv/bin/pytest -q -rs tests/test_ca_tjepa.py tests/test_contracts.py
 make j1 && sha256sum results/e2/e2_cells.csv | cut -c1-16
 ```

@@ -7,14 +7,14 @@ JEPA-Drift compare le JEPA à des facteurs latents pilotés par les caractérist
 1. Implémenter dans `jepadrift/representations/ipca.py` l'estimation par moindres carrés alternés :
    - f_t = (ΓᵀC_tᵀC_tΓ)⁻¹ΓᵀC_tᵀx_t, pour Γ donné ;
    - Γ mis à jour par la régression empilée ;
-   - normalisation ΓᵀΓ = I, facteurs orthogonaux ;
-   - critère d'arrêt sur la variation relative de Γ (≤ 1e-8).
-2. Caractéristiques : `data_loader.chars.load_chars_tensor` (stream 8b) ; protocole principal avec les 4 colonnes continues connues à t−1 sur D3 et D4. Les 11 GICS de D3 sont une classification actuelle rétropolée (`C-D3-gics-static`) : les 15 colonnes ne servent qu'à une sensibilité rétrospective explicitement étiquetée, jamais à une conclusion prospective. NaN → 0 comptés. `d3_500` et D4 sont déséquilibrés : régressions transversales restreintes aux titres `in_universe` du jour, sans imputation de rendement. Apprendre Γ sur `pretrain` ; choisir K ∈ {1, …, 6} par R² hors échantillon sur `calib` ; blanchir f_t sur `calib`.
+   - normalisation ΓᵀΓ = I, facteurs orthogonaux ; avec quatre caractéristiques principales, K ≤ 4 et `rank(C_t[in_universe_t] @ Γ) = K` doivent tenir chaque jour utilisé. Consigner les jours déficients et une règle d'exclusion ou de régularisation justifiée ; K = 5, 6 sont non identifiables en principal, sans recours aux GICS rétropolés ni pseudo-inverse silencieuse ;
+   - critère d'arrêt sur l'objectif ou le projecteur ΓΓᵀ (ou Γ aligné par Procrustes), pas sur Γ brut sensible aux signes et rotations.
+2. Caractéristiques : `data_loader.chars.load_chars_tensor` (stream 8b) ; protocole principal avec les 4 colonnes continues connues à t−1 sur D3 et D4. Les 11 GICS de D3 sont une classification actuelle rétropolée (`C-D3-gics-static`) : les 15 colonnes ne servent qu'à une sensibilité rétrospective explicitement étiquetée, jamais à une conclusion prospective. NaN des caractéristiques → 0 comptés. `d3_500` et D4 sont déséquilibrés : charger le masque `in_universe` aligné aux dates et titres, exclure les rendements manquants des équations et scores sans les imputer. `Representation._check` et `pipelines._panel` refusent les NaN : détailler une adaptation qui conserve les autres représentations et ne traite pas un zéro de remplissage comme une observation. Apprendre Γ sur `pretrain` ; choisir K parmi les rangs identifiables par R² sur actifs de `calib` tenus à l'écart : estimer f_t sur les actifs d'ajustement et scorer les actifs disjoints, avec partage déterministe. Ne pas appeler « hors échantillon » une reconstruction sur les actifs servant à estimer f_t. Blanchir f_t sur `calib` par une transformation linéaire homogène, sans centrage ni intercept de la tête impaire.
 3. Option « cash-neutral » : retirer le facteur de marché (constante ou bêta) avant extraction.
-4. Enregistrer la représentation et les pipelines P4-C (signes des facteurs, e-détecteur de dictionnaire) et P4-D (énergie).
+4. Enregistrer la représentation et les pipelines P4-C (signes des facteurs, e-détecteur de dictionnaire) et P4-D (énergie). Étendre `extract.py` pour passer C aligné et séparer Γ appris sur `pretrain` de K/blanchiment ajustés sur `calib`, sans changer D2/PCA ; coordonner `extract.py` et `tests/test_contracts.py` avec le stream 14, et `pipelines.py` avec 23 avant les fusions.
 5. **Tests** :
    - récupération sur données simulées : sous-espace de Γ retrouvé avec des angles principaux < 5° ;
-   - imparité ; non-anticipation ; état figé ;
+   - imparité `φ(−x;C) = −φ(x;C)` avec C figé, y compris cash-neutral ; non-anticipation ; état figé ;
    - contrats du prompt 8.
 
 ### Entrées
@@ -24,13 +24,13 @@ JEPA-Drift compare le JEPA à des facteurs latents pilotés par les caractérist
 `jepadrift/representations/ipca.py`, `tests/test_ipca.py`, extractions, `results/ipca/k_selection.csv`, `docs/sections/ipca.md`.
 
 ### Contraintes techniques
-numpy seul ; aucune donnée de `monitor`.
+numpy seul ; aucune donnée de `monitor` ; nouveaux audits en anglais.
 
 ### Critères de succès
 Tests au vert ; K choisi et consigné ; contrats passés.
 
 ### Commandes de vérification
 ```bash
-pytest -q tests/test_ipca.py tests/test_contracts.py
-python -m jepadrift.representations.extract --dataset d3_239 --rep ipca
+.venv/bin/pytest -q tests/test_ipca.py tests/test_contracts.py
+.venv/bin/python -m jepadrift.representations.extract --dataset d3_239 --rep ipca
 ```
