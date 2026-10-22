@@ -5,13 +5,13 @@ CD-DFM (Alouadi & Lehalle, arXiv:2607.24410, code public) construit des facteurs
 
 ### Tâche
 1. Réutiliser le clone `external/cd-dfm/` du stream 3, dont le commit est épinglé dans `data/derived/MANIFEST.json` ; ne pas recloner. Lire la licence et les dépendances ; le README indique que le panel d'origine n'est pas redistribuable. Installer dans `external/cddfm-venv/` si ses dépendances (torch notamment) entrent en conflit avec `.venv`.
-2. Adapter les entrées : caractéristiques de `d3_239`, lues par `data_loader.chars.load_chars_tensor` (stream 8b), au format attendu. Entraîner sur `pretrain` selon la recette du dépôt, avec K = 11 (marché plus dix facteurs cash-neutral).
+2. Adapter les entrées : les 4 caractéristiques continues de `d3_239`, connues à t−1 et lues par `data_loader.chars.load_chars_tensor` (stream 8b), au format attendu. Les 11 GICS actuels sont rétropolés (`C-D3-gics-static`) : les utiliser seulement en sensibilité rétrospective étiquetée. Entraîner sur `pretrain` selon la recette du dépôt, avec K = 11 (marché plus dix facteurs cash-neutral), ou documenter dans le plan pourquoi ce rang n'est pas identifiable avec les entrées disponibles.
 3. Extraire :
    - les rendements de facteurs, linéaires en x_t avec appartenances connues en t−1, donc impairs ;
    - la covariance prévue Σ̂(t), pour le blanchiment conditionnel.
 
    Emballer le tout dans l'interface Z, avec un JSON qui précise l'écart d'entrées.
-4. Enregistrer P4-C et P4-D (variante CD-DFM).
+4. Enregistrer P4-C et P4-D (variante CD-DFM) après intégration de la variante IPCA du stream 17 dans le registre partagé ; l'adaptateur et ses tests peuvent être développés en parallèle.
 5. Si le dépôt est inutilisable (code incomplet, dépendances introuvables), s'arrêter après un diagnostic écrit dans `docs/sections/cddfm_adapter.md`. Priorité B.
 
 ### Entrées

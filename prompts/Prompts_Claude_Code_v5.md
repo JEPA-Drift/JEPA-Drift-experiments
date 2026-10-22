@@ -794,17 +794,17 @@ E1 mesure, à fausse alarme égale, ce que coûte la détection d'une dérive se
 - la projection orthogonale au marché (P3) ;
 - la coupe de degré 0 (P3-CS, canal N1).
 
-Les dérives sont injectées dans des fonds réels symétrisés (D6) de 2005–2019. Les gains mesurés sont comparés à des prévisions calculées à partir des dérives injectées. E1 fournit les chiffres du §2 et les critères de J2 (25 octobre). Lire `CLAUDE.md`.
+Les dérives sont injectées dans des fonds réels symétrisés (D6) de 2005–2019. Les gains mesurés sont comparés à des prévisions calculées à partir des dérives injectées. Ces prévisions emploient une information quadratique gaussienne de conception, pas la KL exacte des fonds D6. E1 fournit les chiffres du §2 et les critères de J2 (25 octobre). Lire `CLAUDE.md`.
 
 Définitions :
 - **Délai** : `delay = alarm_index − tau_star + 1`, soit le nombre de jours surveillés jusqu'à l'alarme incluse (`C-pipe-delay`). ADD = moyenne des délais, au pire cas de Lorden (moniteur remis à zéro à l'onset).
-- **Lectures à horizon H**, toutes à FPR(H) ≤ α = 0,05 :
+- **Lectures à horizon H**, avec cible nominale α = 0,05 et FPR(H) observé rapporté par cellule :
   - anytime-valid : e-détecteur arrêté à γ_H = H/α (`pipelines.horizon_gamma`), car P∞(alarme avant H) ≤ H/γ ;
   - exacte : CUSUM de signe au niveau atteignable du treillis ≤ α à l'horizon H. La statistique se compare à `select_threshold(...)["threshold"]` (point milieu), jamais à `lam` ;
-  - bootstrap (portage R15, H = 750) et randomisation (inversion de signe) : FPR(H) ≈ α.
+  - bootstrap (portage R15, H = 750) et randomisation (inversion de signe) : FPR(H) empirique visé ≈ α, sans garantie automatique.
 - **G_ADD** = ADD_A/ADD_B, à lecture et H égaux.
-- **G_floor** = I_B/I_A, calculé à partir des Δ injectés.
-- **Alignement** a_max = max_k Δz_k²/‖Δz‖² : part de l'information portée par le meilleur canal, en coordonnées blanchies.
+- **G_floor** = I_B/I_A, rapport des informations quadratiques gaussiennes de conception calculées à partir des Δ injectés.
+- **Alignement** a_max = max_k Δz_k²/‖Δz‖² : part de cette information quadratique portée par le meilleur canal, en coordonnées blanchies.
 
 ### Tâche
 Écrire `experiments/e1_problem.py`. Seules les lignes du 2005-01-04 au 2019-12-31 sont lues, avec un contrôle bloquant. L'option `--include-test-window` est refusée tant que `configs/FROZEN.json` est absent ou ne correspond pas (prompt 21).
@@ -842,7 +842,7 @@ Définitions :
      - a_max(N) est rapporté pour attribuer une pente faible à l'information ou à l'alignement.
 4. **Bras C — phases réelles (descriptif).** Phases des trois datations comprises dans 2005–2019.
    - Part des phases dans le budget, par sous-espace : L·Î ≥ ln γ, γ ∈ {20, 252}, en lecture budget, avec `stats.drift.debiased_sr2`.
-   - Parts placebo par `rotate_phases` (2 000 rotations). Les deux parts sont rapportées. L'Î intra-phase est gonflé par la sélection des frontières (`C-audit-placebo`) : les parts sont présentées comme des bornes supérieures.
+   - Parts placebo par `rotate_phases` (2 000 rotations). Les deux parts sont rapportées. L'Î intra-phase est gonflé par la sélection des frontières (`C-audit-placebo`) : les parts sont présentées comme des bornes supérieures. Le placebo teste l'alignement avec les datations choisies ; il n'identifie pas une fraction causale de la dérive.
    - Alarmes dans les phases sur données brutes :
      - P1-C, en flux d'étiquettes Article B avec q̂ de calib ;
      - P3-C, avec recentrage sur q̂ de calib pour les canaux dont la symétrie est rejetée (`CLAUDE.md`).
@@ -850,16 +850,17 @@ Définitions :
      Ce bras est descriptif : aucune exactitude n'est revendiquée.
    - `results/audit/predicted_gains.csv` est cité tel quel (NaN conservés), jamais complété.
 5. **Prévisions, à partir des Δ injectés.**
-   - Information de l'oracle : I_x = ½ΔᵀΣ̂⁻¹Δ.
+   - Information quadratique gaussienne de conception de l'oracle : I_x = ½ΔᵀΣ̂⁻¹Δ. Ne pas l'appeler KL exacte des fonds D6.
    - Pour chaque pipeline : information de son sous-espace, avec Δz = WᵀΔ dans la base figée.
    - Délai prévu du dictionnaire : environ (ln γ_H + ln K_canaux)/(e·a_max·I_z). Ici e = 4f̂(0)² est l'efficacité du signe estimée sur la calib (2/π sous normalité).
-   - Délai prévu de P7 : ln γ_H/I_x (Lemme 1).
+   - Budget d'évidence de P7 : ln γ_H/I_x (Lemme 1), distinct d'un ADD prédit à seuil fini.
    - Rapporter les gains prévus et mesurés côte à côte. Pour P3-CS (b), rapporter la borne N1 = E[σ²]E[σ⁻²] de l'audit (≈ 1,97).
 6. **Mesures.**
    - ADD moyen et médian, taux de détection dans H, censure.
    - G_ADD par lecture ; G_floor.
    - G_SR, en mesure secondaire, sur une grille réduite (F3 et F2 ; bissection en 6 pas de 200 onsets).
    - K_eff (`sign_diagnostics`).
+   - FPR(H) observé et IC pour chaque lecture. Qualifier les gains à seuil nominal commun de tels ; comparer à FPR empirique apparié lorsque le calibrage le permet sur la calib, sinon ne pas conclure à « fausse alarme égale ».
 7. **Résumé J2** dans `results/e1/e1_j2_summary.txt`, une ligne PASS/FAIL par critère :
    - (i) flux de signe exacts sur D6 (P1-C sur 5 titres, canaux de P3-C), H ∈ {750, 2 000}, 2 000 réplications par `null_check` : |FPR − niveau du treillis| ≤ 1 point ;
    - (ii) pente de P2-C sur F3 pour N ≥ 20 : IC à 95 % contenant 0, ou borne haute < 0,15 ;
@@ -891,18 +892,19 @@ Streams 2 à 8, 8b et 11 ; `results/audit/*.csv` ; `CLAUDE.md`.
 python experiments/e1_problem.py --quick --out results/e1_quick
 python experiments/e1_problem.py --quick --out /tmp/e1_quick2 && diff <(cd results/e1_quick && sha256sum *.csv) <(cd /tmp/e1_quick2 && sha256sum *.csv)
 python experiments/e1_problem.py --out results/e1 && cat results/e1/e1_j2_summary.txt
-```````
+```
+````
 
 ````markdown
 ## PROMPT 13 — E3 : calibration sous H₀ (exactitude des flux, ARL₀ des e-détecteurs, Γ spectral contre Γ opérationnel)
 
 ### Contexte
-E3 vérifie, sans aucune dérive, que chaque moniteur de JEPA-Drift tient sa garantie de fausse alarme :
+E3 mesure, sans aucune dérive, la calibration de chaque moniteur sous ses hypothèses de nul :
 - le niveau exact du treillis pour les flux de signe ;
 - ARL₀ ≥ γ pour les e-détecteurs ;
-- FPR(H) ≈ α pour les seuils bootstrap ou randomisés.
+- FPR(H) empirique visé ≈ α pour les seuils bootstrap ou randomisés.
 
-Il mesure aussi ce que coûtent l'hétéroscédasticité (Γ) et l'asymétrie des données brutes. E3 fournit le §5.2 et le critère (i) de J2. Lire `CLAUDE.md`.
+Il mesure aussi ce que coûtent l'hétéroscédasticité (Γ) et l'asymétrie des données brutes. L'exactitude des signes et la borne ARL₀ ne sont revendiquées que pour les flux satisfaisant les hypothèses conditionnelles ; les données brutes sont un diagnostic empirique. E3 fournit le §5.2 et le critère (i) de J2. Lire `CLAUDE.md`.
 
 Définitions :
 - **Γ^spec** = 1 + 2Σρ(k) de la statistique surveillée (`monitors.gamma.gamma_spectral`).
@@ -923,7 +925,7 @@ Définitions :
    - P3-D : fenêtres nulles de calib (H ≤ 941). Pour H = 2 000, utiliser les fenêtres `pre_monitor` et rapporter la non-stationnarité de l'énergie (Γ^op ≈ 191 et 2 346 sur D2, `C-P3D-windows`).
    - P3-CS : (a) randomisation et e-processus ; (b) e-détecteur à mise prévisible.
 3. **Mesures.**
-   - FPR(H) pour H ∈ {750, 2 000}, avec région à 99 % ; 20 000 trajectoires nulles par cellule de signe. Référence : le niveau exact du treillis pour les flux de signe, α pour le bootstrap et la randomisation.
+   - FPR(H) pour H ∈ {750, 2 000}, avec région à 99 % ; 20 000 trajectoires nulles par cellule de signe. Référence : le niveau exact du treillis pour les flux de signe valides, α comme cible empirique pour le bootstrap et la randomisation. Rapporter le niveau atteint et l'IC, y compris si la cible échoue.
    - ARL₀ Monte Carlo des e-détecteurs, de types SR et CUSUM (P2-C, P3-C, P3-CS b) :
      - γ ∈ {20, 100, 252}, sur pièces équitables, D6 et brut ;
      - T_max = 60γ, avec la censure rapportée (une moyenne censurée est une borne inférieure) ;
@@ -956,7 +958,7 @@ Streams 4 à 8 et 8b ; `results/audit/symmetry_tests.csv` ; `CLAUDE.md`.
 - Aucune ligne datée de 2020 ou après.
 
 ### Critères de succès
-- Flux exacts dans la région à 99 % du niveau exact.
+- Flux exacts de D6 dans la région à 99 % du niveau exact ; sur les données brutes, écart quantifié sans revendication d'exactitude.
 - ARL₀ des e-détecteurs ≥ γ, ou censure documentée.
 - Pénalité de dépassement reproduite.
 - Inflation du FPR brut attribuée canal par canal.
@@ -966,7 +968,8 @@ Streams 4 à 8 et 8b ; `results/audit/symmetry_tests.csv` ; `CLAUDE.md`.
 ```bash
 python experiments/e3_calibration.py --quick --out results/e3_quick
 python experiments/e3_calibration.py --out results/e3 && cat results/e3/e3_j2_check.txt
-```````
+```
+````
 
 ````markdown
 ## PROMPT 14 — CA-T-JEPA : modèle, pré-entraînement et représentation (avec variantes MAE et prétexte temporel)
@@ -979,13 +982,12 @@ JEPA-Drift apprend une représentation de la coupe quotidienne par un JEPA trans
 Une tête impaire, obtenue par antisymétrisation, alimente les flux de signe exacts ; une tête paire alimente les capteurs d'énergie. Le code doit être prêt pour la campagne de J3 (1er novembre). Lire `CLAUDE.md`.
 
 ### Tâche
-0. **torch dans `.venv`.**
-   - Installer la roue CPU stable la plus récente compatible avec numpy 2.4.4 (`--index-url https://download.pytorch.org/whl/cpu`).
-   - L'épingler dans `requirements.txt` et régénérer `requirements.lock`.
-   - numpy, scipy et pandas ne doivent pas bouger (comparer `pip freeze` avant et après) ; `make j1` doit redonner `e315e537…`.
-   - Ne jamais utiliser le torch de l'environnement Trading.
+0. **Dépendance torch reproductible.**
+   - Dans le plan, résoudre torch CPU depuis `conda-forge` uniquement, pour le `.venv` obligatoire du projet (Python 3.12.9 et versions épinglées de numpy, scipy et pandas). Montrer la commande de résolution et les versions avant toute installation ; si l'intégration reproductible dans `.venv` est impossible, arrêter au GO au lieu d'utiliser un autre interpréteur ou un index de roues externe.
+   - Consigner les dépendances exactes dans le verrou approprié au mode d'intégration approuvé. numpy, scipy et pandas ne doivent pas bouger ; `make j1` doit redonner `e315e537…`.
+   - Tous les tests et scripts du stream utilisent `.venv/bin/python`, jamais l'interpréteur Trading seul.
 1. **`jepadrift/jepa/ca_tjepa.py`** (torch, CPU, au plus 1 M de paramètres) :
-   - jeton i = MLP([x_{i,t}/s_i, C_{i,t}]), où s_i est l'échelle de l'actif, figée sur `pretrain`. C_{i,t} vient de `data_loader.chars.load_chars_tensor("d3_239")` (15 colonnes ; NaN → 0 comptés par `impute_zero`) ;
+   - jeton i = MLP([x_{i,t}/s_i, C_{i,t}]), où s_i est l'échelle de l'actif, figée sur `pretrain`. C_{i,t} vient de `data_loader.chars.load_chars_tensor("d3_239")` ; le protocole principal utilise les 4 caractéristiques continues connues à t−1. Les 11 indicatrices GICS actuelles ne sont pas point-in-time (`C-D3-gics-static`) : elles ne peuvent servir qu'à une analyse rétrospective séparée et étiquetée. NaN → 0 comptés par `impute_zero` ;
    - 2 à 4 couches d'auto-attention équivariantes par permutation, sans encodage de position (d_model = 64, 4 têtes) ; LayerNorm autorisée, BatchNorm interdite ;
    - encodeur de contexte sur les actifs visibles ; encodeur cible EMA sur tous les actifs (moment de 0,996 à 0,9995, calendrier cosinus) ;
    - prédicteur à 2 couches, dont les requêtes portent C_{i,t} des actifs masqués ;
@@ -1009,7 +1011,7 @@ Une tête impaire, obtenue par antisymétrisation, alimente les flux de signe ex
 6. **Enregistrement et extraction.**
    - Ajouter une entrée paresseuse `ca_tjepa` dans `representations/extract.REGISTRY` : torch est importé dans la fabrique, jamais à l'import de `jepadrift.representations`.
    - Extraction par la CLI existante, étendue d'une option `--ckpt` : `python -m jepadrift.representations.extract --dataset d3_239 --rep ca_tjepa --ckpt ckpt/<hash>`. Les lignes extraites suivent `C-repr-rows`.
-7. **Contrats.** Les tests paramétrés sur le registre s'appliquent. Les quatre gardes torch de `tests/test_contracts.py` doivent tourner dans `make check`, et non être sautées.
+7. **Contrats.** Les tests paramétrés sur le registre s'appliquent. Les quatre gardes torch de `tests/test_contracts.py` doivent tourner dans `make check`, et non être sautées. Remplacer les gardes qui n'inspectent que des modèles jouets ou qui ne peuvent détecter une normalisation temporelle par des assertions sur le CA-T-JEPA réel ; une violation introduite intentionnellement doit faire échouer chaque garde concernée.
 8. **Test de fumée** : 2 époques sur 200 jours, extraction, puis contrats.
 
 ### Entrées
@@ -1017,11 +1019,11 @@ D3 et caractéristiques (stream 3, chargeur partagé du stream 8b) ; interface Z
 
 ### Livrables
 - Code : `jepadrift/jepa/{ca_tjepa,representation}.py` ; entrée `ca_tjepa` et option `--ckpt` de `jepadrift/representations/extract.py` ; `experiments/jepa_pretrain.py`.
-- Configuration et tests : `configs/ca_tjepa.yaml`, `tests/test_ca_tjepa.py`, `requirements.txt` et `requirements.lock` mis à jour.
+- Configuration et tests : `configs/ca_tjepa.yaml`, `tests/test_ca_tjepa.py`, verrou d'environnement conda-forge et fichiers de dépendances du projet ajustés selon le plan approuvé.
 - Documentation : `docs/sections/ca_tjepa.md` (architecture, nombre de paramètres, choix d'anti-effondrement).
 
 ### Contraintes techniques
-- `torch.use_deterministic_algorithms(True)`, `torch.set_num_threads(1)`, toutes les graines fixées (`torch.manual_seed` et `SeedSequence`), CPU.
+- `torch.use_deterministic_algorithms(True)`, `torch.set_num_threads(1)`, tirages stochastiques avec `torch.Generator` locaux alimentés par `SeedSequence` (initialisation, masques et ordre des lots inclus), sans `torch.manual_seed` global, CPU.
 - Aucune méthode non publiée.
 - Aucune donnée de `monitor` vue à l'entraînement ou à l'ajustement de la lecture.
 - `jepadrift/jepa/` n'importe ni `jepadrift.injection` ni `jepadrift.monitors`.
@@ -1038,7 +1040,8 @@ python experiments/jepa_pretrain.py --config configs/ca_tjepa.yaml --smoke
 python -m jepadrift.representations.extract --dataset d3_239 --rep ca_tjepa --ckpt ckpt/<hash>
 pytest -q -rs tests/test_ca_tjepa.py tests/test_contracts.py
 make j1 && sha256sum results/e2/e2_cells.csv | cut -c1-16
-```````
+```
+````
 
 ````markdown
 ## PROMPT 15 — T-JEPA pour BAF : enveloppe tabulaire et plongements
@@ -1125,7 +1128,7 @@ JEPA-Drift compare le JEPA à des facteurs latents pilotés par les caractérist
    - Γ mis à jour par la régression empilée ;
    - normalisation ΓᵀΓ = I, facteurs orthogonaux ;
    - critère d'arrêt sur la variation relative de Γ (≤ 1e-8).
-2. Caractéristiques : `data_loader.chars.load_chars_tensor` (stream 8b) ; 15 colonnes sur D3 (4 continues, 11 GICS), 4 sur D4 ; NaN → 0 comptés. `d3_500` et D4 sont déséquilibrés : régressions transversales restreintes aux titres `in_universe` du jour, sans imputation de rendement. Apprendre Γ sur `pretrain` ; choisir K ∈ {1, …, 6} par R² hors échantillon sur `calib` ; blanchir f_t sur `calib`.
+2. Caractéristiques : `data_loader.chars.load_chars_tensor` (stream 8b) ; protocole principal avec les 4 colonnes continues connues à t−1 sur D3 et D4. Les 11 GICS de D3 sont une classification actuelle rétropolée (`C-D3-gics-static`) : les 15 colonnes ne servent qu'à une sensibilité rétrospective explicitement étiquetée, jamais à une conclusion prospective. NaN → 0 comptés. `d3_500` et D4 sont déséquilibrés : régressions transversales restreintes aux titres `in_universe` du jour, sans imputation de rendement. Apprendre Γ sur `pretrain` ; choisir K ∈ {1, …, 6} par R² hors échantillon sur `calib` ; blanchir f_t sur `calib`.
 3. Option « cash-neutral » : retirer le facteur de marché (constante ou bêta) avant extraction.
 4. Enregistrer la représentation et les pipelines P4-C (signes des facteurs, e-détecteur de dictionnaire) et P4-D (énergie).
 5. **Tests** :
@@ -1160,13 +1163,13 @@ CD-DFM (Alouadi & Lehalle, arXiv:2607.24410, code public) construit des facteurs
 
 ### Tâche
 1. Réutiliser le clone `external/cd-dfm/` du stream 3, dont le commit est épinglé dans `data/derived/MANIFEST.json` ; ne pas recloner. Lire la licence et les dépendances ; le README indique que le panel d'origine n'est pas redistribuable. Installer dans `external/cddfm-venv/` si ses dépendances (torch notamment) entrent en conflit avec `.venv`.
-2. Adapter les entrées : caractéristiques de `d3_239`, lues par `data_loader.chars.load_chars_tensor` (stream 8b), au format attendu. Entraîner sur `pretrain` selon la recette du dépôt, avec K = 11 (marché plus dix facteurs cash-neutral).
+2. Adapter les entrées : les 4 caractéristiques continues de `d3_239`, connues à t−1 et lues par `data_loader.chars.load_chars_tensor` (stream 8b), au format attendu. Les 11 GICS actuels sont rétropolés (`C-D3-gics-static`) : les utiliser seulement en sensibilité rétrospective étiquetée. Entraîner sur `pretrain` selon la recette du dépôt, avec K = 11 (marché plus dix facteurs cash-neutral), ou documenter dans le plan pourquoi ce rang n'est pas identifiable avec les entrées disponibles.
 3. Extraire :
    - les rendements de facteurs, linéaires en x_t avec appartenances connues en t−1, donc impairs ;
    - la covariance prévue Σ̂(t), pour le blanchiment conditionnel.
 
    Emballer le tout dans l'interface Z, avec un JSON qui précise l'écart d'entrées.
-4. Enregistrer P4-C et P4-D (variante CD-DFM).
+4. Enregistrer P4-C et P4-D (variante CD-DFM) après intégration de la variante IPCA du stream 17 dans le registre partagé ; l'adaptateur et ses tests peuvent être développés en parallèle.
 5. Si le dépôt est inutilisable (code incomplet, dépendances introuvables), s'arrêter après un diagnostic écrit dans `docs/sections/cddfm_adapter.md`. Priorité B.
 
 ### Entrées
@@ -1388,23 +1391,23 @@ L'audit montre deux choses aux transitions datées de SPY (wrapups 11 et 11b) :
 - l'information de localisation hors marché y est noyée dans le bruit ;
 - le SR² de marché y relève de la sélection.
 
-La contingence C1 de JEPA-Drift, qui fait du second ordre l'axe principal, devient donc plausible. Un rapport de variance r porte ½(r − 1 − ln r) nat par jour et par direction : 24 fois le budget d'une dérive de SR = 1 pour r = 1,5, 77 fois pour r = 2. La phase 1 (capteurs linéaires) démarre sans attendre le JEPA ; la phase 2 ajoute la tête paire du JEPA. Lire `CLAUDE.md`.
+La contingence C1 de JEPA-Drift, qui fait du second ordre l'axe principal, devient donc plausible. Dans le modèle gaussien de conception, un rapport de variance r porte ½(r − 1 − ln r) nat par jour et par direction : 24 fois le budget d'une dérive de SR = 1 pour r = 1,5, 77 fois pour r = 2. Ce n'est pas la KL exacte des fonds D5 à innovations t₇ ou D6. La phase 1 (capteurs linéaires) démarre sans attendre le JEPA ; la phase 2 ajoute la tête paire du JEPA. Lire `CLAUDE.md`.
 
 ### Tâche
 Écrire `experiments/e6_second_order.py` avec l'option `--phase {1,2}`.
 1. **Fonds.**
-   - Principal : fenêtres D6 de `d3_239` prises dans le segment de calib (2016-04 → 2019-12), avec H ∈ {250, 500}. L'énergie blanchie n'est pas stationnaire sur 2005–2019 : Γ^op ≈ 191 et 2 346, contre 7,6 et 25,2 en calib (`C-P3D-windows`). Les fenêtres se chevauchent : le signaler.
+   - Principal : fenêtres D6 de `d3_239` prises dans le segment de calib (2016-04 → 2019-12), avec H ∈ {250, 500}. L'énergie blanchie n'est pas stationnaire sur 2005–2019 : Γ^op ≈ 191 et 2 346, contre 7,6 et 25,2 en calib (`C-P3D-windows`). Les fenêtres se chevauchent : corriger l'incertitude pour cette dépendance (`deff` ou bootstrap par blocs), et distinguer calibration et évaluation sur les mêmes jours.
    - Contrôle : panels D5 indépendants, N = 239 (`sim.garch_panel`, facteur équicorrélé ρ = 0,40, t₇).
 2. **Dérives F4** (`injection.inject`) :
    - déformation r ∈ {1,25 ; 1,5 ; 2} sur les sous-espaces des 3 premières PC résiduelles ou d'un facteur sectoriel ;
    - rotation θ ∈ {15°, 30°, 45°} ;
-   - information réalisée lue dans `meta`.
+   - information quadratique gaussienne de conception lue dans `meta`, sans l'appeler KL exacte des fonds non gaussiens.
 3. **Pipelines.** CUSUM d'énergie, δ = 0,5 ; seuil calculé sur toutes les fenêtres nulles de calib, α = 0,05 à l'horizon H ; Γ_z^op rapporté.
-   - Phase 1 : P1-D (indice équipondéré), P3-D (factoriel et complet), et P4-D (IPCA) dès que le stream 17 est fusionné.
+   - Phase 1 immédiatement : P1-D (indice équipondéré) et P3-D (factoriel et complet). Ajouter P4-D (IPCA) seulement après fusion du stream 17 ; ne pas bloquer la livraison P1-D/P3-D.
    - Phase 2 : P5-D, tête paire du CA-T-JEPA (stream 16).
 4. **Mesures.**
    - Délais, taux de détection, G_ADD et IC.
-   - Comparaison au budget KL par direction.
+   - Comparaison au budget gaussien de conception par direction, avec étiquette de modèle.
    - Contribution à la porte J4 (famille F4, phase 2).
 
 ### Entrées
@@ -1419,15 +1422,16 @@ Phase 1 : streams 5 et 7 (et 17 pour P4-D). Phase 2 : stream 16. `CLAUDE.md`.
 - Aucune ligne datée de 2020 ou après.
 
 ### Critères de succès
-- FPR sous H₀ dans la région à 99 % de α.
+- FPR sous H₀ avec IC et taille effective rapportés : contrôle indépendant sur D5 ; sur D6, indiquer si l'évaluation réutilise les jours de calibration et ne pas revendiquer une garantie à 5 % dans ce cas.
 - G_ADD avec IC pour chaque cellule.
-- Phase 1 livrée avant J3, phase 2 avant J4.
+- Phase 1 P1-D/P3-D livrée avant J3, P4-D après le stream 17, phase 2 avant J4.
 
 ### Commandes de vérification
 ```bash
 python experiments/e6_second_order.py --phase 1 --quick --out results/e6_quick
 python experiments/e6_second_order.py --phase 1 --out results/e6
-```````
+```
+````
 
 ````markdown
 ## PROMPT 24 — E9 : dérives natives de BAF (P6-D données, P6-C concept)
@@ -1574,24 +1578,24 @@ L'exactitude des flux de signe de JEPA-Drift suppose la symétrie centrale condi
    - part de rendements nuls ∈ {0, 2 %, 5 %}, par arrondi.
 
    S'y ajoutent D6 et le placebo D2–D3 brut (fenêtres antérieures à 2020 avant J4), avec ses violations naturelles mesurées par l'audit (symétrie rejetée sur PC1, PC2, PC3 et `rev_21` selon le jeu, `CLAUDE.md`) et ses rendements nuls (2 864 sur D2 avant 2020, tranchés par pièce).
-2. **Pipelines** : P1-C, P3-C, P5-C, avec et sans recentrage sur q̂_u estimé sur `calib`.
-3. **Mesures** : FPR contre niveau nominal, G_ADD sur F1 et F2 (lecture γ_H = H/α).
+2. **Pipelines en deux étapes** : P1-C et P3-C dès maintenant, avec et sans recentrage sur q̂_u estimé sur `calib` ; P5-C seulement après disponibilité d'un point de contrôle gelé du stream 16. Une option explicite sélectionne l'étape et l'exécution initiale ne dépend pas de P5-C.
+3. **Mesures** : FPR observé avec IC contre le niveau nominal et le niveau atteint sous le nul valide ; G_ADD sur F1, et F2 sur D3 uniquement (D2 n'a pas de caractéristiques), à γ_H = H/α. Sur les placebos bruts asymétriques, ne pas qualifier la lecture de garantie exacte. Rapporter le FPR atteint à côté de chaque gain ; si les FPR diffèrent, ne pas conclure à un gain à fausse alarme égale.
 
 ### Entrées
-Prompts 5 et 7 (P5-C si disponible) ; `CLAUDE.md`.
+Étape initiale : prompts 5 et 7. Étape P5-C : stream 16 et son point de contrôle gelé ; `CLAUDE.md`.
 
 ### Livrables
 `experiments/e10_robustness.py`, `configs/e10.yaml`, `results/e10/e10_cells.csv`, `figures/e10/*`.
 
 ### Contraintes techniques
-Graines fixées ; option `--quick`.
+Graines locales `SeedSequence` ; option `--quick` ; aucun accès aux lignes réelles datées de 2020 ou après avant J4.
 
 ### Critères de succès
 Inflation du FPR quantifiée par violation, avec IC ; effet du recentrage rapporté.
 
 ### Commandes de vérification
 ```bash
-python experiments/e10_robustness.py --quick --out results/e10_quick
+python experiments/e10_robustness.py --stage linear --quick --out results/e10_quick
 ```
 ````
 

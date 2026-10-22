@@ -1,0 +1,10 @@
+# Amorçage — stream 12, E1
+
+Vérifie d'abord que le stream 8b est fusionné sur `main`. Lis `CLAUDE.md`,
+`prompts/streams/INDEX.md` et `prompts/streams/prompt-12-e1.md` dans le worktree `stream-12`.
+Reste en mode `plan`. Présente la grille de calcul, les coûts de run, la mesure du FPR atteint,
+les comparaisons à fausse alarme égale et les limites des prévisions gaussiennes sur D6.
+Les rotations placebo n'identifient pas une fraction causale. L'ancien
+`prompts/GO-stream-12.md` porte sur une spécification antérieure : ne le traite pas comme GO de
+ce plan. Regroupe tes questions et attends le GO de l'orchestrateur. Après ce GO seulement,
+enregistre `prompts/plans/plan-12.md` avec « Décision GO intégrée » et implémente.

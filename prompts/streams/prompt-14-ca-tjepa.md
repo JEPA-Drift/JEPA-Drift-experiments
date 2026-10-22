@@ -8,13 +8,12 @@ JEPA-Drift apprend une représentation de la coupe quotidienne par un JEPA trans
 Une tête impaire, obtenue par antisymétrisation, alimente les flux de signe exacts ; une tête paire alimente les capteurs d'énergie. Le code doit être prêt pour la campagne de J3 (1er novembre). Lire `CLAUDE.md`.
 
 ### Tâche
-0. **torch dans `.venv`.**
-   - Installer la roue CPU stable la plus récente compatible avec numpy 2.4.4 (`--index-url https://download.pytorch.org/whl/cpu`).
-   - L'épingler dans `requirements.txt` et régénérer `requirements.lock`.
-   - numpy, scipy et pandas ne doivent pas bouger (comparer `pip freeze` avant et après) ; `make j1` doit redonner `e315e537…`.
-   - Ne jamais utiliser le torch de l'environnement Trading.
+0. **Dépendance torch reproductible.**
+   - Dans le plan, résoudre torch CPU depuis `conda-forge` uniquement, pour le `.venv` obligatoire du projet (Python 3.12.9 et versions épinglées de numpy, scipy et pandas). Montrer la commande de résolution et les versions avant toute installation ; si l'intégration reproductible dans `.venv` est impossible, arrêter au GO au lieu d'utiliser un autre interpréteur ou un index de roues externe.
+   - Consigner les dépendances exactes dans le verrou approprié au mode d'intégration approuvé. numpy, scipy et pandas ne doivent pas bouger ; `make j1` doit redonner `e315e537…`.
+   - Tous les tests et scripts du stream utilisent `.venv/bin/python`, jamais l'interpréteur Trading seul.
 1. **`jepadrift/jepa/ca_tjepa.py`** (torch, CPU, au plus 1 M de paramètres) :
-   - jeton i = MLP([x_{i,t}/s_i, C_{i,t}]), où s_i est l'échelle de l'actif, figée sur `pretrain`. C_{i,t} vient de `data_loader.chars.load_chars_tensor("d3_239")` (15 colonnes ; NaN → 0 comptés par `impute_zero`) ;
+   - jeton i = MLP([x_{i,t}/s_i, C_{i,t}]), où s_i est l'échelle de l'actif, figée sur `pretrain`. C_{i,t} vient de `data_loader.chars.load_chars_tensor("d3_239")` ; le protocole principal utilise les 4 caractéristiques continues connues à t−1. Les 11 indicatrices GICS actuelles ne sont pas point-in-time (`C-D3-gics-static`) : elles ne peuvent servir qu'à une analyse rétrospective séparée et étiquetée. NaN → 0 comptés par `impute_zero` ;
    - 2 à 4 couches d'auto-attention équivariantes par permutation, sans encodage de position (d_model = 64, 4 têtes) ; LayerNorm autorisée, BatchNorm interdite ;
    - encodeur de contexte sur les actifs visibles ; encodeur cible EMA sur tous les actifs (moment de 0,996 à 0,9995, calendrier cosinus) ;
    - prédicteur à 2 couches, dont les requêtes portent C_{i,t} des actifs masqués ;
@@ -38,7 +37,7 @@ Une tête impaire, obtenue par antisymétrisation, alimente les flux de signe ex
 6. **Enregistrement et extraction.**
    - Ajouter une entrée paresseuse `ca_tjepa` dans `representations/extract.REGISTRY` : torch est importé dans la fabrique, jamais à l'import de `jepadrift.representations`.
    - Extraction par la CLI existante, étendue d'une option `--ckpt` : `python -m jepadrift.representations.extract --dataset d3_239 --rep ca_tjepa --ckpt ckpt/<hash>`. Les lignes extraites suivent `C-repr-rows`.
-7. **Contrats.** Les tests paramétrés sur le registre s'appliquent. Les quatre gardes torch de `tests/test_contracts.py` doivent tourner dans `make check`, et non être sautées.
+7. **Contrats.** Les tests paramétrés sur le registre s'appliquent. Les quatre gardes torch de `tests/test_contracts.py` doivent tourner dans `make check`, et non être sautées. Remplacer les gardes qui n'inspectent que des modèles jouets ou qui ne peuvent détecter une normalisation temporelle par des assertions sur le CA-T-JEPA réel ; une violation introduite intentionnellement doit faire échouer chaque garde concernée.
 8. **Test de fumée** : 2 époques sur 200 jours, extraction, puis contrats.
 
 ### Entrées
@@ -46,11 +45,11 @@ D3 et caractéristiques (stream 3, chargeur partagé du stream 8b) ; interface Z
 
 ### Livrables
 - Code : `jepadrift/jepa/{ca_tjepa,representation}.py` ; entrée `ca_tjepa` et option `--ckpt` de `jepadrift/representations/extract.py` ; `experiments/jepa_pretrain.py`.
-- Configuration et tests : `configs/ca_tjepa.yaml`, `tests/test_ca_tjepa.py`, `requirements.txt` et `requirements.lock` mis à jour.
+- Configuration et tests : `configs/ca_tjepa.yaml`, `tests/test_ca_tjepa.py`, verrou d'environnement conda-forge et fichiers de dépendances du projet ajustés selon le plan approuvé.
 - Documentation : `docs/sections/ca_tjepa.md` (architecture, nombre de paramètres, choix d'anti-effondrement).
 
 ### Contraintes techniques
-- `torch.use_deterministic_algorithms(True)`, `torch.set_num_threads(1)`, toutes les graines fixées (`torch.manual_seed` et `SeedSequence`), CPU.
+- `torch.use_deterministic_algorithms(True)`, `torch.set_num_threads(1)`, tirages stochastiques avec `torch.Generator` locaux alimentés par `SeedSequence` (initialisation, masques et ordre des lots inclus), sans `torch.manual_seed` global, CPU.
 - Aucune méthode non publiée.
 - Aucune donnée de `monitor` vue à l'entraînement ou à l'ajustement de la lecture.
 - `jepadrift/jepa/` n'importe ni `jepadrift.injection` ni `jepadrift.monitors`.

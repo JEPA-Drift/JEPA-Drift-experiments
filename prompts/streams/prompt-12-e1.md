@@ -7,17 +7,17 @@ E1 mesure, à fausse alarme égale, ce que coûte la détection d'une dérive se
 - la projection orthogonale au marché (P3) ;
 - la coupe de degré 0 (P3-CS, canal N1).
 
-Les dérives sont injectées dans des fonds réels symétrisés (D6) de 2005–2019. Les gains mesurés sont comparés à des prévisions calculées à partir des dérives injectées. E1 fournit les chiffres du §2 et les critères de J2 (25 octobre). Lire `CLAUDE.md`.
+Les dérives sont injectées dans des fonds réels symétrisés (D6) de 2005–2019. Les gains mesurés sont comparés à des prévisions calculées à partir des dérives injectées. Ces prévisions emploient une information quadratique gaussienne de conception, pas la KL exacte des fonds D6. E1 fournit les chiffres du §2 et les critères de J2 (25 octobre). Lire `CLAUDE.md`.
 
 Définitions :
 - **Délai** : `delay = alarm_index − tau_star + 1`, soit le nombre de jours surveillés jusqu'à l'alarme incluse (`C-pipe-delay`). ADD = moyenne des délais, au pire cas de Lorden (moniteur remis à zéro à l'onset).
-- **Lectures à horizon H**, toutes à FPR(H) ≤ α = 0,05 :
+- **Lectures à horizon H**, avec cible nominale α = 0,05 et FPR(H) observé rapporté par cellule :
   - anytime-valid : e-détecteur arrêté à γ_H = H/α (`pipelines.horizon_gamma`), car P∞(alarme avant H) ≤ H/γ ;
   - exacte : CUSUM de signe au niveau atteignable du treillis ≤ α à l'horizon H. La statistique se compare à `select_threshold(...)["threshold"]` (point milieu), jamais à `lam` ;
-  - bootstrap (portage R15, H = 750) et randomisation (inversion de signe) : FPR(H) ≈ α.
+  - bootstrap (portage R15, H = 750) et randomisation (inversion de signe) : FPR(H) empirique visé ≈ α, sans garantie automatique.
 - **G_ADD** = ADD_A/ADD_B, à lecture et H égaux.
-- **G_floor** = I_B/I_A, calculé à partir des Δ injectés.
-- **Alignement** a_max = max_k Δz_k²/‖Δz‖² : part de l'information portée par le meilleur canal, en coordonnées blanchies.
+- **G_floor** = I_B/I_A, rapport des informations quadratiques gaussiennes de conception calculées à partir des Δ injectés.
+- **Alignement** a_max = max_k Δz_k²/‖Δz‖² : part de cette information quadratique portée par le meilleur canal, en coordonnées blanchies.
 
 ### Tâche
 Écrire `experiments/e1_problem.py`. Seules les lignes du 2005-01-04 au 2019-12-31 sont lues, avec un contrôle bloquant. L'option `--include-test-window` est refusée tant que `configs/FROZEN.json` est absent ou ne correspond pas (prompt 21).
@@ -55,7 +55,7 @@ Définitions :
      - a_max(N) est rapporté pour attribuer une pente faible à l'information ou à l'alignement.
 4. **Bras C — phases réelles (descriptif).** Phases des trois datations comprises dans 2005–2019.
    - Part des phases dans le budget, par sous-espace : L·Î ≥ ln γ, γ ∈ {20, 252}, en lecture budget, avec `stats.drift.debiased_sr2`.
-   - Parts placebo par `rotate_phases` (2 000 rotations). Les deux parts sont rapportées. L'Î intra-phase est gonflé par la sélection des frontières (`C-audit-placebo`) : les parts sont présentées comme des bornes supérieures.
+   - Parts placebo par `rotate_phases` (2 000 rotations). Les deux parts sont rapportées. L'Î intra-phase est gonflé par la sélection des frontières (`C-audit-placebo`) : les parts sont présentées comme des bornes supérieures. Le placebo teste l'alignement avec les datations choisies ; il n'identifie pas une fraction causale de la dérive.
    - Alarmes dans les phases sur données brutes :
      - P1-C, en flux d'étiquettes Article B avec q̂ de calib ;
      - P3-C, avec recentrage sur q̂ de calib pour les canaux dont la symétrie est rejetée (`CLAUDE.md`).
@@ -63,16 +63,17 @@ Définitions :
      Ce bras est descriptif : aucune exactitude n'est revendiquée.
    - `results/audit/predicted_gains.csv` est cité tel quel (NaN conservés), jamais complété.
 5. **Prévisions, à partir des Δ injectés.**
-   - Information de l'oracle : I_x = ½ΔᵀΣ̂⁻¹Δ.
+   - Information quadratique gaussienne de conception de l'oracle : I_x = ½ΔᵀΣ̂⁻¹Δ. Ne pas l'appeler KL exacte des fonds D6.
    - Pour chaque pipeline : information de son sous-espace, avec Δz = WᵀΔ dans la base figée.
    - Délai prévu du dictionnaire : environ (ln γ_H + ln K_canaux)/(e·a_max·I_z). Ici e = 4f̂(0)² est l'efficacité du signe estimée sur la calib (2/π sous normalité).
-   - Délai prévu de P7 : ln γ_H/I_x (Lemme 1).
+   - Budget d'évidence de P7 : ln γ_H/I_x (Lemme 1), distinct d'un ADD prédit à seuil fini.
    - Rapporter les gains prévus et mesurés côte à côte. Pour P3-CS (b), rapporter la borne N1 = E[σ²]E[σ⁻²] de l'audit (≈ 1,97).
 6. **Mesures.**
    - ADD moyen et médian, taux de détection dans H, censure.
    - G_ADD par lecture ; G_floor.
    - G_SR, en mesure secondaire, sur une grille réduite (F3 et F2 ; bissection en 6 pas de 200 onsets).
    - K_eff (`sign_diagnostics`).
+   - FPR(H) observé et IC pour chaque lecture. Qualifier les gains à seuil nominal commun de tels ; comparer à FPR empirique apparié lorsque le calibrage le permet sur la calib, sinon ne pas conclure à « fausse alarme égale ».
 7. **Résumé J2** dans `results/e1/e1_j2_summary.txt`, une ligne PASS/FAIL par critère :
    - (i) flux de signe exacts sur D6 (P1-C sur 5 titres, canaux de P3-C), H ∈ {750, 2 000}, 2 000 réplications par `null_check` : |FPR − niveau du treillis| ≤ 1 point ;
    - (ii) pente de P2-C sur F3 pour N ≥ 20 : IC à 95 % contenant 0, ou borne haute < 0,15 ;

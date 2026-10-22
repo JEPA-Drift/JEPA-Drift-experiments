@@ -1,12 +1,12 @@
 ## PROMPT 13 — E3 : calibration sous H₀ (exactitude des flux, ARL₀ des e-détecteurs, Γ spectral contre Γ opérationnel)
 
 ### Contexte
-E3 vérifie, sans aucune dérive, que chaque moniteur de JEPA-Drift tient sa garantie de fausse alarme :
+E3 mesure, sans aucune dérive, la calibration de chaque moniteur sous ses hypothèses de nul :
 - le niveau exact du treillis pour les flux de signe ;
 - ARL₀ ≥ γ pour les e-détecteurs ;
-- FPR(H) ≈ α pour les seuils bootstrap ou randomisés.
+- FPR(H) empirique visé ≈ α pour les seuils bootstrap ou randomisés.
 
-Il mesure aussi ce que coûtent l'hétéroscédasticité (Γ) et l'asymétrie des données brutes. E3 fournit le §5.2 et le critère (i) de J2. Lire `CLAUDE.md`.
+Il mesure aussi ce que coûtent l'hétéroscédasticité (Γ) et l'asymétrie des données brutes. L'exactitude des signes et la borne ARL₀ ne sont revendiquées que pour les flux satisfaisant les hypothèses conditionnelles ; les données brutes sont un diagnostic empirique. E3 fournit le §5.2 et le critère (i) de J2. Lire `CLAUDE.md`.
 
 Définitions :
 - **Γ^spec** = 1 + 2Σρ(k) de la statistique surveillée (`monitors.gamma.gamma_spectral`).
@@ -27,7 +27,7 @@ Définitions :
    - P3-D : fenêtres nulles de calib (H ≤ 941). Pour H = 2 000, utiliser les fenêtres `pre_monitor` et rapporter la non-stationnarité de l'énergie (Γ^op ≈ 191 et 2 346 sur D2, `C-P3D-windows`).
    - P3-CS : (a) randomisation et e-processus ; (b) e-détecteur à mise prévisible.
 3. **Mesures.**
-   - FPR(H) pour H ∈ {750, 2 000}, avec région à 99 % ; 20 000 trajectoires nulles par cellule de signe. Référence : le niveau exact du treillis pour les flux de signe, α pour le bootstrap et la randomisation.
+   - FPR(H) pour H ∈ {750, 2 000}, avec région à 99 % ; 20 000 trajectoires nulles par cellule de signe. Référence : le niveau exact du treillis pour les flux de signe valides, α comme cible empirique pour le bootstrap et la randomisation. Rapporter le niveau atteint et l'IC, y compris si la cible échoue.
    - ARL₀ Monte Carlo des e-détecteurs, de types SR et CUSUM (P2-C, P3-C, P3-CS b) :
      - γ ∈ {20, 100, 252}, sur pièces équitables, D6 et brut ;
      - T_max = 60γ, avec la censure rapportée (une moyenne censurée est une borne inférieure) ;
@@ -60,7 +60,7 @@ Streams 4 à 8 et 8b ; `results/audit/symmetry_tests.csv` ; `CLAUDE.md`.
 - Aucune ligne datée de 2020 ou après.
 
 ### Critères de succès
-- Flux exacts dans la région à 99 % du niveau exact.
+- Flux exacts de D6 dans la région à 99 % du niveau exact ; sur les données brutes, écart quantifié sans revendication d'exactitude.
 - ARL₀ des e-détecteurs ≥ γ, ou censure documentée.
 - Pénalité de dépassement reproduite.
 - Inflation du FPR brut attribuée canal par canal.

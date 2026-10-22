@@ -11,6 +11,12 @@ Révision du 2026-10-18 : prompts 12 à 28 révisés d'après les streams 1 à 1
 Le master est resynchronisé depuis les fichiers stream ; l'outil de contrôle
 `tools/check_prompts.py` et la cible `make prompts-check` sont livrés par le stream 8b.
 
+Révision d'exécution du 2026-10-22 : tous les nouveaux streams sont confiés à Claude Code avec
+`--model claude-opus-5-5 --effort max --permission-mode plan`. Les colonnes « Modèle » et « Effort »
+du tableau historique ci-dessous ne gouvernent plus les lancements. Les amorçages et la porte de
+dépendance sont dans `prompts/AMORCAGE_PARALLELE_CLAUDE_CODE.md`. Chaque worktree utilise
+obligatoirement le `.venv` partagé du projet (`CLAUDE.md`, « Engineering rules »).
+
 Les prompts sont **agent-neutres** : ils sont autoporteurs et instructent « Lire `CLAUDE.md` » (une
 lecture de fichier, exécutable par tout agent). Ils fonctionnent donc tels quels pour **Claude Code**
 et pour **Mistral Vibe**.
@@ -108,7 +114,18 @@ Effort Opus : low / medium / high / xhigh / max. Effort Vibe : Low / Medium / Hi
 
 Streams **Opus** restants (quota compté) : **12, 13, 14, 22**. Tous les autres : **Vibe**.
 
-## Replanification du 18 octobre 2026 (après les streams 1 à 11 et 11b)
+## Lancement effectif du 22 octobre 2026
+
+| Porte | Sessions parallèles | Limite de la livraison initiale |
+| ----- | -------------------- | ------------------------------- |
+| Maintenant | 8b, 23, 27 | 23 : phase 1 P1-D/P3-D ; 27 : étape linéaire P1-C/P3-C |
+| Après fusion de 8b | 12, 13, 14, 17, 18 | 18 : adaptateur en parallèle, enregistrement P4 après 17 |
+
+Les plans peuvent avancer en parallèle ; l'exécution du code de chaque stream attend le GO de
+son plan. Les modifications au registre partagé de 14, 17 et 18 sont intégrées l'une après l'autre.
+Les compléments 23/P4-D et 27/P5-C attendent respectivement 17 et 16.
+
+## Replanification du 18 octobre 2026 (historique)
 
 | Vague | Dates            | Streams (parallèles)                                                                                                                     | Déclencheur                                          |
 | ----- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
@@ -121,7 +138,12 @@ Streams **Opus** restants (quota compté) : **12, 13, 14, 22**. Tous les autres 
 Jalons : J2 = résumés d'E1 et d'E3 ; J3 = porte RankMe du stream 16 et E6 phase 1 (évidence pour
 la contingence C1) ; J4 = gel du stream 21 et porte d'E5.
 
-## Lancement (tmux)
+## Lancement Claude Code actuel
+
+Utiliser `prompts/AMORCAGE_PARALLELE_CLAUDE_CODE.md` : chaque commande y fixe explicitement
+`claude-opus-5-5`, `max` et `plan`, puis attend la revue du plan avant l'implémentation.
+
+## Lancement historique (ne pas utiliser)
 
 Depuis `~/JEPA-Drift-experiments`. Nommage suggéré : `s01`…`s28`.
 
@@ -147,7 +169,7 @@ tmux send-keys -t s02 "$(cat prompts/streams/prompt-02-data-d1-d2.md)" Enter
 - One-shot programmatique : `vibe --prompt-file <fichier> --auto-approve` (effort via la config).
 - `bypass_tool_permissions = true` est déjà actif dans `~/.vibe/config.toml`.
 
-## Auto-relance (rappel)
+## Auto-relance historique (ne pas utiliser)
 
 Au reset de quota Claude Pro (fenêtre 5 h), relancer les sessions Opus interrompues (vague 5 :
 streams 12, 13, 14 — pic de quota). Les streams Vibe (quota team quasi illimité) tournent sans
