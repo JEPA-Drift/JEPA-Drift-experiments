@@ -2,10 +2,13 @@
 
 Vérifie d'abord que le stream 8b est fusionné sur `main`. Lis `CLAUDE.md`,
 `prompts/streams/INDEX.md` et `prompts/streams/prompt-14-ca-tjepa.md` dans le worktree
-`stream-14`. Reste en mode `plan`. Résous sans installer la compatibilité de torch CPU issu
-exclusivement de `conda-forge` dans `.venv`, avec Python 3.12.9, numpy/scipy/pandas épinglés et les tests
-existants. Propose un environnement reproductible ; signale toute incompatibilité avant le GO.
-Chiffre le dry-run et l'effet d'une installation sur la `.venv` commune avant toute mutation ;
+`stream-14`. Reste en mode `plan`. `.venv` est un venv Python, pas un préfixe Conda :
+diagnostique cette incompatibilité avant tout GO. Résous torch CPU exclusivement depuis
+`conda-forge` sans installer, puis distingue ce dry-run d'une procédure vérifiable de
+reconstruction ou migration au même chemin, préservant Python 3.12.9, numpy/scipy/pandas,
+les autres dépendances, `make check` et le SHA J1. Si aucune procédure n'est démontrée,
+consigne le blocage et arrête sans code. Diffère toute mutation de la `.venv` commune
+jusqu'à la fin des vérifications et runs des autres streams ;
 coordonne l'extracteur et les contrats partagés avec le stream 17, sans casser D2/PCA.
 Le protocole principal n'emploie que les quatre caractéristiques continues causales. Prévois
 des générateurs torch locaux, des gardes sur le vrai modèle et le hash J1. Présente les fichiers
