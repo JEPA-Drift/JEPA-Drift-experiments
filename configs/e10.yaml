@@ -1,0 +1,34 @@
+stream: 27
+experiment: E10 linear stage (F1, P1-C and P3-C), prompts/plans/plan-27.md
+H: 750
+alpha: 0.05
+n_p1: 20
+sr: [4, 8, 16]
+reps: {h0: 2000, f1: 500, coins: 20000, boot: 1000}
+quick:
+  sr: [8, 16]
+  reps: {h0: 200, f1: 100, coins: 2000, boot: 200}
+d5:
+  T_calib: 941
+  N: 97
+  alpha: 0.08
+  beta: 0.90
+  nu: 7
+  factor_rho: 0.40
+  K: 5
+  burn: 1000
+  shock_p: 0.05
+  pilot_days: 20000
+  backgrounds:
+    base: {}
+    t3: {nu: 3}
+    t4: {nu: 4}
+    t5: {nu: 5}
+    gjr05: {gjr: 0.05}
+    gjr10: {gjr: 0.10}
+    shock25: {shock_w: 0.25}
+    shock50: {shock_w: 0.50}
+    zero02: {zero_share: 0.02}
+    zero05: {zero_share: 0.05}
+d6: [d2_us97, d3_239]
+raw: [d2_us97, d3_239]
