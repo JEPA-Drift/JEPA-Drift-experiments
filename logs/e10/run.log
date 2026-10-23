@@ -1,0 +1,31 @@
+command: python experiments/e10_robustness.py --stage linear --families F1 --out results/e10
+config: e10.yaml sha256 ac8f135a29df148bb032f1cb6908c214de2068b5580ac26c1de0b311f14de84b (quick=False); jobs 48
+lattice: H=750, delta=0.1, units L=45, threshold 9.1, exact level 0.0439467413487; gamma_H = H / alpha = 15000
+fpr_iid_mc (Monte Carlo estimate, iid scenario; half, exact, single stream): 880/20000 = 0.04400; 99 % binomial tolerance [0.04021, 0.04768] -> within
+input d2_us97: ret_wide.npy sha256 333d2b079e7048fe3f996884c1fad4d987218017b3fe2be47b92630a72d04b33
+input d3_239: ret_wide.npy sha256 a266fbab1d62c2562b7ff59a6bac33b0c9fa909efbae2a17205a0f45ce6a8f9a
+tick zero02: 0.0420962
+tick zero05: 0.104806
+d5|base|H0|0: zero share 0.0000, ties in z 0
+d5|t3|H0|0: zero share 0.0000, ties in z 0
+d5|t4|H0|0: zero share 0.0000, ties in z 0
+d5|t5|H0|0: zero share 0.0000, ties in z 0
+d5|gjr05|H0|0: zero share 0.0000, ties in z 0
+d5|gjr10|H0|0: zero share 0.0000, ties in z 0
+d5|shock25|H0|0: zero share 0.0000, ties in z 0
+d5|shock50|H0|0: zero share 0.0000, ties in z 0
+d5|zero02|H0|0: zero share 0.0203, ties in z 0
+d5|zero05|H0|0: zero share 0.0505, ties in z 0
+d6|d2_us97|H0|0: zero share 0.0068, ties in z 0
+d6|d3_239|H0|0: zero share 0.0084, ties in z 0
+raw|d2_us97: frozen basis 85147fd9f553130ea70a7492770fa3ea4b068f0edf421d878a9e31bed7296f3d matches the committed sidecar; 2019 windows of 750 days, retrospective (fit on the later calib rows)
+raw|d3_239: frozen basis 6c44d64a3bf139beeca0939ab0ba821004796a053ec81e9952d44c7ac37ace3f matches the committed sidecar; 2020 windows of 750 days, retrospective (fit on the later calib rows)
+labels: reference_kind in level_exact, self_valid, matched_valid_generator, symmetrized_window, descriptive_contrast, none; design in prospective, symmetrized, retrospective, iid_scenario
+zero_neg arms: invalid sign-stream null on backgrounds with zeros, no FPR guarantee
+raw placebo: retrospective and descriptive; half refers to the symmetrized window (same state), qhat and zero_neg rows are descriptive contrasts without fpr_ref or inflation
+fpr_pred_iid: iid-bit reference at the observed mean bit rate, reported as pred_gap without criterion
+gains: RMST ratio restricted to H (a lower bound of the ADD ratio only when P3-C is never censored); oracle assets are exploratory; no equal-false-alarm claim (decision B2)
+rows: 4004 cells, 144 gains
+e10_cells.csv sha256 9998f9422794078a515a7ba1a2701802ef9e162b3d183e42fc71e3ec1799da56
+e10_gains.csv sha256 4225c18a8101412164b6e99eb78b0e5f4607d153427e276314c4c4e624d2843c
+duration: 286 s

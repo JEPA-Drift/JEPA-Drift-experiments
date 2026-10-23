@@ -456,3 +456,64 @@ devra le paramétrer. L'audit importe ces noms et garde les anciens (`tests/test
 SHA-256 des segments `ast.get_source_segment` des neuf nœuds égalent ceux de `5048a96` (figés dans
 `tests/test_drift_stats.py`), le reste de l'AST de l'audit est inchangé, et les neuf CSV de
 `audit_information.py --datasets d2_us97 d3_239 --quick` sont identiques au SHA-256 avant et après le déplacement.
+
+## C-e10-backgrounds — E10 backgrounds: D5 grid, local GJR and shock generator, matched null, raw placebo (2026-10-22)
+
+Stream 27, E10 linear stage (`prompts/plans/plan-27.md`, GO `prompts/GO-stream-27.md`). D5: each replicate is an
+independent path of 941 calib rows (the D2 calib length) followed by H = 750 monitored rows, around the base
+`sim.garch_panel(alpha = 0.08, beta = 0.90, nu = 7, factor_rho = 0.40, N = 97)`, one factor varied at a time:
+t_nu with nu in {3, 4, 5, 7}; GJR leverage gamma in {0.05, 0.10} with alpha = 0.08 - gamma/2 and beta = 0.90
+(persistence 0.98, unit variance), the indicator being the sign of the previous cross-sectional mean; a compensated
+common negative jump in the factor, g_t = sqrt(1 - w) N(0, 1) + sqrt(w) (p - 1{U < p}) / sqrt(p (1 - p)) with
+w in {0.25, 0.50} and p = 0.05 (mean 0, variance 1; q of the factor 0.525 and 0.561, which brackets the raw PC1 rates);
+zero returns by rounding to a tick 2 Q_p0(|x|) estimated on a 20,000-day pilot path of the base generator, applied after
+the F1 injection (p0 in {2 %, 5 %}). Decision B3: the GJR and shock terms live in a local generator
+(`experiments/e10_robustness.py::d5_panel`), which reproduces `sim.garch_panel` bit for bit when gjr = 0 and no shock
+(test), so that `jepadrift/sim.py` stays untouched while stream 13 may extend it. P3-C on D5 uses an integer K = 5:
+the one-factor panel has a single eigenvalue above the Marchenko-Pastur edge, where `K = "mp"` would give 0. On D6, every
+replicate fits P3-C with K fixed at the MP value of the raw calib basis (5 on d2_us97, 10 on d3_239): a symmetrization
+changes the centring, and an eigenvalue near the edge could otherwise change the number of channels between replicates.
+Reference null levels: each valid D5 generator (base, t_nu, GJR, zeros) is its own attained level by direct simulation;
+only the shock receives a matched valid generator, the same generator with one Rademacher sign per day shared by all
+assets applied in the loop (its recursion reads past magnitudes only, so it equals the post-hoc symmetrized path bit
+for bit, test), with the state and q_hat refitted. GJR is not re-symmetrized: keeping the magnitudes would not
+reproduce a generator in which the past sign drives future volatility. Raw placebo: every 750-day window of the pretrain
+rows, fitted on the later calib rows (retrospective, descriptive); the `half` arm is referred to the same window
+symmetrized with fresh daily signs and the same state; the `qhat` and `zero_neg` arms keep the raw calib rates and form
+descriptive contrasts, without fpr_ref nor inflation.
+
+## C-e10-streams — E10 streams: shared bits, recentred arms, zero = negative arm, P1-C outside the registry (2026-10-22)
+
+Both arms of a pipeline use the same realized bits B = 1{y > 0}, every tie y = 0 broken by an independent fair coin
+of a local PRNG; `half` centres B at 1/2 and `qhat` at q_hat_u, the calib mean of B under the same coin convention,
+frozen in [0, 1]. The anytime-valid input is x = (B - c) / max(c, 1 - c) in [-1, 1], never 2 (B - q_hat); the exact
+reading of a recentred stream keeps the lattice threshold 9.1 and claims no exactness (a recentred stream is not a
+two-point +-1/2 stream). Article B's zero = negative rule is a distinct arm (`zero_neg_half`, `zero_neg_qhat`), on
+P1-C only and on backgrounds with zeros: its sign-stream null is invalid (P(B0 = 1) = (1 - p0)/2 under symmetry) and it
+carries no FPR guarantee. P1-C reuses the monitors core (`cusum.P1["P1-C/C"]`, `streams`, `lattice`, `eprocess`)
+without a registry entry, on 20 assets (D5: columns 0-19; D6 and raw: drawn once per dataset with
+SeedSequence([27, crc32(dataset), 1])). The P3-C `half` arm runs through `pipelines.run_pipeline` on a Z input; its
+exact state is the anytime-valid state with the lattice keys of `_cal_p3c` (equal to `fit_pipeline` on the exact spec,
+test), and the `qhat` arm reuses the bits drawn with run_pipeline's coin convention SeedSequence([*seed, 7]) (bit
+identity, test).
+
+## C-e10-readings — E10 readings, references, intervals and gains (2026-10-22)
+
+H = 750, gamma_H = `pipelines.horizon_gamma(750)` = 15,000, alpha = 0.05; exact reading at the lattice level 0.043947
+(L = 45, threshold 9.1); F1 at SR in {4, 8, 16} (convention a), anytime-valid reading only. Every cells row carries
+`null_valid`, `design` (prospective, symmetrized, retrospective, iid_scenario) and `reference_kind` (level_exact,
+self_valid, matched_valid_generator, symmetrized_window, descriptive_contrast, none). `fpr_iid_mc` is a Monte Carlo
+estimate on independent fair coins (design iid_scenario): it estimates the exact law only for the `half` arm of a single
+stream under a valid null, and its `half` exact value must lie within the 99 % binomial region of 0.043947 (test and
+log); for `qhat` and the P3-C dictionary it is an iid reference scenario only. `fpr_pred_iid` = lattice exceedance at
+the observed mean bit rate is an iid-bit reference, reported as `pred_gap` without any conformity criterion. Intervals:
+Wilson 95 % per unit on independent replicates (D6 replicates are i.i.d. conditionally on the panel); paired bootstrap
+for the shock inflation and the gains; Wilson on symmetrized raw windows is conditional on the state and the magnitudes
+and approximate (`ci_kind = wilson_conditional_approx`); on overlapping raw windows, deff = `gamma_spectral(series,
+L = H - 1)`, with an interval only if deff is finite and 1 <= n_eff = n / deff <= n (an estimated deff below 1 also gives
+NA), and the raw-minus-symmetrized inflation interval is NA whenever the raw rate interval is. Gains: RMST_P1 / RMST_P3
+is a ratio of delays restricted to H, a lower bound of the ADD ratio only when P3-C is never censored
+(`bounds_add_ratio`); the ratio of median delays is reported when both detection rates exceed 1/2; the median asset is
+the rank (m - 1) // 2 by F1 RMST (selected on F1 without aiming at the best), the best asset is an exploratory oracle;
+each gain carries the H0 FPR of the same asset and of the P3-C dictionary with their paired difference. No equal false
+alarm is claimed (decision B2).
