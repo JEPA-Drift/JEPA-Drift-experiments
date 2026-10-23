@@ -1,12 +1,12 @@
-# Amorçage — stream 23, E6 phase 1
+# Amorçage — stream 23, correction éditoriale E6 phase 1
 
-Lis `CLAUDE.md`, `prompts/streams/INDEX.md` et `prompts/streams/prompt-23-e6.md`.
-Travaille dans le worktree `stream-23`. Planifie uniquement la livraison P1-D/P3-D de phase 1 ;
-P4-D attend la fusion de 17 et P5-D attend 16. Vérifie le chevauchement des fenêtres de calib,
-la taille effective et la séparation calibration/évaluation. Traite la formule de variance
-comme information gaussienne de conception. Avant le GO, vérifie la normalisation P1-D de l'Article B,
-Γ_z^op après le seuil final, le statut exploratoire du témoin PC2–PC3 sur D6 et les IC D6 estimables. Utilise `.venv` pour Python,
-pytest et les hooks ; garde les logs hors Git et rédige les nouveaux audits en anglais.
-Présente les fichiers touchés, cellules, contrôles
-de FPR et questions ; attends le GO de l'orchestrateur avant le code. Après ce GO, enregistre
-`prompts/plans/plan-23.md` avec « Décision GO intégrée » et exécute la phase autorisée.
+Travaille dans le worktree `stream-23` au-dessus du commit E6 `7e4c7a1`. Lis `CLAUDE.md`,
+`prompts/streams/prompt-23-e6.md` et le plan correctif
+`~/.claude/plans/pasted-content-id-1e06-mission-de-rippling-feigenbaum.md`.
+GO accordé pour la correction éditoriale : préciser que la calibration F4 propre est
+équivalente pour chaque onset contrefactuel de chaque fenêtre ; présenter la règle des dix
+blocs comme critère de reporting préspécifié, sans l'attribuer comme nécessité universelle
+à Künsch ou Lahiri. Ne change ni nombres, ni figures, ni conclusions causales.
+Avant de quitter le mode plan, exécute `/mcp reconnect all` et vérifie `graphify` et
+`jcodemunch` dans `/mcp`. Implémente dans `.venv`, vérifie le diff et les contrôles pertinents,
+puis arrête-toi au commit local, sans fetch, fusion ou push. Rédige les nouveaux audits en anglais.

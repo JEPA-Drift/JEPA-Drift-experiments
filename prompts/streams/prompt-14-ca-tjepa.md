@@ -9,9 +9,9 @@ Une tête impaire, obtenue par antisymétrisation, alimente les flux de signe ex
 
 ### Tâche
 0. **Dépendance torch reproductible.**
-   - Dans le plan, distinguer la résolution de torch CPU depuis `conda-forge` de son intégration dans le `.venv` obligatoire du projet (Python 3.12.9 et versions épinglées de numpy, scipy et pandas). Montrer la commande de résolution et les versions avant toute installation ; si l'intégration reproductible dans `.venv` est impossible, consigner le blocage et arrêter avant le GO au lieu d'utiliser un autre interpréteur ou un index de roues externe.
-   - Torch est absent de `.venv` : faire un dry-run de résolution conda-forge CPU avec numpy 2.4.4, scipy 1.17.1 et pandas 3.0.6 inchangés ; expliciter la contradiction avec la mention de roue CPU dans `CLAUDE.md`. `.venv` est un venv Python existant sans `conda-meta` : `conda install -p .venv` échoue, et `conda create --dry-run -p .venv` ne démontre que la résolution, pas une intégration dans le venv en service. Avant tout GO, proposer une procédure vérifiable de reconstruction ou migration au même chemin qui préserve Python 3.12.9, les versions épinglées, les autres dépendances, `make check` et le SHA J1 ; sinon arrêter sans implémenter. `.venv` est partagée par les worktrees : différer toute mutation jusqu'à la fin des vérifications et runs des autres streams.
-   - Consigner les dépendances exactes dans le verrou approprié au mode d'intégration approuvé. numpy, scipy et pandas ne doivent pas bouger ; `make j1` doit redonner `e315e537…`.
+   - GO d'isolation accordé : créer immédiatement `.venv/torch-cf` depuis le seul canal `conda-forge`, avec le verrou de 65 paquets et `pytorch=2.14.1=cpu_generic*`. `.venv` reste le venv Python 3.12.9 partagé ; ne pas lancer `conda install -p .venv` ni créer de second environnement de travail hors de `.venv`.
+   - Développer d'abord via `PYTHONPATH` et un `sitecustomize.py` qui ajoute le site-packages de `.venv/torch-cf` en fin de `sys.path`. Contrôler que numpy 2.4.4, scipy 1.17.1 et pandas 3.0.6 proviennent toujours du venv parent. Ne poser aucun fichier `.pth` dans `.venv` à cette étape.
+   - Avant le `.pth`, exécuter `make check` complet et régénérer J1 sous ce shim. Vérifier la signature CRLF native du CSV régénéré et son SHA-256 complet `e315e537ead0f656e4bcd3897e6ff04075f3780a8fbe642e258864739b570823`. Le blob LF présent avant régénération n'est pas cette référence. Après ces contrôles seulement, poser le `.pth` et répéter les vérifications sans shim ; consigner les dépendances exactes dans le verrou approuvé.
    - Tous les tests et scripts du stream utilisent `.venv/bin/python`, jamais l'interpréteur Trading seul.
 1. **`jepadrift/jepa/ca_tjepa.py`** (torch, CPU, au plus 1 M de paramètres) :
    - jeton i = MLP([x_{i,t}/s_i, C_{i,t}]), où s_i est l'échelle de l'actif, figée sur `pretrain`. C_{i,t} vient de `data_loader.chars.load_chars_tensor("d3_239")` ; le protocole principal utilise les 4 caractéristiques continues connues à t−1. Les 11 indicatrices GICS actuelles ne sont pas point-in-time (`C-D3-gics-static`) : elles ne peuvent servir qu'à une analyse rétrospective séparée et étiquetée. NaN → 0 comptés par `impute_zero` ;
@@ -35,7 +35,7 @@ Une tête impaire, obtenue par antisymétrisation, alimente les flux de signe ex
    - `_fit` n'ajuste que la lecture, sur les lignes de calib ;
    - `_day` n'utilise que x_t et C_t ;
    - `transform_panel` peut traiter les jours par lots seulement si le résultat est identique au bit près à l'empilement de `transform_day` ; sinon, boucle jour par jour.
-   - Étendre l'extraction pour passer les caractéristiques C alignées à la calib et à chaque jour, tout en conservant le chemin D2 sans caractéristiques et les segments distincts `pretrain`/`calib` ; ne pas ajuster le tronc ou le checkpoint sur la calib.
+   - Étendre l'extraction pour passer les caractéristiques C alignées à la calib et à chaque jour, tout en conservant le chemin D2 sans caractéristiques et les segments distincts `pretrain`/`calib` ; ne pas ajuster le tronc ou le checkpoint sur la calib. Le stream 17 pose d'abord le socle C partagé ; intégrer son commit avant d'ajouter `ca_tjepa`, `--ckpt` et `--D` aux fichiers communs.
 6. **Enregistrement et extraction.**
    - Ajouter une entrée paresseuse `ca_tjepa` dans `representations/extract.REGISTRY` : torch est importé dans la fabrique, jamais à l'import de `jepadrift.representations`.
    - Extraction par la CLI existante, étendue d'une option `--ckpt` : `python -m jepadrift.representations.extract --dataset d3_239 --rep ca_tjepa --ckpt ckpt/<hash>`. Les lignes extraites suivent `C-repr-rows`.
@@ -68,5 +68,6 @@ D3 et caractéristiques (stream 3, chargeur partagé du stream 8b) ; interface Z
 .venv/bin/python experiments/jepa_pretrain.py --config configs/ca_tjepa.yaml --smoke
 .venv/bin/python -m jepadrift.representations.extract --dataset d3_239 --rep ca_tjepa --ckpt ckpt/<hash>
 .venv/bin/pytest -q -rs tests/test_ca_tjepa.py tests/test_contracts.py
-make j1 && sha256sum results/e2/e2_cells.csv | cut -c1-16
+make check
+make j1 && sha256sum results/e2/e2_cells.csv
 ```

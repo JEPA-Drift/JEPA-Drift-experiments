@@ -8,6 +8,11 @@ les comparaisons à fausse alarme égale et les limites des prévisions gaussien
 Étiquette les meilleurs titre/canal comme oracles et fixe la référence P1 avant la loi d'échelle.
 Les rotations placebo n'identifient pas une fraction causale. L'ancien
 `prompts/GO-stream-12.md` porte sur une spécification antérieure : ne le traite pas comme GO de
-ce plan. Regroupe tes questions et attends le GO de l'orchestrateur. Après ce GO seulement,
+ce plan. Révise le plan : borne réelle stricte au 2005-01-04, mêmes cinq titres
+`composition_for(5, N)` que dans E3, et test d'invariance au préfixe avant chaque onset
+pour la nouvelle lecture P1-C. Pour J2(i), garde les 2 000 répliques et la règle de verdict
+du prompt en analyse primaire ; rapporte le risque de faux FAIL dû aux 54 contrôles,
+sans changer les graines après résultat. Retient les défauts Q2–Q9 du plan et soumets
+la version corrigée à l'orchestrateur. Attends son GO. Après ce GO seulement,
 enregistre `prompts/plans/plan-12.md` avec « Décision GO intégrée » et implémente.
 Utilise `.venv`, rédige les nouveaux audits en anglais et arrête-toi au commit local vérifié avant fetch, fusion ou push.

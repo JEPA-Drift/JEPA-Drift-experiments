@@ -3,15 +3,15 @@
 Vérifie d'abord que le stream 8b est fusionné sur `main`. Lis `CLAUDE.md`,
 `prompts/streams/INDEX.md` et `prompts/streams/prompt-14-ca-tjepa.md` dans le worktree
 `stream-14`. Reste en mode `plan`. `.venv` est un venv Python, pas un préfixe Conda :
-diagnostique cette incompatibilité avant tout GO. Résous torch CPU exclusivement depuis
-`conda-forge` sans installer, puis distingue ce dry-run d'une procédure vérifiable de
-reconstruction ou migration au même chemin, préservant Python 3.12.9, numpy/scipy/pandas,
-les autres dépendances, `make check` et le SHA J1. Si aucune procédure n'est démontrée,
-consigne le blocage et arrête sans code. Diffère toute mutation de la `.venv` commune
-jusqu'à la fin des vérifications et runs des autres streams ;
-coordonne l'extracteur et les contrats partagés avec le stream 17, sans casser D2/PCA.
+le GO autorise l'installation immédiate du verrou conda-forge `cpu_generic` à 65 paquets
+dans `.venv/torch-cf`. Développe via `PYTHONPATH` en ajoutant le site-packages torch en fin
+de `sys.path`, sans `.pth` dans la `.venv` parente. Ne pose ce `.pth` qu'après `make check`
+complet et la régénération J1 avec signature CRLF native et SHA-256 complet vérifiés ;
+répète ensuite les contrôles sans shim. Le stream 17 pose le socle C partagé avant ton ajout
+de `ca_tjepa`, `--ckpt` et `--D` aux fichiers communs, sans casser D2/PCA.
 Le protocole principal n'emploie que les quatre caractéristiques continues causales. Prévois
 des générateurs torch locaux, des gardes sur le vrai modèle et le hash J1. Présente les fichiers
-touchés et les questions ; attends le GO de l'orchestrateur. Après ce GO, enregistre
-`prompts/plans/plan-14.md` avec « Décision GO intégrée » et implémente.
+touchés et les questions ; intègre les arbitrages Q0/Q1/Q2/Q3/Q5/Q7 déjà accordés dans
+`prompts/plans/plan-14.md` avec « Décision GO intégrée », puis implémente après reconnexion
+explicite des MCP `graphify` et `jcodemunch`.
 Rédige les nouveaux audits en anglais et arrête-toi au commit local vérifié avant fetch, fusion ou push.
