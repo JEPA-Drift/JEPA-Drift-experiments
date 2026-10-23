@@ -12,23 +12,25 @@ def _sha256(a):
     return hashlib.sha256(np.ascontiguousarray(a, dtype=np.float64).tobytes()).hexdigest()
 
 
-def _check(a, ndim, name):
+def _check(a, ndim, name, missing=False):
     if not isinstance(a, np.ndarray):
         raise TypeError(f"{name} must be a numpy array of returns, got {type(a).__name__}")
     if a.ndim != ndim or a.dtype != np.float64:
         raise ValueError(f"{name} must be {ndim}-D float64, got ndim={a.ndim}, dtype={a.dtype}")
-    if not np.isfinite(a).all():
-        raise ValueError(f"{name} has non-finite values")
+    if not (np.isfinite(a) | (missing & np.isnan(a))).all():
+        raise ValueError(f"{name} has {'infinite' if missing else 'non-finite'} values")
 
 
 class Representation:
-    """Base class: subclasses set config in __init__ and implement _fit(X, C) and _day(x, C) -> (z_odd, z_even)."""
+    """Base class: subclasses set config in __init__ and implement _fit(X, C) and _day(x, C) -> (z_odd, z_even);
+    missing = True lets NaN mark an absent return."""
 
     odd_head = True
+    missing = False
 
     def fit(self, X_fit, C_fit, dates_fit):
         """Fit on the rows of one pretrain or calib segment, dated by dates_fit; returns self."""
-        _check(X_fit, 2, "X_fit")
+        _check(X_fit, 2, "X_fit", self.missing)
         T, N = X_fit.shape
         if T < 2 or N < 2:
             raise ValueError(f"X_fit needs at least 2 days and 2 assets, got {X_fit.shape}")
@@ -43,7 +45,7 @@ class Representation:
 
     def transform_day(self, x_t, C_t=None):
         """Encode one day: {"z_odd": (D,), "z_even": (D',)}."""
-        _check(x_t, 1, "x_t")
+        _check(x_t, 1, "x_t", self.missing)
         if x_t.shape[0] != self.n_assets:
             raise ValueError(f"x_t must hold {self.n_assets} assets, got {x_t.shape[0]}")
         z_odd, z_even = self._day(x_t, C_t)
@@ -51,7 +53,7 @@ class Representation:
 
     def transform_panel(self, X, C=None):
         """Apply transform_day to every row of X, with no operation across days."""
-        _check(X, 2, "X")
+        _check(X, 2, "X", self.missing)
         if X.shape[0] == 0:
             raise ValueError("X must hold at least one day (T >= 1)")
         # ponytail: per-day loop (bitwise equal to transform_day), vectorize in a subclass if E1 runtime needs it

@@ -12,6 +12,7 @@ from scipy.stats import rankdata
 from jepadrift import injection
 from jepadrift.data_loader import articleB, sp500
 from jepadrift.representations import extract, pca
+from jepadrift.representations.base import Representation
 from jepadrift.representations.cross_section import CenteredRanks, DegreeZero
 from jepadrift.representations.pca import PCAOrthogonal
 from jepadrift.stats.covariance import eigh_desc, ledoit_wolf
@@ -267,6 +268,8 @@ def test_monitor_perturbation_keeps_state(tmp_path):
     C = A.copy()
     C[_rows(dates, splits["segments"]["calib"])[0] + 10] *= 1.5
     for name, cls in extract.REGISTRY.items():
+        if name in extract.NEEDS_C:
+            continue
         (pa, sa), (pb, sb), (_, sc) = (extract.extract(cls(), X, dates, splits, tmp_path / f"{name}{i}", "d2_us97")
                                        for i, X in enumerate((A, B, C)))
         assert sa["state_sha256"] == sb["state_sha256"]
@@ -354,3 +357,82 @@ def test_import_isolation():
             else:
                 continue
             assert not any(n == b or n.startswith(b + ".") for n in names for b in banned), (path.name, names)
+
+
+class _CharProbe(Representation):
+    """Witness of the characteristic path: z_odd = (mean of the observed x, sum of the observed x * C[:, 0])."""
+
+    missing = True
+
+    def __init__(self):
+        self.config = {}
+
+    def pretrain(self, X, C, dates):
+        self.seen_pretrain = (X.copy(), C.copy(), np.asarray(dates).copy())
+
+    def _fit(self, X, C):
+        self.seen_fit = (X.copy(), C.copy())
+        self.state, self.stats = {}, {}
+        self.heads = {"z_odd": {"dim": 2, "parity": "odd", "degree": 1, "definition": "probe"},
+                      "z_even": {"dim": 2, "parity": "even", "degree": 2, "definition": "z_odd ** 2"}}
+        self.channels = {"probe": [0, 1]}
+
+    def _day(self, x, C):
+        seen = np.isfinite(x)
+        z = np.array([x[seen].mean() if seen.any() else 0.0, x[seen] @ C[seen, 0]])
+        return z, z * z
+
+
+def _probe_panel():
+    g = _rng(20)
+    X = 0.01 * g.standard_normal((40, 6))
+    X[22, 3] = X[33, 1] = np.nan
+    C = g.uniform(-0.5, 0.5, (40, 6, 2))
+    dates = _days(40)
+    splits = {"segments": {"pretrain": {"first_day": str(dates[5]), "last_day": str(dates[14])},
+                           "calib": {"first_day": str(dates[20]), "last_day": str(dates[29])}}}
+    return X, C, dates, splits
+
+
+def _sha(a):
+    return hashlib.sha256(np.ascontiguousarray(a).tobytes()).hexdigest()
+
+
+def test_extract_char_path_alignment(tmp_path):
+    X, C, dates, splits = _probe_panel()
+    rep = _CharProbe()
+    npz, side = extract.extract(rep, X, dates, splits, tmp_path / "probe", "probe", C=C)
+    for got, want in zip(rep.seen_pretrain, (X[5:15], C[5:15], dates[5:15])):
+        assert np.array_equal(got, want, equal_nan=True)
+    for got, want in zip(rep.seen_fit, (X[20:30], C[20:30])):
+        assert np.array_equal(got, want, equal_nan=True)
+    with np.load(npz) as z:
+        Z = z["Z_odd"]
+    assert Z.shape == (35, 2) and side["rows"] == [5, 40]
+    assert np.abs(Z[:, 0] - np.nanmean(X[5:], axis=1)).max() <= 1e-15
+    assert np.abs(Z[:, 1] - np.nansum(X[5:] * C[5:, :, 0], axis=1)).max() <= 1e-15
+    assert abs(Z[22 - 5, 0] - np.nan_to_num(X[22]).mean()) > 1e-6
+    assert side["c_sha256"] == _sha(C[5:]) and side["fit"]["c_sha256"] == _sha(C[20:30])
+    _, plain = extract.extract(CenteredRanks(), np.nan_to_num(X), dates, splits, tmp_path / "ranks", "probe")
+    assert "c_sha256" not in plain and plain["fit"]["c_sha256"] is None
+
+
+def test_extract_rejects_misaligned_C(tmp_path):
+    X, C, dates, splits = _probe_panel()
+    with pytest.raises(ValueError, match="align"):
+        extract.extract(_CharProbe(), X, dates, splits, tmp_path, "probe", C=C[1:])
+
+
+def test_missing_flag():
+    X, C, dates, _ = _probe_panel()
+    rep = _CharProbe().fit(X[20:30], C[20:30], dates[20:30])
+    assert np.isfinite(rep.transform_day(X[22], C[22])["z_odd"]).all()
+    for bad in (np.inf, -np.inf):
+        x = X[21].copy()
+        x[0] = bad
+        with pytest.raises(ValueError, match="infinite"):
+            rep.transform_day(x, C[21])
+    with pytest.raises(ValueError, match="non-finite"):
+        PCAOrthogonal(K=2).fit(X[20:30], None, dates[20:30])
+    with pytest.raises(ValueError, match="non-finite"):
+        CenteredRanks().fit(np.nan_to_num(X), None, dates).transform_day(X[22])

@@ -517,3 +517,15 @@ is a ratio of delays restricted to H, a lower bound of the ADD ratio only when P
 the rank (m - 1) // 2 by F1 RMST (selected on F1 without aiming at the best), the best asset is an exploratory oracle;
 each gain carries the H0 FPR of the same asset and of the P3-C dictionary with their paired difference. No equal false
 alarm is claimed (decision B2).
+
+## C-worktree-d4 — D4 in stream worktrees (2026-10-23)
+
+Stream 17 (GO Q1). A worktree that needs D4 exposes it without any link under `data/raw/`: the link
+`data/raw/eurofidai` fails `test_gitignore_blocks_eurofidai` (`git check-ignore` refuses a path beyond a symbolic
+link, `C-worktree-data-raw`), and no stream reads the raw EUROFIDAI exports. `data/derived/d4_eurofidai/` is a real
+directory holding one absolute link per derived file of the main tree (`assets.json`, `chars.parquet`, `dates.npy`,
+`flags.csv`, `panel.parquet`, `ret_wide.npy`, `splits.yaml`): the `data/derived/d4_eurofidai/` pattern of
+`.gitignore` matches that directory, so nothing under it can be staged, and the pre-commit hook still blocks the
+path. Nothing is rebuilt and `docs/manifests/d4_manifest.json` is unchanged. The EUROFIDAI tests on real data then
+run in the worktree instead of being skipped. Files a stream writes there (the local D4 extraction) stay in that
+worktree.
