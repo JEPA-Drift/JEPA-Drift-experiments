@@ -6,3 +6,6 @@ incoming/
 __pycache__/
 *.pyc
 logs/
+
+# Session handover documents contain personal/institutional identifiers — never track them.
+prompts/wrapups/handover-*.md
