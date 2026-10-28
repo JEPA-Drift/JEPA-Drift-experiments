@@ -424,3 +424,27 @@ def test_tau_star_json_roundtrip(tmp_path):
     assert json.loads(a.read_text()) == records
     injection.write_tau_star(a, records[0])
     assert json.loads(a.read_text()) == records[0]
+
+
+@pytest.mark.parametrize("family", ("F1", "F2", "F3"))
+def test_inject_fit_cache_and_sr_asset(family):
+    X, C = _synthetic()
+    params, I_target = {"calib": (0, 600), "K": 3, "C": C, "kappa": 0.5}, fl.kl_from_sharpe(2.0)
+    fit = injection.fit_background(X[:600], 3 if family != "F3" else 1)
+    ref = injection.inject(X, family, 700, I_target, params, _rng(26))
+    cached = injection.inject(X, family, 700, I_target, {**params, "fit": fit}, _rng(26))
+    assert ref[0].tobytes() == cached[0].tobytes() and ref[1].tobytes() == cached[1].tobytes()
+    X2 = X.copy()
+    X2[:600] *= 2.0
+    assert injection.inject(X2, family, 700, I_target, {**params, "fit": fit}, _rng(26))[1].tobytes() == ref[1].tobytes()
+    b1 = injection.inject(X, family, 700, None, {**params, "fit": fit}, _rng(27))
+    b2 = injection.inject(X, family, 700, None, {**params, "fit": fit, "sr_asset": 2.0}, _rng(27))
+    np.testing.assert_allclose(b2[1], 2.0 * b1[1], rtol=1e-14, atol=0.0)
+    assert b1[2]["amplitude"]["sr_asset"] == injection.SR_ASSET_B and b2[2]["amplitude"]["sr_asset"] == 2.0
+    with pytest.raises(ValueError):
+        injection.inject(X, family, 700, I_target, {**params, "fit": injection.fit_background(X[:600, :29], 2)}, _rng(26))
+    if family != "F3":
+        with pytest.raises(ValueError):
+            injection.inject(X, family, 700, I_target, {**params, "fit": injection.fit_background(X[:600], 2)}, _rng(26))
+    with pytest.raises(ValueError):
+        injection.inject(X, family, 700, None, {**params, "sr_asset": 0.0}, _rng(27))

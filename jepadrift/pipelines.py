@@ -299,14 +299,16 @@ def _detect_p3c(spec, state, x):
     return eprocess.first_alarm(np.logaddexp.reduce(np.stack(logs) + log_w[:, None, None], axis=0), spec["gamma"])
 
 
-def cross_independence(signs, n_se=3.0):
-    """Pairwise correlations of the sign streams in the columns of signs (T, D): passed iff all |rho| < n_se / sqrt(T)."""
+def cross_independence(signs, alpha=0.01):
+    """Pairwise correlations of the sign streams in the columns of signs (T, D): two-sided p-values of sqrt(T) rho,
+    Holm at family level alpha; passed iff no pair is rejected, i.e. min p > alpha / pairs (C-e1-holm-gate)."""
     s = np.asarray(signs, dtype=np.float64)
     se = 1.0 / math.sqrt(s.shape[0])
     rho = np.corrcoef(s, rowvar=False)[np.triu_indices(s.shape[1], 1)] if s.shape[1] > 1 else np.zeros(0)
-    over = int((np.abs(rho) >= n_se * se).sum())
+    p = np.sort([math.erfc(abs(r) / se / math.sqrt(2.0)) for r in rho])
+    over = next((i for i, q in enumerate(p) if q > alpha / (p.size - i)), int(p.size))
     return {"passed": over == 0, "max_abs_rho": float(np.abs(rho).max(initial=0.0)), "se": se, "pairs": int(rho.size),
-            "over": over}
+            "over": int(over), "p_min": float(p[0]) if p.size else 1.0, "alpha": alpha}
 
 
 def _cal_p3c(spec, state, X_fit, splits, key):
@@ -316,8 +318,9 @@ def _cal_p3c(spec, state, X_fit, splits, key):
         res = [c for c in cols if c in state["channels"]["residual"]]
         gate = cross_independence(np.sign(state["rep"].transform_panel(np.ascontiguousarray(X_fit[a:b]))["z_odd"][:, res]))
         if not gate["passed"]:
-            raise ValueError(f"cross-independence test failed on {gate['over']} of {gate['pairs']} residual pairs "
-                             f"(max |rho| = {gate['max_abs_rho']:.4f} >= 3 SE): the sub-Gaussian mixture is not valid")
+            raise ValueError(f"cross-independence test failed: Holm rejects {gate['over']} of {gate['pairs']} residual "
+                             f"pairs at family level {gate['alpha']} (min p = {gate['p_min']:.3g}): the sub-Gaussian "
+                             f"mixture is not valid")
         return {"threshold": spec["gamma"], "gate": gate}
     if spec["reading"] != "exact":
         return {"threshold": spec["gamma"]}

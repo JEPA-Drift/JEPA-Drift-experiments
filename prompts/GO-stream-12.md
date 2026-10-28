@@ -1,3 +1,21 @@
+# GO — Stream 12 (E1) : GO final du plan delta révision 2 (2026-10-28)
+
+Date : 2026-10-28.
+Statut : GO final de l'orchestrateur, transcrit verbatim ci-dessous. Il porte sur le plan révision 1 (2026-10-23)
+complété par le plan delta révision 2 (2026-10-28), consignés ensemble dans `prompts/plans/plan-12.md` avec la
+section « Décision GO intégrée ».
+
+## Transcription verbatim
+
+> GO FINAL STREAM 12, plan delta révision 2 du 2026-10-28 (fichier ~/.claude/plans/tu-reprends-uniquement-le-fuzzy-lollipop.md), en complément du plan révision 1 et du prompt canonique. Q2-Q10 acceptées, dont F2 sur les quatre caractéristiques continues. Conserve l'ancien GO sous la mention spécification remplacée et enregistre le GO présent verbatim ainsi que prompts/plans/plan-12.md avec Décision GO intégrée. J2(i) reste primaire: 54 contrôles, 2000 réplications chacun, seuil ±1 point; mentionne le risque a priori de faux FAIL 0,813 et rapporte le verdict sans rerun ni changement de graines. La formule phi(gamma*I)/I doit être étiquetée approximation de diffusion, jamais borne exacte d'ADD à gamma fini. Fenêtre brute >=2005-01-04, mêmes cinq titres que E3, remise à zéro CUSUM par fenêtre, test RED d'invariance au préfixe P1-C. Le contrôle CLI vient de confirmer graphify et jcodemunch connectés; dans cette nouvelle session, recharge explicitement ces deux MCP et vérifie par appel avant la première écriture. Implémente maintenant uniquement E1 dans ce worktree selon le plan, avec .venv, MPLBACKEND=Agg, TDD, tests, make check, empreintes et wrapup. Aucun autre stream, aucun fetch/rebase/push/fusion. Arrête-toi au commit local propre et vérifié; si un MCP ou une permission bloque, arrête avant d'écrire et rapporte la condition précise.
+
+---
+
+## GO du 2026-10-18 — spécification remplacée, non applicable
+
+Le texte ci-dessous est conservé tel quel ; il porte sur une spécification antérieure du prompt 12 et ne vaut pas GO
+du plan exécuté.
+
 # GO — Stream 12 (E1) : lancement — le problème sur données réelles, pipelines 1 → 2 → 3 et critères de J2
 
 Date : 2026-10-18.

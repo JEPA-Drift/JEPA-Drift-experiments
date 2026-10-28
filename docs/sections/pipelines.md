@@ -100,7 +100,7 @@ equal-weight dictionary average of CUSUM e-detectors over all channels (Article 
 exact reading monitors one channel with the lattice (no exact level exists for several dependent channels). The
 option `mixture_s2 = s²` replaces the residual block by the sub-Gaussian mixture of Proposition 3, combined with the
 market e-detector with weights |market|/D and |residual|/D; it is allowed only if every pair of residual sign streams
-of the calib rows has |ρ̂| < 3/√T (`cross_independence`), else `ValueError`. On D2 the test fails in both modes
+of the calib rows passes Holm at family level 1 % on the two-sided p-values of √T·ρ̂ (`cross_independence`, `C-e1-holm-gate`; formerly |ρ̂| < 3/√T), else `ValueError`. On D2 the test fails in both modes
 (factor: 1 of 10 pairs, max |ρ̂| = 0.1308 against 0.0978; full: 13 of 4560): the option is unavailable there, and in
 full mode the literal rule fails by multiplicity alone (`C-P3C-mixture-gate`).
 

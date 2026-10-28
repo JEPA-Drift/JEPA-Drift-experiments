@@ -106,7 +106,11 @@ def inject(X, family, tau_star, I_target, params, rng):
         if convention == "b" and not (params.get("kappa") or 0) > 0:
             raise ValueError("F2 under convention (b) needs params['kappa'] > 0")
     K = params.get("K", 1) if family in ("F1", "F2") else 1
-    fit = fit_background(X[start:stop], K)
+    fit = params.get("fit")
+    if fit is None:
+        fit = fit_background(X[start:stop], K)
+    elif np.shape(fit.get("sigma")) != (N, N) or (family in ("F1", "F2") and np.shape(fit.get("B")) != (N, K)):
+        raise ValueError(f"params['fit'] must be a fit_background result on {N} assets with B of {K} columns")
     sigma = fit["sigma"]
     if family.startswith("F4"):
         return _second_order(X, family, tau, params, fit, rng, start, stop)
@@ -132,8 +136,11 @@ def inject(X, family, tau_star, I_target, params, rng):
     else:
         kappa = float(params["kappa"]) if family == "F2" else None
         sharpe = math.sqrt(fl.TRADING_DAYS) * D_ref / np.sqrt(np.diag(sigma))
-        s = SR_ASSET_B * (kappa if family == "F2" else 1.0) / math.sqrt(np.mean(sharpe ** 2))
-        amplitude = {"kappa": kappa, "sr_asset": SR_ASSET_B}
+        sr_asset = float(params.get("sr_asset", SR_ASSET_B))
+        if not sr_asset > 0:
+            raise ValueError(f"params['sr_asset'] must be positive, got {sr_asset}")
+        s = sr_asset * (kappa if family == "F2" else 1.0) / math.sqrt(np.mean(sharpe ** 2))
+        amplitude = {"kappa": kappa, "sr_asset": sr_asset}
     delta = s * (D[tau:] if family == "F2" else D)
     X_tilde = X.copy()
     X_tilde[tau:] += delta

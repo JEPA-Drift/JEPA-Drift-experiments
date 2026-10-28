@@ -10,6 +10,7 @@ from scipy import stats
 
 from experiments import audit_information as au
 from jepadrift import floors as fl
+from jepadrift.stats import drift
 from jepadrift.stats.covariance import ledoit_wolf
 
 REPO = Path(__file__).resolve().parents[1]
@@ -116,14 +117,14 @@ def test_char_directions():
     rng = np.random.default_rng(np.random.SeedSequence([11, 5]))
     V_f = np.linalg.qr(rng.standard_normal((20, 20)))[0][:, :4]
     C = rng.standard_normal((6, 20, 3))
-    U = au.char_directions(C, V_f)
+    U = drift.char_directions(C, V_f)
     assert U.shape == (6, 20, 3)
     assert np.abs(np.einsum("nk,tnp->tkp", V_f, U)).max() < 1e-12
     assert np.abs(np.linalg.norm(U, axis=1) - 1.0).max() < 1e-12
     assert (np.einsum("tnp,tnp->tp", U, C) > 0).all()
     C[2, :, 1] = V_f @ rng.standard_normal(4)
     with pytest.raises(ValueError):
-        au.char_directions(C, V_f)
+        drift.char_directions(C, V_f)
 
 
 def _holm(p):

@@ -1,4 +1,4 @@
-"""Tests of the shared drift statistics (stream 8b): jepadrift/stats/drift.py, moved verbatim from the audit."""
+"""Tests of the shared drift statistics (streams 8b and 12): jepadrift/stats/drift.py, moved verbatim from the audit."""
 import ast
 import hashlib
 from pathlib import Path
@@ -20,6 +20,12 @@ MOVED_SOURCE_SHA256 = {
     "mbb_indices": "ff28cd7c126afc2d296566c0aa6ef31883e228d326de0052266bd01a4e94199f",
     "shifted_percentile_ci": "2008d9bb52fed1c21bf3b238e4b7c28a52f48c0d043d191c85c7b8756c6b8f2d",
     "rotate_phases": "2f3d1ae483fb59dd5252fb81a0fb5175eac672366f0e5fb706a037c7ded3585f",
+    "N_PC": "21caa86bba2659fbe9938241d8e3eebd9040d7e984049e9d89cf789f7c787c1a",
+    "MAX_DIM": "c944cfb77fda78f882dc977499559ed9d614794123eefd8b9c706892e39d3d49",
+    "char_directions": "0842278e4f7dcc17c5a2e4964c6a58e8589bb526c4ebcbfbf7849d66845dc458",
+    "projections": "ec0be9d2f00ad17b19c833445582003709d39dc8019a398565fc071de81950bc",
+    "spy_phases": "291b063d770aed26063e26bfc58d1ff6d9303ac036d2a0a4f6c812ddeed9ce93",
+    "subspaces": "2b4921932f42d24170b2f3283494f6c8b7c1aa29576621a51429bd0718421600",
 }
 AUDIT_NAMES = {"shifted_percentile_ci": "_ci"}
 
@@ -45,7 +51,7 @@ def test_moved_segments_unchanged():
 
 
 def test_audit_reexports_shared_objects():
-    for name in MOVED_SOURCE_SHA256:
+    for name in set(MOVED_SOURCE_SHA256) - {"char_directions"}:
         assert getattr(au, AUDIT_NAMES.get(name, name)) is getattr(drift, name), name
     defined = set(_top_level((REPO / "experiments" / "audit_information.py").read_text()))
     assert not defined & {AUDIT_NAMES.get(name, name) for name in MOVED_SOURCE_SHA256}

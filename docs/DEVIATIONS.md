@@ -517,3 +517,110 @@ is a ratio of delays restricted to H, a lower bound of the ADD ratio only when P
 the rank (m - 1) // 2 by F1 RMST (selected on F1 without aiming at the best), the best asset is an exploratory oracle;
 each gain carries the H0 FPR of the same asset and of the P3-C dictionary with their paired difference. No equal false
 alarm is claimed (decision B2).
+
+## C-e1-window — strict real window of E1 (2026-10-28)
+
+E1 reads only the rows dated 2005-01-04..2019-12-31 and raises `ValueError` on any other date (`check_window`), with
+no silent truncation; `--include-test-window` is refused while `configs/FROZEN.json` is absent (stream 21). D2 keeps
+its rows [0, 3774); D3 drops 2005-01-03 and reads the absolute rows [1257, 5031). The calib rows are unchanged
+(2016-04-07..2019-12-31, 941 days); the D3 index conventions agree: absolute [4090, 5031) = pre_monitor-relative
+[2834, 3775) (E6) = E1-relative [2833, 3774). P2-C bootstrap onsets satisfy tau* >= H_ref = 500, so its prefix stays in
+the window; its R15 calibration reads the cut pre_monitor rows (retrospective). Arm C, D3: the first SPY phase loses one
+day (697 -> 696); the transition counts are unchanged.
+
+Loader guard (correction before closure): `load_window` first takes the official pre_monitor rows of the dataset's
+splits.yaml (first pretrain day to last calib day; D2 2005-01-04, D3 2005-01-03), removes only the declared exclusions
+`EXCLUDED = {"d3_239": ("2005-01-03",)}` (an exclusion absent from the source raises), then applies `check_window` to
+every remaining row and requires source-contiguous, strictly increasing dates with calendar gaps of at most 7 days (the
+longest gap on both panels is 5 days, the October 2012 closure). Any other date in the pre-monitor source raises
+(`test_load_window_rejects_an_inserted_pre_monitor_date`); monitor rows visible to the source loader are never selected
+and never rejected. The selected rows and arrays are byte-identical to the former date filter on both datasets (SHA-256
+of X, dates and rows: d2_us97 55013c90..., d3_239 9047dfb6...), so the full run of 2026-10-28 was not repeated.
+
+## C-e1-titles — P1-C assets of E1 (2026-10-28)
+
+J2(i) monitors `pipelines.composition_for(5, N)`, the five assets of E3: D2 [24, 71, 56, 46, 75] (COST, SHW, SO, MDLZ,
+PSA), D3 [60, 177, 141, 116, 184] (CASY, KEY, GPC, ERIE, LRCX), frozen as literals in `tests/test_e1.py`. Arms A, S, G
+and C use the frozen R15 composition `composition_for(20, N)`, disjoint from the former. The P1-C baseline is the median
+asset, rank 10 of 20 by add_h; the best asset is a post hoc oracle on the same replicates.
+
+## C-e1-inject-cache — cached background fit and per-asset amplitude in `inject` (2026-10-28)
+
+`injection.inject` accepts `params["fit"]`, a `fit_background` result reused per (dataset, window, K) as the prompt
+requires (shape checked: sigma (N, N), B with K columns for F1/F2; X[calib] is then not read, F2 still reads C on the
+calib rows), and `params["sr_asset"]`, the per-asset RMS Sharpe of convention (b) (default `SR_ASSET_B`). Without these
+keys the outputs are bit-identical (`test_inject_fit_cache_and_sr_asset`).
+
+## C-e1-holm-gate — Holm gate of the P3-C mixture (2026-10-28)
+
+Amends C-P3C-mixture-gate as the E1 prompt requires: `cross_independence` now computes the two-sided p-values of
+sqrt(T) rho for every pair of residual sign streams and applies Holm at family level 1 %; the gate passes iff no pair is
+rejected (min p > 0.01 / pairs). A non-rejection does not demonstrate independence. On D2 factor the gate still fails
+(1 pair of 10, p_min = 6.0e-5): the mixture reading is absent there and reported as `gate_failed`.
+
+## C-e1-drift-move — second consumer of the audit's phase and subspace helpers (2026-10-28)
+
+`spy_phases`, `char_directions`, `projections`, `subspaces`, `N_PC` and `MAX_DIM` moved verbatim from
+`experiments/audit_information.py` to `jepadrift/stats/drift.py` (SHA-256 of the segments frozen in
+`tests/test_drift_stats.py`); the audit re-exports the five names it uses, and `test_char_directions` now calls the
+shared function. The nine CSVs of `audit_information.py --quick` are byte-identical before and after the move.
+
+## C-e1-readings — readings and paired H0 arm of E1 (2026-10-28)
+
+Each cell of arms A and S carries a paired H0 arm (same symmetrization and onset, no drift): the attained FPR of every
+reading and unit is measured on the cell's own replicates (1000 per cell instead of 1000 per dataset). Gains are
+"at common nominal alpha"; "equal false alarm" is reserved to G_ADD,ex (exact readings at the same lattice level) when
+the paired 95 % interval of the H0 difference lies within +-0.01. P3-CS (a) runs at gamma = 1/alpha = 20 (Ville, Q4).
+P7 has no H0 arm (it needs the drift direction). Phi(gamma I) / I is reported as `add_diffusion_approx`, a diffusion
+approximation, never an exact ADD bound at finite gamma; add_h = mean(min(T, H)) is a restricted delay.
+
+## C-e1-amplitude-grid — amplitude grid of arm B (2026-10-28)
+
+A pilot on disjoint keys (50 onsets x 5 chains x N grid) keeps the prompt amplitudes (F3: per-asset SR 2 and 4; F2:
+kappa 1 and 2) if the median delay of the measured pipeline (P2-C on F3, P3-C full on F2) lies in [20, 1600] days with
+detection > 1/2 over the whole N grid; otherwise the closest consecutive pair of the declared scales {1, 2, 4, 8} and
+{0.5, 1, 2, 4} that satisfies it; otherwise the prompt amplitudes, marked out of rule. This choice is a degree of
+freedom; the pilot medians and the retained grid are in `e1_slopes.csv`.
+
+## C-e1-j2i — J2(i) primary analysis (2026-10-28)
+
+54 controls (P1-C on the five assets x 2 datasets x H in {750, 2000}; the exact P3-C factor channels, 6 + 11, x 2 H),
+2000 replicates each, keys `[12, crc32("full|j2i|<dataset>|<H>")]` fixed before any draw. Rule of the prompt: a control
+passes iff |FPR - lattice level| <= 0.01; J2(i) passes iff all 54 pass. Under exactness a control fails with probability
+0.0293 (H = 750) or 0.0319 (H = 2000), so P(J2(i) = FAIL | 54 exact streams) = 0.813 a priori. The verdict is reported
+as drawn, without rerun, reseeding or change of size; exact binomial p-values with Holm at 1 % and the 99 % region are
+diagnostics without effect on the verdict.
+
+The P3-C controls monitor the frozen factor basis fitted on the raw calib rows (6 and 11 channels, checked against the
+committed sidecar), with the loop of `pipelines.null_check` but without its refit: `null_check` refits each spec on a
+symmetrization of the window, whose Marchenko-Pastur count yields 10 factor channels on d3_239 instead of 11, which would
+leave 52 controls instead of the 54 of the GO (found by the first quick run, before any primary draw). Key lineage:
+group key G = `[12, crc32("<label>|j2i|<dataset>|<H>")]`; P3-C channel k, replicate r: window start and day signs from
+SeedSequence(G + [2, k, r]) (`pipelines._null_block`), tie coins from SeedSequence(G + [2, k, r, 7])
+(`pipelines._coins`); P1-C asset j: G + [3, j, r] and G + [3, j, r, 7]. No entropy tuple is shared between two
+replicates or two controls; the panel and the frozen basis are shared but deterministic. Under Lemma 2 each replicate's
+bits are i.i.d. Bernoulli(1/2) given the panel, the basis and the window start, so each alarm indicator is
+Bernoulli(level) whatever the shared quantities, and the 54 counts are independent Binomial(2000, level) under
+exactness, up to the usual assumption that SeedSequence streams of distinct entropy are independent. The joint
+probability 0.813 is therefore a model computation under exactness, not a measured quantity; the expected number of
+false FAILs is 1.65.
+
+## C-e1-predictions — design predictions on D6 (2026-10-28)
+
+Predicted delays use the injected drift: I_x = 1/2 Delta' Sigma^-1 Delta (Ledoit-Wolf calib sigma), never called the
+exact KL of D6; channel energies in the frozen P3 basis, a_max, and the sign efficiency e = 4 f(0)^2 by a Gaussian
+kernel with Silverman's bandwidth on the calib rows. The smoothing biases e downward by the factor 1 / (1 + h^2) under
+normality (about 7 % at 941 days). Predictions sit next to measurements only when both cells are censored at most 5 %;
+otherwise `not_directly_interpretable`.
+
+## C-e1-local-helpers — local delay helpers (2026-10-28)
+
+The delay and interval helpers of E1 (`restricted`, `delay_summary`, `wilson`, `coin_bits`) mirror those of E10 with
+the same formulas; their move to `jepadrift/` waits for the merges of streams 12, 13 and 23.
+
+## C-e1-f2-chars — characteristics of the injected F2 (2026-10-28)
+
+F2 injected in arms A, B and G uses the four continuous causal characteristics `c_beta_252`, `c_vol_63`, `c_mom_12_1`
+and `c_rev_21` (Q10), not the 15 columns of `load_chars_tensor`: D4 has no GICS, the static GICS is not point-in-time
+(C-D3-gics-static), and P4/P5 see these columns only. NaN are read as 0 and counted (`c_nan_imputed`). Arm C keeps the
+audit construction (15 columns), labelled retrospective.

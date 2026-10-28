@@ -316,11 +316,23 @@ def test_cross_independence_gate(d2):
     X, _, splits = d2
     ok = pl.cross_independence(np.sign(sim.gaussian_latent(941, 5, _rng(61))))
     assert ok["passed"] and ok["pairs"] == 10 and ok["se"] == 1.0 / math.sqrt(941)
+    assert ok["alpha"] == 0.01 and ok["p_min"] > 0.01 / 10 and ok["over"] == 0
     state = pl.fit_pipeline(pl.make_spec("P3-C"), X, splits)
     a, b = splits["calib"]
     res = state["rep"].transform_panel(np.ascontiguousarray(X[a:b]))["z_odd"][:, state["channels"]["residual"]]
     bad = pl.cross_independence(np.sign(res))
     assert not bad["passed"] and bad["max_abs_rho"] > 3.0 / math.sqrt(941) and bad["over"] >= 1
+    assert bad["p_min"] <= 0.01 / bad["pairs"]
+    g0 = _rng(63)
+    common = g0.standard_normal((941, 1))
+    pair = np.sign(np.hstack([common + 2.0 * g0.standard_normal((941, 1)), common + 2.0 * g0.standard_normal((941, 1)),
+                              g0.standard_normal((941, 1))]))
+    holm = pl.cross_independence(pair)
+    rho = np.corrcoef(pair, rowvar=False)[np.triu_indices(3, 1)]
+    p = sorted(math.erfc(abs(r) * math.sqrt(941) / math.sqrt(2.0)) for r in rho)
+    assert holm["p_min"] == pytest.approx(p[0], rel=1e-12)
+    assert holm["over"] == next((i for i, q in enumerate(p) if q > 0.01 / (3 - i)), 3)
+    assert holm["passed"] == (p[0] > 0.01 / 3)
     with pytest.raises(ValueError):
         pl.fit_pipeline(pl.make_spec("P3-C", mixture_s2=0.01), X, splits)
     with pytest.raises(ValueError):
