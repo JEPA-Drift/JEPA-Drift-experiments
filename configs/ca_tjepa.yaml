@@ -1,0 +1,42 @@
+model:
+  d_model: 64
+  heads: 4
+  layers: 3
+  ffn: 256
+  d: 8
+  pred_hidden: 128
+neutralization:
+  factors: 1
+  weights: identity
+  lambda_f: 1.0e-3
+mask:
+  kind: group
+  ratio: [0.3, 0.5]
+  min_present: 4
+loss:
+  lambda_var: 1.0
+  lambda_cov: 0.04
+  lambda_market: 0.0
+  var_eps: 1.0e-4
+ema:
+  m0: 0.996
+  m1: 0.9995
+train:
+  lr: 1.0e-3
+  weight_decay: 0.01
+  batch_days: 64
+  max_epochs: 200
+  patience: 10
+  validation_start: "2014-01-01"
+  embargo_days: 65
+  min_obs: 63
+  pretrain_end: "2016-01-01"
+synthetic:
+  days: 200
+  n_assets: 239
+  start: "2013-05-01"
+  coupling: 1.0
+smoke:
+  days: 200
+  epochs: 2
+  validation_days: 35

@@ -2,6 +2,7 @@
 data/raw/
 data/derived/d4_eurofidai/
 /external
+/ckpt
 incoming/
 __pycache__/
 *.pyc

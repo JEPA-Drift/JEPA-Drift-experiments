@@ -95,14 +95,25 @@ the representation has that hook, `fit` on the `calib` rows, then the transforma
   `sp500.CONTINUOUS_CHARS` columns, NaN kept; X = `np.where(chars.load_universe(dataset), ret, nan)`, the returns
   masked by `in_universe` of `panel.parquet` and never imputed. D2 raises `ValueError("D2 has no characteristics")`.
 
-**Registry.** `extract.REGISTRY = {"pca": PCAOrthogonal, "degree0": DegreeZero, "ranks": CenteredRanks, "ipca": IPCA}`
-(`NEEDS_C = {"ipca"}` since stream 17) is the
+**Registry.** `extract.REGISTRY = {"pca": PCAOrthogonal, "degree0": DegreeZero, "ranks": CenteredRanks, "ipca": IPCA,
+"ca_tjepa": _ca_tjepa}` (`NEEDS_C = {"ipca", "ca_tjepa"}` since stream 14) is the
 registry of the contract tests (stream 08). A new representation (IPCA, stream 17; CD-DFM, stream 18; JEPA,
 stream 14) subclasses `Representation`, keeps the contract above, adds its entry to `REGISTRY`, and documents its
 heads here. A characteristic-driven representation also enters `extract.NEEDS_C` and declares its builder in
 `tests/test_contracts.py::CHAR_CASES`; the meta-test `test_char_registries_agree` imposes
 `NEEDS_C == set(CHAR_CASES) ⊆ REGISTRY`, and the D2 contracts loop on `REGISTRY − NEEDS_C`
 (`docs/sections/contracts.md`). C_t and the mask come from the shared loader `jepadrift/data_loader/chars.py`.
+
+**CA-T-JEPA heads** (stream 14, `docs/sections/ca_tjepa.md`). The lazy factory `_ca_tjepa(ckpt, D=None, assets=None)`
+imports torch only when called (`--ckpt` is required, `--D` only asserts the checkpoint width d). `missing = True`, no
+`pretrain` hook, and nothing is fitted on the calib rows: `state = {s, b, weights}` comes from the frozen checkpoint, so
+calib rows leave `state_hash` unchanged (`CALIB_FREE`). `z_odd = [f̂(P), (g(x) − g(−x)) / 2]` (dimension d + 1,
+`channels = {"market": [0], "residual": [1, …, d]}`) and `z_even = (g(x) + g(−x)) / 2` (dimension d); an extraction day
+needs at least 2 observed assets and ±inf in x or C is refused. Asset identity: a real-data checkpoint stores only the
+SHA-256 of its ordered asset IDs; `CATJEPA` refuses a missing or different list (a same-size permutation included)
+before `fit` or any extraction, refuses any list for an unbound synthetic checkpoint, and the CLI relays the order of the
+dataset's `assets.json`. Limit: a direct call `fit(X, C, dates)` on arrays cannot verify that the caller's columns follow
+that order; only the relayed list does.
 
 **IPCA heads** (stream 17, `docs/sections/ipca.md`). `missing = True`; the hook `pretrain(X, C, dates)` estimates
 Γ_k on the pretrain rows for every k ≤ min(K_max, P), and `fit` selects K and the whitening W on calib.

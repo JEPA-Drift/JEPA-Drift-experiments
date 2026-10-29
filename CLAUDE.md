@@ -86,7 +86,7 @@ The data-processing inequality (DPI) forbids any KL increase: gains come from co
   P2-C, P3-C, P3-D, P3-CS, P4-C, P4-D, P7; the only module importing both representations and monitors) and
   the subpackages `monitors/` (numpy only: `cusum`, `streams`, `lattice`, `gamma`, `eprocess`,
   `calibration`), `representations/` (interface Z-1: `base`, `pca`, `cross_section`, `ipca`, `extract`),
-  `jepa/` (torch), `data_loader/` (`articleB`, `sp500`, `baf`, `eurofidai`, `chars`), `stats/`
+  `jepa/` (torch: `ca_tjepa`, `representation`), `data_loader/` (`articleB`, `sp500`, `baf`, `eurofidai`, `chars`), `stats/`
   (`covariance`, `drift`; `garch`, a verbatim R01 port excluded from pyflakes).
 - `experiments/`: one script per experiment or audit (`e2_floor_validation.py`,
   `identity_articleB.py`, `audit_information.py`, then E1, E3, ...), argparse and
@@ -110,7 +110,7 @@ committed with the stream); the master collection `Prompts_Claude_Code_v5.md` (d
 - `external/`: external checkouts and side venvs (gitignored).
 - `incoming/`: drop zone for incoming lots (gitignored).
 - `.venv/`: Python 3.12 virtual environment (gitignored); `graphify-out/`: knowledge-graph cache (gitignored).
-- Root: `CLAUDE.md` (canonical project memory; `AGENTS.md` is a relative symlink to it), `Makefile`, `requirements.txt`, `requirements.lock`, `.gitignore`, `conftest.py`.
+- Root: `CLAUDE.md` (canonical project memory; `AGENTS.md` is a relative symlink to it), `Makefile`, `requirements.txt`, `requirements.lock`, `conda-torch.lock`, `.gitignore`, `conftest.py`.
 
 ## Engineering rules
 - Python 3.12. Interpreter: `.venv/bin/python` — the venv is built on the Trading 3.12.9 binary
@@ -165,9 +165,9 @@ committed with the stream); the master collection `Prompts_Claude_Code_v5.md` (d
   drift-free rows (never `state=None` with injected records); `injection.fit_background` is cached
   per (dataset, window, K); characteristics come from `data_loader.chars`, drift statistics and
   phase placebos from `stats.drift` (stream 8b).
-- torch lives only in `.venv` (CPU wheel pinned in `requirements.txt`, from stream 14 on), never
-  the Trading environment's torch; once installed, the torch guards of `tests/test_contracts.py`
-  must run, not skip.
+- torch 2.14.1 (conda-forge `cpu_generic`, 65 packages of `conda-torch.lock`) lives in `.venv/torch-cf`, reached
+  through a `PYTHONPATH` shim until the parent `.pth` bridge is placed (C-torch-conda-forge); never the Trading
+  environment's torch; with torch reachable, the torch guards of `tests/test_contracts.py` must run, not skip.
 - `make check` stays under 5 minutes: Monte Carlo tests use reduced sizes; full runs live in
   experiment scripts.
 

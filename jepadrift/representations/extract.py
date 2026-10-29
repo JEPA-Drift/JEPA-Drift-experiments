@@ -22,8 +22,15 @@ from jepadrift.representations.pca import PCAOrthogonal
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DERIVED = REPO_ROOT / "data" / "derived"
 FIT_SEGMENT = "calib"
-REGISTRY = {"pca": PCAOrthogonal, "degree0": DegreeZero, "ranks": CenteredRanks, "ipca": IPCA}
-NEEDS_C = frozenset({"ipca"})
+
+
+def _ca_tjepa(ckpt, D=None, assets=None):
+    from jepadrift.jepa.representation import CATJEPA
+    return CATJEPA(ckpt, D, assets)
+
+
+REGISTRY = {"pca": PCAOrthogonal, "degree0": DegreeZero, "ranks": CenteredRanks, "ipca": IPCA, "ca_tjepa": _ca_tjepa}
+NEEDS_C = frozenset({"ipca", "ca_tjepa"})
 DATASETS = {"d2_us97": (articleB.load_d2, articleB.load_splits),
             "d3_239": (sp500.load_d3_239, sp500.load_splits)}
 CHAR_DATASETS = {"d3_500": (sp500.load_d3_500, sp500.load_splits),
@@ -83,20 +90,27 @@ def main(argv=None):
     parser.add_argument("--shrinkage", choices=("ledoit_wolf", "none"), help="pca only")
     parser.add_argument("--b", choices=("pc1", "ones"), help="degree0 only")
     parser.add_argument("--cash-neutral", choices=("constant",), help="ipca only")
+    parser.add_argument("--ckpt", type=Path, help="ca_tjepa only: frozen checkpoint directory")
+    parser.add_argument("--D", type=int, help="ca_tjepa only: asserts the checkpoint width")
     parser.add_argument("--out", type=Path, help="output directory (default data/derived/<dataset>)")
     args = parser.parse_args(argv)
     kwargs = {k: v for k, v in (("mode", args.mode), ("K", args.K), ("b", args.b),
-                                ("cash_neutral", args.cash_neutral)) if v is not None}
+                                ("cash_neutral", args.cash_neutral), ("ckpt", args.ckpt), ("D", args.D))
+              if v is not None}
     if args.shrinkage is not None:
         kwargs["shrinkage"] = None if args.shrinkage == "none" else args.shrinkage
     cls = REGISTRY[args.rep]
+    if args.rep == "ca_tjepa" and args.ckpt is None:
+        parser.error("--rep ca_tjepa needs --ckpt")
     unknown = sorted(set(kwargs) - set(inspect.signature(cls).parameters) - {"self"})
     if unknown:
         parser.error(f"--rep {args.rep} does not accept: {', '.join('--' + k for k in unknown)}")
     if args.dataset in CHAR_DATASETS and args.rep not in NEEDS_C:
         parser.error(f"--dataset {args.dataset} serves the characteristic representations {sorted(NEEDS_C)} only")
     load, load_splits = {**DATASETS, **CHAR_DATASETS}[args.dataset]
-    ret, dates, _ = load()
+    ret, dates, assets = load()
+    if "assets" in inspect.signature(cls).parameters:
+        kwargs["assets"] = list(assets)
     C = None
     if args.rep in NEEDS_C:
         C = chars.load_continuous_chars(args.dataset)

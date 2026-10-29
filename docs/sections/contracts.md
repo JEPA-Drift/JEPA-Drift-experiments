@@ -50,7 +50,7 @@ In every block, X is masked by `in_universe` and C holds the four continuous cha
 | (1) perturbing x and C after day t leaves z_{1:t} bitwise unchanged | `test_char_non_anticipation` |
 | (2) ‖φ(−x; C) + φ(x; C)‖_∞ ≤ 1e-6 with C frozen | `test_char_odd_head` |
 | (3) two subprocess builds (`d3_char_data`, `PYTHONHASHSEED=42`, one thread) give the same state hash and Z bytes | `test_char_determinism_subprocess` |
-| (4) rows after calib leave `state_hash` and `normalization` unchanged; a calib row moves the state | `test_char_no_test_statistics` |
+| (4) rows after calib leave `state_hash` and `normalization` unchanged; a calib row moves the state, except for a frozen calib-free state (`CALIB_FREE = {"ca_tjepa"}`), where it must not | `test_char_no_test_statistics` |
 | declared segment: `fit` dates, day count, `x_sha256` and `c_sha256` name the calib rows passed | `test_char_declared_segment` |
 
 Reconstruction goes through the builder, never `type(rep)(**config)`: a characteristic representation may need a
@@ -69,14 +69,20 @@ and explicitly refuses Z objects (dicts or any non-ndarray input) with `TypeErro
 
 ## Torch model guards (JEPA)
 
-When torch is installed, additional guards apply to any torch-based representation:
+The four guards inspect the real `CATJEPA` built by `CHAR_CASES["ca_tjepa"]` on the D3 fixture; each also builds a
+faulty witness that must fail:
 
-- **Eval-mode buffer stability**: in `eval` mode, no buffer changes after 10 forward passes.
-- **No BatchNorm in training**: no `BatchNorm*` layer may be in training mode.
-- **No temporal normalization**: no normalization computed on the temporal axis (dim=0 for `(T, N)` input).
-- **EMA target inactive at extraction**: model output is deterministic in `eval` + `no_grad`.
+- **Eval-mode stability**: ten extractions leave every parameter and buffer bit-identical and give identical outputs
+  (witness: a `_day` that shifts a head bias).
+- **No BatchNorm in training**: no `_BatchNorm` layer and no module in training mode at extraction (witness: a
+  `BatchNorm1d` appended to the token MLP).
+- **No temporal normalization**: days 0, 7 and 19 keep both heads bit-identical when every other day changes and equal
+  a fresh `transform_day` (witness: a `transform_panel` that centres X across days).
+- **EMA target inactive at extraction**: after `fit` and `transform_panel` the weights equal the checkpoint (witness: an
+  EMA update inside `_day`).
 
-If torch is not installed, these tests are skipped.
+They skip only when torch is not importable; with the `torch-cf` shim or the `.pth` bridge they run. The
+characteristic determinism subprocesses keep the inherited `PYTHONPATH` (`_det_env`), so the shim reaches them.
 
 ## Git hooks
 

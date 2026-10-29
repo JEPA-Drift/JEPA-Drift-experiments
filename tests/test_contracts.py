@@ -9,17 +9,20 @@ Four contracts block any fusion of representation and surveillance code:
       monitor segment leaves state_hash unchanged, and normalization stats come from
       the declared segment only.
 
-Torch model guards (for the future JEPA) are appended when torch is installed.
+Torch guards inspect the real CA-T-JEPA representation; each has a faulty witness that must fail.
 """
+import functools
 import hashlib
 import json
 import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import numpy as np
 import pytest
+import yaml
 
 from jepadrift.data_loader import chars, sp500
 from jepadrift.representations import extract
@@ -135,7 +138,7 @@ def _det_env():
         "OPENBLAS_NUM_THREADS": "1",
         "MKL_CBWR": "COMPATIBLE",
         "PYTHONHASHSEED": "42",
-        "PYTHONPATH": str(REPO),
+        "PYTHONPATH": os.pathsep.join(filter(None, (str(REPO), os.environ.get("PYTHONPATH")))),
     }
 
 
@@ -253,7 +256,27 @@ def _ipca_case(data):
     return IPCA().pretrain(*data["pretrain"]).fit(*data["calib"])
 
 
-CHAR_CASES = {"ipca": _ipca_case}
+_CA_TJEPA_DIRS = []
+
+
+@functools.lru_cache(maxsize=None)
+def _ca_tjepa_ckpt():
+    from experiments import jepa_pretrain
+    from jepadrift.jepa import ca_tjepa
+    cfg = yaml.safe_load((REPO / "configs" / "ca_tjepa.yaml").read_text())
+    cfg["model"]["d"], cfg["train"]["max_epochs"] = 4, 1
+    X, C, dates, _ = jepa_pretrain.synthetic_panel(160, 239, "2013-07-01", np.random.default_rng(0), 1.0)
+    _CA_TJEPA_DIRS.append(tempfile.TemporaryDirectory(prefix="ca_tjepa_contract_"))
+    return ca_tjepa.train(X, C, dates, cfg, 0, _CA_TJEPA_DIRS[-1].name)[0]
+
+
+def _ca_tjepa_case(data):
+    from jepadrift.jepa.representation import CATJEPA
+    return CATJEPA(_ca_tjepa_ckpt()).fit(*data["calib"])
+
+
+CHAR_CASES = {"ipca": _ipca_case, "ca_tjepa": _ca_tjepa_case}
+CALIB_FREE = {"ca_tjepa"}
 
 
 def d3_char_data(n_pre=128, n_cal=120, n_after=60):
@@ -281,7 +304,7 @@ def d3_chars():
 
 def test_char_registries_agree():
     """Every characteristic representation declares its D3 case: NEEDS_C == set(CHAR_CASES), within REGISTRY."""
-    assert extract.NEEDS_C == set(CHAR_CASES) and set(CHAR_CASES) <= set(REGISTRY)
+    assert extract.NEEDS_C == set(CHAR_CASES) and set(CHAR_CASES) <= set(REGISTRY) and CALIB_FREE <= set(CHAR_CASES)
 
 
 @pytest.mark.parametrize("name", sorted(CHAR_CASES))
@@ -313,7 +336,7 @@ def test_char_odd_head(name, d3_chars):
 
 @pytest.mark.parametrize("name", sorted(CHAR_CASES))
 def test_char_no_test_statistics(name, d3_chars):
-    """Rows after calib do not move the state; a calib row does."""
+    """Rows after calib do not move the state; a calib row does, except for a frozen calib-free state (CALIB_FREE)."""
     rep = CHAR_CASES[name](d3_chars)
     X, C, d = d3_chars["after"]
     later = {**d3_chars, "after": (0.01 * _rng(8).standard_normal(X.shape), _rng(9).uniform(-0.5, 0.5, C.shape), d)}
@@ -323,7 +346,8 @@ def test_char_no_test_statistics(name, d3_chars):
     Xc, Cc, dc = d3_chars["calib"]
     Xm = Xc.copy()
     Xm[10] *= 1.5
-    assert CHAR_CASES[name]({**d3_chars, "calib": (Xm, Cc, dc)}).state_hash() != rep.state_hash()
+    moved = CHAR_CASES[name]({**d3_chars, "calib": (Xm, Cc, dc)}).state_hash() != rep.state_hash()
+    assert moved == (name not in CALIB_FREE), f"{name}: a calib row moved={moved}, calib-free={name in CALIB_FREE}"
 
 
 @pytest.mark.parametrize("name", sorted(CHAR_CASES))
@@ -375,67 +399,90 @@ except ImportError:
 needs_torch = pytest.mark.skipif(not HAS_TORCH, reason="torch not installed; JEPA guards skipped")
 
 
-@needs_torch
-def test_torch_eval_mode_buffer_stability():
-    """In eval mode, no buffer changes after 10 forward passes."""
-    model = torch.nn.Sequential(
-        torch.nn.Linear(20, 16),
-        torch.nn.ReLU(),
-        torch.nn.Linear(16, 8),
-    )
-    model.eval()
-    x = torch.randn(4, 20)
-    buffers_before = {name: buf.clone() for name, buf in model.named_buffers()}
-    with torch.no_grad():
-        for _ in range(10):
-            model(x)
-    for name, buf in model.named_buffers():
-        assert torch.equal(buffers_before[name], buf), f"buffer {name} changed in eval mode"
+def _ca_rep(d3_chars, cls=None):
+    from jepadrift.jepa.representation import CATJEPA
+    return (cls or CATJEPA)(_ca_tjepa_ckpt()).fit(*d3_chars["calib"])
+
+
+def _net_state(net):
+    return [t.detach().clone() for t in net.state_dict().values()]
 
 
 @needs_torch
-def test_torch_no_batchnorm_in_training():
-    """No BatchNorm* layer should be in training mode."""
-    model = torch.nn.Sequential(
-        torch.nn.Linear(20, 16),
-        torch.nn.BatchNorm1d(16),
-    )
-    model.eval()
-    for module in model.modules():
-        if isinstance(module, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d, torch.nn.BatchNorm3d)):
-            assert not module.training, "BatchNorm layer must be in eval mode"
+def test_torch_eval_mode_buffer_stability(d3_chars):
+    """CA-T-JEPA: ten extractions leave every parameter and buffer bit-identical; a mutating witness is caught."""
+    from jepadrift.jepa.representation import CATJEPA
+    X, C, _ = d3_chars["after"]
+
+    def stable(rep):
+        before = _net_state(rep.net)
+        outs = [rep.transform_day(X[0], C[0])["z_odd"] for _ in range(10)]
+        same = all(torch.equal(a, b) for a, b in zip(before, _net_state(rep.net)))
+        return same and all(np.array_equal(outs[0], o) for o in outs)
+
+    class Mutating(CATJEPA):
+        def _day(self, x, C_t):
+            with torch.no_grad():
+                self.net.head.bias.add_(1e-3)
+            return super()._day(x, C_t)
+
+    assert stable(_ca_rep(d3_chars))
+    assert not stable(_ca_rep(d3_chars, Mutating))
 
 
 @needs_torch
-def test_torch_no_temporal_normalization():
-    """No normalization computed on the temporal axis (dim=0 for (T, N) input)."""
-    import ast as _ast
-    jepa_dir = REPO / "jepadrift" / "jepa"
-    if not jepa_dir.exists():
-        pytest.skip("jepadrift/jepa/ does not exist yet")
-    for py_file in sorted(jepa_dir.rglob("*.py")):
-        tree = _ast.parse(py_file.read_text())
-        for node in _ast.walk(tree):
-            if isinstance(node, _ast.Call):
-                func = node.func
-                if isinstance(func, _ast.Attribute):
-                    attr = func.attr.lower()
-                    if "norm" in attr and attr not in ("norm", "norm_except_dim"):
-                        continue
-                    if attr in ("layernorm", "batchnorm1d", "batchnorm2d", "instancenorm1d"):
-                        for kw in node.keywords:
-                            if kw.arg == "dim" and isinstance(kw.value, _ast.Constant):
-                                assert kw.value.value != 0, \
-                                    f"{py_file.name}: normalization on temporal axis (dim=0) detected"
+def test_torch_no_batchnorm_in_training(d3_chars):
+    """CA-T-JEPA at extraction: no BatchNorm layer and no module in training mode; an inserted BatchNorm is caught."""
+    def clean(net):
+        norms = any(isinstance(m, torch.nn.modules.batchnorm._BatchNorm) for m in net.modules())
+        return not norms and not any(m.training for m in net.modules())
+
+    witness = _ca_rep(d3_chars)
+    witness.net.context.token.append(torch.nn.BatchNorm1d(witness.net.head.in_features))
+    assert clean(_ca_rep(d3_chars).net)
+    assert not clean(witness.net)
 
 
 @needs_torch
-def test_torch_ema_target_inactive_at_extraction():
-    """EMA target parameters should not be used at extraction time (eval mode, no_grad)."""
-    model = torch.nn.Sequential(torch.nn.Linear(10, 5))
-    model.eval()
-    x = torch.randn(3, 10)
-    with torch.no_grad():
-        out1 = model(x)
-        out2 = model(x)
-    assert torch.equal(out1, out2), "model output should be deterministic in eval+no_grad"
+def test_torch_no_temporal_normalization(d3_chars):
+    """CA-T-JEPA: days 0, 7, 19 keep both heads when other days change and equal a fresh transform_day; centring fails."""
+    from jepadrift.jepa.representation import CATJEPA
+    X, C, _ = d3_chars["after"]
+
+    def per_day(rep):
+        Z, fresh = rep.transform_panel(X, C), _ca_rep(d3_chars)
+        for t in (0, 7, 19):
+            Xp = X.copy()
+            Xp[np.arange(len(X)) != t] *= 3.0
+            Zp, single = rep.transform_panel(Xp, C), fresh.transform_day(X[t], C[t])
+            if not all(np.array_equal(Z[k][t], Zp[k][t]) and np.array_equal(Z[k][t], single[k])
+                       for k in ("z_odd", "z_even")):
+                return False
+        return True
+
+    class Centred(CATJEPA):
+        def transform_panel(self, X, C=None):
+            return super().transform_panel(X - np.nanmean(X, axis=0), C)
+
+    assert per_day(_ca_rep(d3_chars))
+    assert not per_day(_ca_rep(d3_chars, Centred))
+
+
+@needs_torch
+def test_torch_ema_target_inactive_at_extraction(d3_chars):
+    """CA-T-JEPA: after fit and extraction the weights equal the checkpoint; an EMA update inside _day is caught."""
+    from jepadrift.jepa import ca_tjepa
+    from jepadrift.jepa.representation import CATJEPA
+    X, C, _ = d3_chars["after"]
+
+    def frozen(rep):
+        rep.transform_panel(X[:5], C[:5])
+        return np.array_equal(ca_tjepa.flat_weights(rep.net), rep.state["weights"])
+
+    class EmaInDay(CATJEPA):
+        def _day(self, x, C_t):
+            ca_tjepa.ema_step(self.net, 0.5)
+            return super()._day(x, C_t)
+
+    assert frozen(_ca_rep(d3_chars))
+    assert not frozen(_ca_rep(d3_chars, EmaInDay))
