@@ -20,13 +20,15 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from jepadrift.data_loader import chars
 from jepadrift.injection import symmetrize
 from jepadrift.monitors import calibration, eprocess, lattice
 from jepadrift.monitors.cusum import bilateral_delay_vec, cusum_max_bilateral_vec, cusum_trajectory_vec, strict_cusum_vec
 from jepadrift.monitors.gamma import gamma_spectral, required_threshold
 from jepadrift.monitors.streams import exact_sign_stream, fraction_stream
 from jepadrift.representations.cross_section import DegreeZero
-from jepadrift.representations.extract import DATASETS, segment_rows
+from jepadrift.representations.extract import DATASETS, _rows, segment_rows
+from jepadrift.representations.ipca import IPCA
 from jepadrift.representations.pca import PCAOrthogonal
 from jepadrift.stats.covariance import ledoit_wolf
 
@@ -51,10 +53,15 @@ DEFAULTS = {
              "N_cal": N_CAL, "null_rows": "calib"},
     "P3-CS": {"reading": "anytime-valid", "K": "mp", "mode": "factor", "b": "pc1", "variant": "b", "alpha": TARGET_FPR,
               "B": B_FLIPS, "null_rows": "pre_monitor"},
+    "P4-C": {"reading": "anytime-valid", "K": "select", "cash_neutral": None, "channels": "all"},
+    "P4-D": {"reading": "bootstrap", "K": "select", "cash_neutral": None, "alpha": TARGET_FPR, "N_cal": N_CAL,
+             "null_rows": "calib"},
     "P7": {"reading": "anytime-valid"},
 }
 READINGS = {"P2-C": ("bootstrap", "anytime-valid"), "P3-C": ("anytime-valid", "exact"), "P3-D": ("bootstrap",),
-            "P3-CS": ("anytime-valid", "randomization"), "P7": ("anytime-valid",)}
+            "P3-CS": ("anytime-valid", "randomization"), "P4-C": ("anytime-valid", "exact"), "P4-D": ("bootstrap",),
+            "P7": ("anytime-valid",)}
+CHAR_PIPELINES = ("P4-C", "P4-D")
 
 
 def save_fair_csv(df: pd.DataFrame, path: Path):
@@ -84,10 +91,16 @@ def composition_for(K, K_max):
     return assets_idx
 
 
-def split_rows(dates, splits):
-    """Rows [start, stop) of the pretrain and calib segments of a splits.yaml dict, pre_monitor = [pretrain, calib end)."""
+def split_rows(dates, splits, C=None):
+    """Rows [start, stop) of the pretrain and calib segments of a splits.yaml dict, pre_monitor = [pretrain, calib end);
+    characteristics C aligned with dates ride along under "C"."""
     pre, cal = segment_rows(dates, splits["segments"]["pretrain"]), segment_rows(dates, splits["segments"]["calib"])
-    return {"pretrain": pre, "calib": cal, "pre_monitor": (pre[0], cal[1]), "dates": np.asarray(dates, "datetime64[D]")}
+    out = {"pretrain": pre, "calib": cal, "pre_monitor": (pre[0], cal[1]), "dates": np.asarray(dates, "datetime64[D]")}
+    if C is not None:
+        if len(C) != len(dates):
+            raise ValueError(f"C must align with the {len(dates)} dates, got {len(C)} rows")
+        out["C"] = C
+    return out
 
 
 def make_spec(pipeline, **kw):
@@ -110,7 +123,7 @@ def make_spec(pipeline, **kw):
         raise ValueError(f"null_rows must be 'pre_monitor' or 'calib', got {spec['null_rows']!r}")
     if isinstance(spec.get("channels"), tuple):
         spec["channels"] = list(spec["channels"])
-    if pipeline == "P3-C" and spec["reading"] == "exact" and not (
+    if pipeline in ("P3-C", "P4-C") and spec["reading"] == "exact" and not (
             isinstance(spec["channels"], list) and len(spec["channels"]) == 1):
         raise ValueError("the exact reading monitors a single channel: channels=[k]")
     if spec.get("mixture_s2") is not None and not (spec["mixture_s2"] > 0 and spec["reading"] == "anytime-valid"):
@@ -126,11 +139,11 @@ def run_id(spec):
     return hashlib.sha256(json.dumps(spec, sort_keys=True).encode()).hexdigest()[:16]
 
 
-def _panel(a):
+def _panel(a, missing=False):
     if not isinstance(a, np.ndarray):
         raise TypeError(f"expected a returns panel as a numpy array, got {type(a).__name__}")
-    if a.ndim != 2 or a.dtype != np.float64 or not np.isfinite(a).all():
-        raise ValueError("returns panel must be 2-D, float64 and finite")
+    if a.ndim != 2 or a.dtype != np.float64 or not (np.isfinite(a) | (missing & np.isnan(a))).all():
+        raise ValueError(f"returns panel must be 2-D, float64 and {'without infinite values' if missing else 'finite'}")
     return a
 
 
@@ -145,20 +158,25 @@ def _window(spec, state, data, rec, pre=0):
         raise ValueError(f"monitored rows [{tau - pre}, {tau + H}) leave the {n} rows of the data")
     if isinstance(data, dict):
         return {k: np.asarray(data[k][tau - pre:tau + H], dtype=np.float64) for k in ("z_odd", "z_even")}
-    w = _panel(np.ascontiguousarray(data[tau - pre:tau + H]))
+    w = _panel(np.ascontiguousarray(data[tau - pre:tau + H]), getattr(state["rep"], "missing", False))
     return w if state["rep"] is None else state["rep"].transform_panel(w)
 
 
 def fit_pipeline(spec, X_fit, splits, key=None):
-    """Frozen state: representation fitted on the calib rows of X_fit, then the reading's calibration on X_fit."""
-    X_fit = _panel(X_fit)
+    """Frozen state: representation pretrained (hook `pretrain`) on the pretrain rows and fitted on the calib rows of
+    X_fit, with splits["C"] if present, then the reading's calibration on X_fit."""
     rep_fn, _, _, cal_fn = PIPELINES[spec["pipeline"]]
+    rep = rep_fn(spec)
+    X_fit = _panel(X_fit, getattr(rep, "missing", False))
     key = [7, int(run_id(spec)[:8], 16)] if key is None else [int(k) for k in key]
     start, stop = splits["calib"]
-    rep = rep_fn(spec)
     state = {"rep": rep, "calib": [int(start), int(stop)], "n_assets": X_fit.shape[1]}
     if rep is not None:
-        rep.fit(np.ascontiguousarray(X_fit[start:stop]), None, splits["dates"][start:stop])
+        C = splits.get("C")
+        if hasattr(rep, "pretrain"):
+            a, b = splits["pretrain"]
+            rep.pretrain(np.ascontiguousarray(X_fit[a:b]), _rows(C, a, b), splits["dates"][a:b])
+        rep.fit(np.ascontiguousarray(X_fit[start:stop]), _rows(C, start, stop), splits["dates"][start:stop])
         state["channels"] = rep.channels
     state.update(cal_fn(spec, state, X_fit, splits, key))
     return state
@@ -261,6 +279,10 @@ def _rep_pca(spec):
     return PCAOrthogonal(K=spec["K"], mode=spec["mode"], shrinkage=spec["shrinkage"])
 
 
+def _rep_ipca(spec):
+    return IPCA(K=spec["K"], cash_neutral=spec["cash_neutral"])
+
+
 def _columns(spec, state):
     named, ch = state["channels"], spec["channels"]
     every = sorted(c for cols in named.values() for c in cols)
@@ -283,7 +305,7 @@ def _stream_signs(spec, state, data, rec):
 def _detect_p3c(spec, state, x):
     if spec["reading"] == "exact":
         return bilateral_delay_vec(x[..., 0] / 2.0, SIGN_DELTA, state["threshold"])
-    if spec["mixture_s2"] is None:
+    if spec.get("mixture_s2") is None:
         return eprocess.first_alarm(eprocess.log_dictionary_edetector(x, "cusum"), spec["gamma"])
     residual = set(state["channels"]["residual"])
     cols = _columns(spec, state)
@@ -311,7 +333,7 @@ def cross_independence(signs, n_se=3.0):
 
 def _cal_p3c(spec, state, X_fit, splits, key):
     cols = _columns(spec, state)
-    if spec["mixture_s2"] is not None:
+    if spec.get("mixture_s2") is not None:
         a, b = splits["calib"]
         res = [c for c in cols if c in state["channels"]["residual"]]
         gate = cross_independence(np.sign(state["rep"].transform_panel(np.ascontiguousarray(X_fit[a:b]))["z_odd"][:, res]))
@@ -342,7 +364,8 @@ def _detect_p3d(spec, state, q):
 def _cal_p3d(spec, state, X_fit, splits, key):
     start, stop = splits[spec["null_rows"]]
     cols, H = state["channels"]["residual"], spec["H"]
-    q = residual_energy(state["rep"].transform_panel(np.ascontiguousarray(X_fit[start:stop]))["z_even"], cols)
+    q = residual_energy(state["rep"].transform_panel(np.ascontiguousarray(X_fit[start:stop]),
+                                                     _rows(splits.get("C"), start, stop))["z_even"], cols)
     if H > len(q):
         raise ValueError(f"{len(q)} null rows cannot hold H = {H} days")
     lam_req = required_threshold(np.lib.stride_tricks.sliding_window_view(q, H), ENERGY_DELTA, spec["alpha"], "fpr", H)
@@ -431,6 +454,8 @@ PIPELINES = {"P2-C": (_rep_none, _stream_p2c, _detect_p2c, _cal_p2c),
              "P3-C": (_rep_pca, _stream_signs, _detect_p3c, _cal_p3c),
              "P3-D": (_rep_pca, _stream_p3d, _detect_p3d, _cal_p3d),
              "P3-CS": (_rep_degree0, _stream_p3cs, _detect_p3cs, _cal_p3cs),
+             "P4-C": (_rep_ipca, _stream_signs, _detect_p3c, _cal_p3c),
+             "P4-D": (_rep_ipca, _stream_p3d, _detect_p3d, _cal_p3d),
              "P7": (_rep_none, _stream_p7, _detect_p7, _cal_p7)}
 
 
@@ -468,11 +493,11 @@ def null_specs(pipeline, dataset, n_channels):
     kw, g = {"dataset": dataset}, 20.0 * H_DET
     if pipeline == "P2-C":
         return [make_spec("P2-C", **kw), make_spec("P2-C", reading="anytime-valid", gamma=g, **kw)]
-    if pipeline == "P3-C":
-        return [make_spec("P3-C", gamma=g, **kw)] + [make_spec("P3-C", reading="exact", channels=[k], alpha=TARGET_FPR,
-                                                               **kw) for k in range(n_channels)]
-    if pipeline == "P3-D":
-        return [make_spec("P3-D", **kw)]
+    if pipeline in ("P3-C", "P4-C"):
+        return [make_spec(pipeline, gamma=g, **kw)] + [make_spec(pipeline, reading="exact", channels=[k],
+                                                                 alpha=TARGET_FPR, **kw) for k in range(n_channels)]
+    if pipeline in ("P3-D", "P4-D"):
+        return [make_spec(pipeline, **kw)]
     if pipeline == "P3-CS":
         return [make_spec("P3-CS", variant="a", **kw), make_spec("P3-CS", variant="a", reading="randomization", **kw),
                 make_spec("P3-CS", gamma=g, **kw)]
@@ -491,7 +516,7 @@ def null_check(specs, X, splits, reps, key):
     """D6 null check: one symmetrization of X fits, fresh ones are monitored; returns (alarms rows, summary per spec)."""
     if reps < 1:
         raise ValueError(f"reps must be >= 1, got {reps}")
-    X, key = _panel(X), [int(k) for k in key]
+    X, key = _panel(X, missing=True), [int(k) for k in key]
     X_fit, _ = symmetrize(X, np.random.default_rng(np.random.SeedSequence(key + [0])))
     frames, summary = [], []
     for i, spec in enumerate(specs):
@@ -502,7 +527,7 @@ def null_check(specs, X, splits, reps, key):
         lo, hi = splits[spec.get("null_rows", "pre_monitor")]
         if hi - lo < pre + spec["H"]:
             raise ValueError(f"the null rows [{lo}, {hi}) cannot hold {pre + spec['H']} days")
-        base = X if state["rep"] is None else state["rep"].transform_panel(X)
+        base = X if state["rep"] is None else state["rep"].transform_panel(X, splits.get("C"))
         parts = []
         for c0 in range(0, reps, CHUNK):
             draws = [_null_block(spec, state, base, key + [2, i, r], lo, hi, pre)
@@ -533,7 +558,8 @@ def _state_summary(state):
     out = {k: state[k] for k in keep if k in state}
     if state["rep"] is not None:
         out["representation"] = {"class": type(state["rep"]).__name__, "state_sha256": state["rep"].state_hash(),
-                                 "fit": state["rep"].fit_info}
+                                 "fit": state["rep"].fit_info, **({"pretrain": state["rep"].pretrain_info}
+                                                                  if hasattr(state["rep"], "pretrain_info") else {})}
     return out
 
 
@@ -554,10 +580,14 @@ def main(argv=None):
         ap.error("--reps must be >= 1")
     load, load_splits = DATASETS[args.dataset]
     ret, dates, _ = load()
-    start, stop = split_rows(dates, load_splits(args.dataset))["pre_monitor"]
-    X, days = np.ascontiguousarray(ret[start:stop]), dates[start:stop]
-    splits = split_rows(days, load_splits(args.dataset))
-    n_channels = len(_columns(make_spec("P3-C"), fit_pipeline(make_spec("P3-C"), X, splits))) if args.pipeline == "P3-C" else 0
+    rows = slice(*split_rows(dates, load_splits(args.dataset))["pre_monitor"])
+    X, days, C = np.ascontiguousarray(ret[rows]), dates[rows], None
+    if args.pipeline in CHAR_PIPELINES:
+        C = chars.load_continuous_chars(args.dataset, rows)
+        X = np.where(chars.load_universe(args.dataset, rows), X, np.nan)
+    splits = split_rows(days, load_splits(args.dataset), C)
+    n_channels = (len(_columns(make_spec(args.pipeline), fit_pipeline(make_spec(args.pipeline), X, splits)))
+                  if args.pipeline in ("P3-C", "P4-C") else 0)
     specs = null_specs(args.pipeline, args.dataset, n_channels)
     key = [7, zlib.crc32(f"null|{args.pipeline}|{args.dataset}".encode())]
     alarms, summary = null_check(specs, X, splits, args.reps, key)

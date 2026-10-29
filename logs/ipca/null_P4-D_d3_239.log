@@ -1,0 +1,5 @@
+generator: python -m jepadrift.pipelines --pipeline P4-D --dataset d3_239 --null-check --reps 500
+rows: 2005-01-03..2019-12-31 (3775 days before the monitor segment); D6 key [7, 1435387256]
+region: p +- z sqrt(p (1 - p) (1/n + 1/n_cal)), z = 2.5758 (99 %); overlap of windows ignored
+7dec06771ffb49cd P4-D bootstrap variant=None channels=null H=750 gamma=20 alpha=0.05 threshold=57.4642 n=500 fpr=0.0000 target ~ 0.050000 region [0.0249, 0.0751] FAIL
+verdict: FAIL

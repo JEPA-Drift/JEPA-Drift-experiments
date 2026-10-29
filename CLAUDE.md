@@ -83,9 +83,9 @@ The data-processing inequality (DPI) forbids any KL increase: gains come from co
 ## Repository layout
 - `jepadrift/`: library — `floors.py` (analytic floors, Article C section 3; frozen lot 1),
   `sim.py` (D5 generators), `injection.py` (D6 symmetrization, F1-F4), `pipelines.py` (registry
-  P2-C, P3-C, P3-D, P3-CS, P7; the only module importing both representations and monitors) and
+  P2-C, P3-C, P3-D, P3-CS, P4-C, P4-D, P7; the only module importing both representations and monitors) and
   the subpackages `monitors/` (numpy only: `cusum`, `streams`, `lattice`, `gamma`, `eprocess`,
-  `calibration`), `representations/` (interface Z-1: `base`, `pca`, `cross_section`, `extract`),
+  `calibration`), `representations/` (interface Z-1: `base`, `pca`, `cross_section`, `ipca`, `extract`),
   `jepa/` (torch), `data_loader/` (`articleB`, `sp500`, `baf`, `eurofidai`, `chars`), `stats/`
   (`covariance`, `drift`; `garch`, a verbatim R01 port excluded from pyflakes).
 - `experiments/`: one script per experiment or audit (`e2_floor_validation.py`,
