@@ -1,0 +1,51 @@
+stream: 12
+experiment: E1 (Article C, section 2), prompts/plans/plan-12.md
+window: ["2005-01-04", "2019-12-31"]
+alpha: 0.05
+datasets: [d2_us97, d3_239]
+boot: 2000
+chunk: 16
+span: 50
+j2i: {H: [750, 2000], reps: 2000, tolerance: 0.01, label: full}
+A:
+  H: 2000
+  sr: [2, 4, 8]
+  reps: 1000
+  mix_draws: 100
+  families: {d2_us97: [F3, F1], d3_239: [F3, F1, F2]}
+S:
+  H: 750
+  sr: [2, 4, 8]
+  reps: 1000
+  n_cal: 20000
+  families: {d2_us97: [F3, F1], d3_239: [F3, F1, F2]}
+B:
+  H: 2000
+  chains: 20
+  reps: 200
+  N: {d2_us97: [8, 16, 32, 64, 97], d3_239: [8, 16, 32, 64, 128, 239]}
+  n_min_ii: 20
+  mix_draws: 20
+  cells:
+    F3: {datasets: [d2_us97, d3_239], amplitudes: [2, 4], scale: [1, 2, 4, 8]}
+    F2: {datasets: [d3_239], amplitudes: [1, 2], scale: [0.5, 1, 2, 4]}
+  pilot: {reps: 50, chains: 5}
+  band: [20, 1600]
+G:
+  H: 2000
+  cells: [[d2_us97, F3], [d3_239, F3], [d3_239, F2]]
+  reps: 200
+  steps: 6
+  log2: [-2, 6]
+C:
+  datings: [lt_spy, strict_ps, symmetric]
+  rotations: 2000
+  gammas: [20, 252]
+quick:
+  boot: 200
+  j2i: {reps: 200, label: quick}
+  A: {sr: [4], reps: 100, mix_draws: 20}
+  S: {sr: [4], reps: 100, n_cal: 2000}
+  B: {chains: 4, reps: 20, N: {d2_us97: [16, 64], d3_239: [16, 64]}, mix_draws: 5, pilot: {reps: 10, chains: 2}}
+  G: {reps: 40, steps: 2}
+  C: {rotations: 20}

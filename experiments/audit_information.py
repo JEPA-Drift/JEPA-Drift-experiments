@@ -45,19 +45,18 @@ from statsmodels.stats.multitest import multipletests
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from jepadrift import floors as fl
-from jepadrift.data_loader import articleB, sp500
+from jepadrift.data_loader import sp500
 from jepadrift.injection import fit_background, gls_residual
 from jepadrift.pipelines import save_fair_csv, sign_diagnostics
 from jepadrift.representations.extract import DATASETS, segment_rows
 from jepadrift.representations.pca import PCAOrthogonal, pca_directions
 from jepadrift.stats.covariance import ledoit_wolf
-from jepadrift.stats.drift import (BLOCK, MIN_PHASE, WINDOW, _sr2, debiased_sr2, mbb_indices, rotate_phases,
+from jepadrift.stats.drift import (BLOCK, MAX_DIM, MIN_PHASE, N_PC, WINDOW, _sr2, debiased_sr2, mbb_indices,
+                                   projections, rotate_phases, spy_phases, subspaces,
                                    shifted_percentile_ci as _ci, transitions)
 from jepadrift.stats.garch import fit_garch_qmle
 
-N_PC = 20
 BOOT = 2000
-MAX_DIM = 30
 LW_DAYS = 60
 GAMMAS = (20, 252)
 ALPHA = 0.05
@@ -230,24 +229,6 @@ def garch_scale(y):
                                                  "converged": bool(converged)}
 
 
-def char_directions(C, V_f):
-    """u_{t,j} = P c_{t,j} / ||P c_{t,j}||, P = I - V_f V_f' (Euclidean projection on the idiosyncratic subspace)."""
-    U = C - V_f @ (V_f.T @ C)
-    norm = np.linalg.norm(U, axis=1, keepdims=True)
-    if not (norm > 1e-10 * np.linalg.norm(C, axis=1, keepdims=True)).all():
-        raise ValueError("a characteristic vanishes after projection on the idiosyncratic subspace")
-    return U / norm
-
-
-def projections(d, n_pc=N_PC):
-    """Frozen-direction series y_t = u_t'x_t: PC1..PC<n_pc>, then the orthogonalised characteristics (D3)."""
-    series = {f"PC{k + 1}": d["X"] @ d["eigvec"][:, k] for k in range(n_pc)}
-    if d["C"] is not None:
-        y = np.einsum("tnp,tn->tp", char_directions(d["C"], d["eigvec"][:, :d["K"] + 1]), d["X"])
-        series.update({f"char:{c.removeprefix('c_')}": y[:, j] for j, c in enumerate(d["chars"])})
-    return series
-
-
 def symmetry_rows(name, series, scales):
     """Exact binomial test of q_hat = 1/2 and triples test on y / sigma_{t|t-1}, Holm over the joint family (item 3)."""
     rows = []
@@ -268,29 +249,6 @@ def symmetry_rows(name, series, scales):
         r.update(binom_p_holm=adjusted[i], triples_p_holm=adjusted[m + i], binom_reject=bool(reject[i]),
                  triples_reject=bool(reject[m + i]))
     return rows
-
-
-def spy_phases(variant, dates):
-    """SPY phases of a dating as (phase_id, start, end, window rows dated in (start, end]); empty phases dropped."""
-    phases = articleB.load_phases(variant)
-    out = []
-    for r in phases[phases.ticker == "SPY"].itertuples():
-        rows = np.flatnonzero((dates > np.datetime64(r.start_date)) & (dates <= np.datetime64(r.end_date)))
-        if rows.size:
-            out.append((int(r.phase_id), r.start_date, r.end_date, rows))
-    return out
-
-
-def subspaces(d, proj):
-    """Projections of item 4: market PC1, factor PC2..PC(K+1), idiosyncratic blocks of MAX_DIM PCs, characteristics."""
-    Z, K = d["X"] @ d["eigvec"], d["K"]
-    out = {"market": Z[:, :1], "factor": Z[:, 1:K + 1]}
-    for b, j in enumerate(range(K + 1, Z.shape[1], MAX_DIM), 1):
-        out[f"idio:b{b}"] = Z[:, j:j + MAX_DIM]
-    chars = [y for label, y in proj.items() if label.startswith("char:")]
-    if chars:
-        out["chars"] = np.column_stack(chars)
-    return out
 
 
 def _moments(Y, idx):

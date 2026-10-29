@@ -1,0 +1,20 @@
+window 2005-01-04..2019-12-31; retrospective: the calib rows 2016-04-07..2019-12-31 follow every onset at H = 2000; add_h = mean(min(T, H)) is a restricted delay, Phi(gamma I) / I a diffusion approximation
+J2(i): PASS - 54 exact sign-stream controls x 2000 replicates (full keys), |FPR - lattice level| <= 0.01: 0 failures; a priori model P(FAIL | all exact, independent keys) = 0.813 (computed, not measured), expected false FAILs 1.65, P(#FAIL >= 0 | exact) = 1.000; Holm 1 % rejections 0; outside the 99 % region 0; reported without rerun or reseeding
+J2(ii): PASS - slope of log G_ADD,H(P1 ref -> P2-C) on log N, F3, N >= 20: CI contains 0 or upper < 0.15: d2_us97 amp 2: 0.001 [-0.039, 0.036]; d2_us97 amp 4: 0.003 [-0.041, 0.045]; d3_239 amp 2: 0.102 [-0.016, 0.311]; d3_239 amp 4: 0.063 [-0.039, 0.225]
+J2(iii): PASS - slope of log G_ADD,H(P1 ref -> P3-C full) on log N, F2: positive, CI excludes 0: d3_239 amp 2: 0.169 [0.141, 0.197]; d3_239 amp 4: 0.175 [0.138, 0.218]
+J2(iv): PASS - gains 1 -> 2 -> 3 -> 3-CS at SR = 4 (convention a), measured with paired 95 % CI and predicted (or not_directly_interpretable), common nominal alpha:
+  d2_us97 F3 P1-C->P2-C: G_ADD,H = 1.988 [1.929, 2.051] (lower_bound); G_floor = 2.026; predicted = 2.330; FPR 0.0000 -> 0.0010
+  d2_us97 F3 P2-C->P3-C: G_ADD,H = 0.915 [0.897, 0.934] (uncensored); G_floor = 1.043; predicted = 0.917; FPR 0.0010 -> 0.0020
+  d2_us97 F3 P3-C->P3-CS(b): G_ADD,H = 0.300 [0.291, 0.309] (undetermined); G_floor = 0.000; predicted = nan; FPR 0.0020 -> 0.0010; prediction not directly interpretable
+  d2_us97 F1 P1-C->P2-C: G_ADD,H = 1.088 [1.068, 1.109] (undetermined); G_floor = 1.406; predicted = nan; FPR 0.0010 -> 0.0010; prediction not directly interpretable
+  d2_us97 F1 P2-C->P3-C: G_ADD,H = 2.097 [2.023, 2.174] (undetermined); G_floor = 6.031; predicted = nan; FPR 0.0010 -> 0.0030; prediction not directly interpretable
+  d2_us97 F1 P3-C->P3-CS(b): G_ADD,H = 0.932 [0.911, 0.955] (undetermined); G_floor = 0.837; predicted = 1.015; FPR 0.0030 -> 0.0030
+  d3_239 F3 P1-C->P2-C: G_ADD,H = 2.082 [2.018, 2.152] (lower_bound); G_floor = 6.074; predicted = nan; FPR 0.0010 -> 0.0000; prediction not directly interpretable
+  d3_239 F3 P2-C->P3-C: G_ADD,H = 0.879 [0.863, 0.896] (uncensored); G_floor = 1.032; predicted = 0.939; FPR 0.0000 -> 0.0020
+  d3_239 F3 P3-C->P3-CS(b): G_ADD,H = 0.355 [0.345, 0.365] (undetermined); G_floor = 0.000; predicted = nan; FPR 0.0020 -> 0.0020; prediction not directly interpretable
+  d3_239 F1 P1-C->P2-C: G_ADD,H = 1.040 [1.028, 1.052] (undetermined); G_floor = 1.651; predicted = nan; FPR 0.0040 -> 0.0000; prediction not directly interpretable
+  d3_239 F1 P2-C->P3-C: G_ADD,H = 2.071 [2.006, 2.137] (undetermined); G_floor = 11.335; predicted = nan; FPR 0.0000 -> 0.0000; prediction not directly interpretable
+  d3_239 F1 P3-C->P3-CS(b): G_ADD,H = 1.009 [0.997, 1.020] (undetermined); G_floor = 0.910; predicted = 1.007; FPR 0.0000 -> 0.0000
+  d3_239 F2 P1-C->P2-C: G_ADD,H = 0.999 [0.997, 1.000] (undetermined); G_floor = 0.007; predicted = nan; FPR 0.0010 -> 0.0000; prediction not directly interpretable
+  d3_239 F2 P2-C->P3-C: G_ADD,H = 1.001 [1.000, 1.002] (undetermined); G_floor = 79484.056; predicted = nan; FPR 0.0000 -> 0.0010; prediction not directly interpretable
+  d3_239 F2 P3-C->P3-CS(b): G_ADD,H = 1.000 [1.000, 1.000] (undetermined); G_floor = 1.000; predicted = nan; FPR 0.0010 -> 0.0010; prediction not directly interpretable

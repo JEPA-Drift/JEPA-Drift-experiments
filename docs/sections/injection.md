@@ -131,6 +131,8 @@ calibration days for F2) equal to `SR_ASSET_B` = 1 for F1 and F3, and to κ·`SR
 to the market drift; under an equicorrelated one-factor model with equal volatilities, the breadth-to-market
 information ratio is κ²·(1 + (N − 1)ρ)/(1 − ρ).
 
+Two optional keys (stream 12, `C-e1-inject-cache`): `params["fit"]` reuses a `fit_background` result of the calib rows (shape checked; X[calib] is then not read) and `params["sr_asset"]` sets the per-asset RMS Sharpe of convention (b) (default `SR_ASSET_B`); without them the outputs are bit-identical (`test_inject_fit_cache_and_sr_asset`).
+
 ## Onset and `tau_star.json`
 
 τ* is uniform on the integers t_0 + H_ref, …, t_end − H_det (`draw_tau_star`; both bounds included, `ValueError`
