@@ -1,4 +1,3 @@
-"""Z-1 representation on a frozen CA-T-JEPA checkpoint (stream 14): nothing is fitted on the fit rows."""
 from pathlib import Path
 
 import numpy as np
@@ -8,8 +7,6 @@ from jepadrift.representations.base import Representation
 
 
 class CATJEPA(Representation):
-    """Frozen context encoder with mask=none: z_odd = [f_hat(P), odd part of g], z_even = even part of g."""
-
     missing = True
 
     def __init__(self, ckpt, D=None):

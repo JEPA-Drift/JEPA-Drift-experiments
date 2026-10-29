@@ -117,3 +117,37 @@ exécutions ; `make check` ≤ 300 s avec gardes torch vivantes ; J1 conforme (U
 source de `d3_239`, chemin NaN via `missing`, smokes protocolaires, `extract.py`, `test_contracts.py` (réconciliation
 `CALIB_FREE` de la l.321, gardes réelles), `interface_Z.md`, `contracts.md`, `DEVIATIONS.md`, `CLAUDE.md`, `.gitignore`.
 Push : GO séparé. Question ouverte pour GO-B : U14.
+
+## Décision GO-B intégrée
+GO-B : `prompts/GO-stream-14-B.md` (SHA-256 `20d1c15ab074e96b4b1402e53b94c40f40550b507f04fef6d4ce471f450ab2ad`) sur le plan
+revu, révision 5 (SHA-256 `9895b584a86794847d0cd09680c7eca1599e10863ce1b577d7bcc2ee261e26da`). Autorisés : nettoyage C2,
+fusion locale du commit `6ed8f8a` du stream 17, chemin pretrain réel `d3_239`, enregistrement de `ca_tjepa`, contrôles
+d'ingénierie, documentation et commit local C3. Exclus : push, fetch, streams 16/22, toute revendication scientifique J4.
+Q1 accepté : l'extraction CLI figée de `ca_tjepa` peut transformer toutes les lignes `C-repr-rows`, monitor compris,
+vers un répertoire temporaire, pour des contrôles de forme et de hash seulement ; ni ajustement, ni sélection, ni
+résumé de performance, ni inférence de dérive sur ces lignes. Le script de pré-entraînement n'ouvre jamais monitor.
+P4-D et toute FPR bootstrap P5-D restent hors des comparaisons calibrées J4 ; défauts hérités `c_beta_252` et rangs
+fantômes documentés sans modifier D3 ; les smokes réels établissent la seule faisabilité d'ingénierie. MCP `graphify`
+et `jcodemunch` reconnectés et appelés (graph_stats ; resolve_repo) avant toute modification de code.
+
+Corrections intégrées :
+1. `tests/test_contracts.py::_det_env()` conserve le `PYTHONPATH` hérité (shim torch) en plus du chemin du dépôt ;
+   preuve : le test de déterminisme en sous-processus des représentations à caractéristiques passe sous `.venv` + shim ;
+   aucun `.pth` pour contourner ce test.
+2. Lecteur pretrain filtré : en-tête de `ret_wide.npy` validé (float64, 2-D, ordre C, nombre exact d'éléments du
+   préfixe lus) ; le témoin monitor tronqué passe tant que le préfixe pretrain est complet. Pour chaque row group
+   Parquet sélectionné : bornes de date fiables exigées, rejet de tout row group qui chevauche `monitor`, aucun row
+   group monitor ouvert. Le row group 0 réel contient des lignes `calib` : règle précise — seules les lignes pretrain
+   atteignent l'entraînement, l'estimation de l'état figé, la validation, les hachages et la sélection du checkpoint.
+   Témoin : perturber les lignes `calib` de ce row group lu laisse inchangés les tableaux pretrain filtrés et le
+   checkpoint.
+3. `CATJEPA` rejette explicitement les jours d'extraction à zéro ou un actif observé (tests pour les deux cas) ; NaN
+   reste un rendement absent ; ±inf est rejeté (Z-1).
+
+Séquence GO-B (révision 5 corrigée) : C2 (docstrings de module et de classe retirées ; contrôle AST, pyflakes, tests,
+hash du smoke synthétique `058a5d04…` inchangé, `make check`) → M (`git merge --no-ff 6ed8f8a`, worktree 17 propre et
+SHA vérifié ; retour à `PRE` en cas d'échec) → lecteur pretrain filtré et `--data d3_239` (estimation interne < 2014
+moins 65 jours ; s_i, PC1 b et médianes figés sur ces seules lignes) → fichiers partagés (`extract.py`,
+`test_contracts.py`, `interface_Z.md`, `contracts.md`, `DEVIATIONS.md`, `CLAUDE.md`, `.gitignore`) → portes (tests
+ciblés, D2/PCA à l'octet, deux extractions identiques, quatre smokes réels, `make check` ≤ 300 s, J1 CRLF/SHA-256) →
+wrapup → C3 local. `.pth` différé tant qu'un autre stream utilise `.venv`.

@@ -1,4 +1,3 @@
-"""Pretrain CA-T-JEPA on synthetic panels (stream 14, GO-A); prints CHECKPOINT_PATH=<absolute checkpoint directory>."""
 import argparse
 import json
 import sys
@@ -26,7 +25,7 @@ def synthetic_panel(T, N, start, rng, coupling):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--data", choices=("synthetic", "control"), required=True)
     parser.add_argument("--smoke", action="store_true", help="smoke.days days and smoke.epochs epochs")

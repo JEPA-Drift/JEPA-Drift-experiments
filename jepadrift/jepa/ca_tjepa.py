@@ -1,5 +1,3 @@
-"""CA-T-JEPA (stream 14): cross-asset JEPA whose native context bottleneck z_ctx feeds the predictor, with visible-only
-market neutralization, an EMA target encoder in training and the frozen context encoder at extraction."""
 import copy
 import hashlib
 import io
@@ -130,8 +128,6 @@ def pool(h, keep):
 
 
 class Encoder(nn.Module):
-    """Per-asset token MLP, permutation-equivariant pre-LN self-attention without positions, final LayerNorm."""
-
     def __init__(self, d_model, heads, layers, ffn):
         super().__init__()
         self.token = nn.Sequential(nn.Linear(1 + N_CHARS, d_model), nn.GELU(), nn.Linear(d_model, d_model))
@@ -146,8 +142,6 @@ class Encoder(nn.Module):
 
 
 class CATJEPANet(nn.Module):
-    """Context encoder and native head (z_ctx in R^d), predictor on [z_ctx, C_j] only, EMA target encoder."""
-
     def __init__(self, d_model, heads, layers, ffn, d, pred_hidden):
         super().__init__()
         self.context = Encoder(d_model, heads, layers, ffn)

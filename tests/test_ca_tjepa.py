@@ -1,4 +1,3 @@
-"""CA-T-JEPA (stream 14, GO-A): synthetic-only tests of masks, leakage, parity, freezing, determinism and baselines."""
 import copy
 import itertools
 import json

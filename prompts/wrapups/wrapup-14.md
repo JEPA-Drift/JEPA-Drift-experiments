@@ -61,6 +61,9 @@ jcodemunch were reconnected and called (graph_stats; resolve_repo) at the start 
   exported for the hook (`PYTHONPATH` = `external/torch-cf-shim`, `.venv/bin` first on `PATH`); no `--no-verify`.
 
 ## Current State
+GO-B (`prompts/GO-stream-14-B.md`) in progress. C2 removed the 7 module and class docstrings of the GO-A Python files
+(AGENTS rule: one-line docstrings on public functions only); AST rule check clean, pyflakes clean, 33 tests
+passed, synthetic smoke checkpoint unchanged (`058a5d04…`), `make check` rc 0 in 202 s under the shim.
 Local commit C1 on `stream-14` (not fetched, rebased, merged or pushed). `.venv/torch-cf` installed; the parent
 `torch-cf.pth` is **pending**: a single snapshot found an active Claude Code session in the `stream-18` worktree, which
 shares `.venv`. Out-of-repository artifacts: `external/torch-cf-stage/` (solve record, 65 archives, repodata cache,
