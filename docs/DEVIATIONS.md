@@ -517,3 +517,120 @@ is a ratio of delays restricted to H, a lower bound of the ADD ratio only when P
 the rank (m - 1) // 2 by F1 RMST (selected on F1 without aiming at the best), the best asset is an exploratory oracle;
 each gain carries the H0 FPR of the same asset and of the P3-C dictionary with their paired difference. No equal false
 alarm is claimed (decision B2).
+
+## C-e3-design — E3 design: strict real window, E1 tickers, scope, shared draws (2026-10-28)
+
+Real rows are the pre-monitor rows dated 2005-01-04..2019-12-31. Rows before 2005-01-04 are excluded only as declared
+in `EXCLUDED_DAYS` (none on d2_us97; 2005-01-03 on d3_239), counted in the run log; any other early row raises,
+then `check_window` raises on any row outside the window, so nothing is truncated silently. Both panels keep 3,774
+rows and 941 calib days. The P1 readings use the five J2 (i) titles of E1, `pipelines.composition_for(5, N)`: d2_us97
+[24, 71, 56, 46, 75] = COST, SHW, SO, MDLZ, PSA and d3_239 [60, 177, 141, 116, 184] = CASY, KEY, GPC, ERIE, LRCX,
+frozen as literals in `tests/test_e3.py` as in `tests/test_e1.py`. D5 covers the univariate P1 readings, the overshoot
+and the encoders (`sim.py` unchanged: t7 paths by `sim.Garch`, Gaussian paths by `garch_panel(nu=None)`). P3-C, P3-D
+and P3-CS run in factor mode; D6 fits fix K at the raw MP edge (5, 10), as E10. The mixture cell waits for the Holm gate
+of stream 12. Every local CUSUM restarts at S_0 = 0 at the start of its window or path (tests against the scalar
+Article B ports, prefix invariance, non-vacuity); E3 imports only `symmetrize` from `injection` and every record carries
+family H0. Cells share draws (fit symmetrizations and panels, P1-C replicates across tickers and arms, D5 paths across
+H, ARL0 paths across gamma and types, overshoot paths across statistics, encoder draws across L): intervals and regions
+are marginal, and counts over cells are descriptive, without binomial law, p-value or joint probability under
+independence; only the expectation by linearity and the union bound, valid under any dependence, are reported.
+`wilson` moved verbatim from E10 to `jepadrift/stats/intervals.py` (AST identity with `c284823`, `tests/test_e10.py`
+unchanged).
+
+## C-e3-readings — E3 readings, calibration samples and intervals (2026-10-28)
+
+P1-C: exact arm (ties by an independent coin) at the lattice threshold `select_threshold(0.05, H=H)["threshold"]` (9.1
+at H = 750, 10.3 at H = 2,000; exact levels 0.0439467 and 0.0456695), and the Article B label arm 1{y > 0} - q_hat
+with q_hat from the calib rows of one fit symmetrization (D6) or from the clean days (D5), a reference without
+exactness. P1-D on D5: the 941 clean days give mu = mean(r^2), sigma = std(r^2) and Gamma_hat (R01 QMLE); lambda_req
+and lambda_iid (global permutation of the monitored energies) are calibrated on 20,000 calibration paths, and the FPR at
+lambda_req, lambda_iid * Gamma_hat_r, lambda_iid and 65 * Gamma_hat_r is measured on 20,000 independent evaluation
+paths (SeedSequence roles `d5|<background>|cal` and `d5|<background>|eval`), with a Wilson interval (deff = 1) and the
+columns `n_cal` and `n_eval`; P1-C on D5 is read on the evaluation paths. Real P1-D (five tickers), P3-D and the raw
+placebos calibrate on their own sample or read overlapping windows of one trajectory: `ci_kind = na`, descriptive,
+outside any gate. The P2-C bootstrap (R15, H = 750; H_ref + H = 1,250 exceeds the 941 calib days, hence an explicit
+`null_rows = pre_monitor`) is calibrated on the fit symmetrization and read on fresh symmetrizations of the same panel:
+its Wilson interval is conditional on the panel and on the threshold (`calibrated_conditional`), and 1/n_cal
+understates its calibration noise. Encoders: lambda_iid from independent i.i.d. N(0, 1) paths (`n_cal`), FPR on
+independent replicates. e-detectors read at gamma_H = H/alpha; the P3-CS (a) e-process at gamma = 1/alpha = 20 by
+Ville's inequality is an FPR(H) reading, distinct from the ARL0 gamma = 20. `fpr_threshold` sorts precomputed CUSUM
+peaks instead of bisecting (`required_threshold`); both agree to 1e-6 (test). `e3_j2_check.txt` is a secondary
+calibration check of prompt 13 item 7 at 20,000 replicates, without J2 verdict: the primary J2 (i) verdict is E1's
+(stream 12) at 2,000 replicates.
+
+## C-e3-arl0 — E3 ARL0 of the e-detectors (2026-10-28)
+
+Backgrounds: fair coins (one +-1 coin per monitored column; P3-CS (b) with constant stakes 2 eta0_j), circular D6
+(uniform start, rows (s + t) mod n, a fresh Rademacher sign every day, the registry stream built on one unrolled record
+so that the detector and the EWMA continue at the seam; base fitted on one symmetrization) and raw starts (descriptive,
+censored at the end of the rows). One path of 60 * max(gamma) steps per replicate is read at gamma in {20, 100, 252}
+for both types (common random numbers). Restricted mean mu_R = mean of min(T, 60 gamma), SE with deff = 1 and lb99 =
+mu_R - 2.326 SE: PASS iff lb99 >= gamma, else INDETERMINATE, never FAIL, since E3 has no valid bound on the tail
+E[(T - 60 gamma)+]; the restricted-mean deficit gamma - mu_R and its 99 % interval are descriptive. Tail-free check at
+the bounded stopping time sigma = min(T, 60 gamma): E[M_sigma] <= E[sigma] (equality for the SR type). The per-row 99 %
+lower bound of mean(M_sigma - sigma) is descriptive: under the exact SR equality it exceeds 0 in 1 % of the rows (one
+coin row of 33 SR rows did so in the first --quick run, z = 3.04). A violation is certified only when the Bonferroni
+lower bound over the m classified rows, at family-wise level 1 % (union bound, valid under any dependence), is above 0
+(`ineq_lb_fw`, `ineq_violated`). This replaces the per-row rule of plan 13 (H14); the change was made after that quick
+run and before the full run, and it does not touch any FPR, ARL0 or overshoot reading.
+
+## C-e3-overshoot — E3 overshoot penalty reproduction (2026-10-28)
+
+Primary gate: replicates 0..1,999 of each cell, |ARL0_MC/ref - 1| <= 5 % against the Monte Carlo references of plan v1
+(2,587, 889, 1,894, 669, 213, 214), seeds fixed in `configs/e3.yaml` (`seed_labels`) before any run, one full run, no
+rerun. The exact i.i.d. ARL0 (Brook-Evans with m = 2,000: 2,553.1 and 1,962.8; lattice: 213.09) differ from the
+references by -1.3 % and +3.6 %, the attribution of any i.i.d. FAIL. A censored primary cell is INDETERMINATE unless its
+restricted mean already exceeds the band. Under `--quick` the first 200 trajectories are labelled `quick_diagnostic`
+and carry no gate; the pre-specified D8 decision uses the first 2,000 trajectories of the full run. SE = sd /
+sqrt(n_eff) with n_eff = n / deff and deff = 1 (independent replicates), as for the ARL0 rows. Diagnostics: all 20,000 replicates, Gamma^spec of x, and lambda_req of the
+GARCH paths at the exact i.i.d. ARL0 (an upper bound under censoring), hence Gamma^op.
+
+## C-e3-encoders — E3 window encoders (2026-10-28)
+
+z_t = mean of u'x over L days, L in {1 (daily control), 5, 20, 60}; the L - 1 earlier days are an input delay and the
+CUSUMs restart at the first monitored day. Backgrounds: D5 i.i.d. N(0, 1) (Gamma_z = L exactly) and the market channel
+of SYM-d2_us97. Gamma_z^spec is reported at the default Bartlett bandwidth of the prompt and at 10 L (diagnostic): the
+expected value L is reached only with a bandwidth of order L.
+
+## C-e3-sizes — E3 sizes and cost (2026-10-28)
+
+Full run: 20,000 replicates per sign cell and per `null_check` spec, 20,000 D5 calibration paths and 20,000 D5
+evaluation paths per background, 20,000 ARL0 paths per structure, 2,000 primary overshoot replicates within 20,000, and
+20,000 encoder replicates; `--quick` uses 500 / 500 / 200 / 200 with every real unit. The `--quick` CPU time projects
+the full run at about 7.4 CPU hours, under one wall hour at `--jobs 24`: no size reduction is applied. The script
+writes the CPU seconds of each block to its run log.
+
+## C-e3-d8-fail — E3 overshoot gate D8 fails on iid/first_order_d1_l3, archived without rerun (2026-10-29)
+
+Observed (established): the single full run of 2026-10-28 (`results/e3/e3_overshoot.csv`, SHA-256 1ca7c3ae..., the
+hash recorded in `logs/e3/run.log`) fails the pre-specified primary gate D8 (replicates 0..1,999 of each cell,
+|ARL0_MC/ref - 1| <= 0.05 for every cell) on `iid/first_order_d1_l3`, the one-sided strict first-order CUSUM with
+delta = 1 and lambda = 3 on i.i.d. N(0, 1) paths: ARL0_MC = 1,994.0665 (SE 43.592, deff = 1, n_eff = 2,000) against the
+reference 1,894, relative gap +0.0528334213 > 0.05, with no censored path (T_max = 40,000). It is a FAIL by excess,
+not an INDETERMINATE cell, and D8 fails as a whole. The five other primary cells pass, all uncensored: relative gaps
+-0.0124 and +0.0349 (i.i.d. first order delta = 0.5 and sign), -0.0367, -0.0382 and -0.0234 (GARCH first order
+delta = 0.5, delta = 1 and sign). The plan required a stop before commit on a D8 FAIL (`prompts/STOP-stream-13-D8.md`);
+the researcher's archive GO of 2026-10-29 (`prompts/GO-stream-13-archive.md`) lifts only that stop. The result is
+committed as a FAIL: no E3 or `--quick` run, new draw, selective rerun, threshold, tolerance or reference change, and
+no reinterpretation of the primary gate.
+
+Attribution (plan D8 and section 15; descriptive, it does not change the gate outcome). Established: the reference
+1,894 is a Monte Carlo value of plan v1 with unknown seeds and unknown Monte Carlo error; it lies 3.50 % below the
+Brook-Evans i.i.d. value 1,962.7935 (m = 2,000), and the band [1,799.3, 1,988.7] leaves that value 25.9 units, 0.59
+primary SE, under its upper edge. Plan 13 section 6 put the marginal probability of a FAIL of this cell under correct
+code at about 27 % (normal approximation; 0.276 with the measured SE) and bounded the probability of at least one FAIL
+among the six cells, whose statistics share paths within a background, by 0.27 <= P <= 0.83. Descriptive: the primary
+mean lies +0.72 SE above the Brook-Evans value and +2.30 SE above the reference, and its 95 % interval
+[1,908.6, 2,079.5] contains the first and excludes the second; the 20,000-path diagnostic, a superset of the primary
+paths and not an independent sample, gives 1,964.2627 (SE 13.93), +0.11 SE from the Brook-Evans value. Hypothesis (not
+established): the FAIL combines the Monte Carlo deficit of the reference with a +0.72 SE deviation of the primary
+sample. Insufficient evidence: the absence of a defect in the overshoot simulation. `tests/test_e3.py` checks the
+overshoot run lengths against the scalar Article B port `strict_cusum` on the same paths and the Brook-Evans values
+against the tables; no test compares a Monte Carlo ARL0 with its Brook-Evans value. The GARCH first-order references
+(889, 669) have no exact value: their passes are relative to Monte Carlo references of unknown error.
+
+Consequence: E3 does not reproduce the plan v1 overshoot references within the pre-specified tolerance, so the
+overshoot table is not a reproduction of plan v1. Replacing the reference by the Brook-Evans value, widening the
+tolerance or reading the 20,000-path diagnostic as the gate after seeing the result would reinterpret the primary
+gate; none is done. D8 covers the overshoot cells only (`e3_overshoot.csv`); the other E3 files carry their own
+classifications.

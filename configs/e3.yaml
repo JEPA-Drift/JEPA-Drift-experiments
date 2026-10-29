@@ -1,0 +1,47 @@
+alpha: 0.05
+H: [750, 2000]
+datasets: [d2_us97, d3_239]
+K: {d2_us97: 5, d3_239: 10}
+p2c_bootstrap_H: 750
+n_cal: 20000
+b_flips: 2000
+raw_stride: 1
+p3d_settings: [[750, calib], [750, pre_monitor], [2000, pre_monitor]]
+reps:
+  sign: 20000
+  iid: 20000
+  arl0: 20000
+  overshoot: 20000
+  overshoot_primary: 2000
+packets: {d5: 500, overshoot: 250, p1c: 2000, encoders: 2000}
+d5:
+  alpha: 0.08
+  beta: 0.90
+  burn: 1000
+  T_clean: 941
+  backgrounds: [t7, gaussian]
+arl0:
+  gammas: [20, 100, 252]
+  horizon_factor: 60
+  max_elements: 20000000
+  pipelines: [P2-C, P3-C, P3-CS]
+  raw_packet: 100
+overshoot:
+  tolerance: 0.05
+  seed_labels: {iid: "overshoot|iid", garch: "overshoot|garch"}
+  brook_evans_m: 2000
+  spec_days: 2000
+  T_max: {iid: 40000, garch: 30000}
+  rows:
+    - {name: first_order_d0.5_l6, kind: first_order, delta: 0.5, lam: 6.0, ref: {iid: 2587, garch: 889}}
+    - {name: first_order_d1_l3, kind: first_order, delta: 1.0, lam: 3.0, ref: {iid: 1894, garch: 669}}
+    - {name: sign_d0.1_u16, kind: sign, delta: 0.1, units: 16, ref: {iid: 213, garch: 214}}
+encoders:
+  d6_dataset: d2_us97
+  L: [1, 5, 20, 60]
+  delta: 0.5
+  lb_lags: 20
+  lb_level: 0.05
+  wide_factor: 10
+quick:
+  reps: {sign: 500, iid: 500, arl0: 200, overshoot: 200, overshoot_primary: 200}
