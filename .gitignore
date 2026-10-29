@@ -6,3 +6,4 @@ incoming/
 __pycache__/
 *.pyc
 logs/
+slides/
