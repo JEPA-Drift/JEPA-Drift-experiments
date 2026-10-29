@@ -1,4 +1,4 @@
-# Wrap-up — stream 14 (CA-T-JEPA v2): GO-A core (C1), C2, Stream 17 merge, GO-B/GO-B2 real pretrain path (C3), GO-C4 (C4)
+# Wrap-up — stream 14 (CA-T-JEPA v2): GO-A core (C1), C2, Stream 17 merge, GO-B/GO-B2 real pretrain path (C3), GO-C4 (C4), GO-J1 (C5)
 
 ## Context
 Stream 14 builds the CA-T-JEPA representation of Article C under the v2 directive imposed by the researcher (native
@@ -7,7 +7,7 @@ extraction, separate market channel; post-JEPA PCA only as an ablation). Directi
 `prompts/streams/01_STREAM_14_REWRITE_BOTTLENECK.md`, SHA-256 `1b5f2f8e92ba131f9e2845687e82a815b0c18674b85766af07662e008a9362c3`
 (unchanged). Decisions: `prompts/GO-stream-14-A.md` (synthetic core), `prompts/GO-stream-14-B.md` (Stream 17 base and
 real `d3_239` path), `prompts/GO-stream-14-B2.md` (filtered Parquet reader and asset-order integrity after the GO-B stop), `prompts/GO-stream-14-C4.md` (contract fix and
-decision provenance).
+decision provenance), `prompts/GO-stream-14-J1.md` (J1 CSV tracked as native CRLF).
 The plan with every integrated decision is `prompts/plans/plan-14.md`. MCP graphify and jcodemunch were reconnected and
 called (graph_stats; resolve_repo) at the start of each session before implementation. All project Python ran in
 `.venv` with the `torch-cf` `PYTHONPATH` shim and `MPLBACKEND=Agg`.
@@ -74,6 +74,15 @@ called (graph_stats; resolve_repo) at the start of each session before implement
     (SHA-256 `9cc5c4749df42346a3f27df426c30d4f2045f62884fa96c70e514d6df9f25590`, `bd84e210…` before);
     `prompts/PLAN-stream-14-B2.md` (`0c3f29aa…`) and `prompts/GO-stream-14-C4.md` committed as records.
   - D2/PCA and J1 gates are cited from C3: C4 does not touch their code or inputs.
+- **C5 (GO-J1, `prompts/GO-stream-14-J1.md` `7ea96abb…`): J1 CSV tracked as native CRLF.** C1 to C4 tracked
+  `results/e2/e2_cells.csv` as an LF blob (`206dbe3b…`), and the C3/C4 entries above record that LF state: the global
+  `core.autocrlf=input` normalized the CRLF output at staging, and each J1 gate restored the LF file after its check.
+  C5 adds a root `.gitattributes` with the single exact-path rule `results/e2/e2_cells.csv -text`, regenerates J1 with
+  `make j1` (rc 0, 74 s; only the CSV changed; `e2_j1_summary.txt` and `logs/e2/run.log` byte-identical, `999a6802…`)
+  and stages the CRLF output. Working file and index blob (`git show :results/e2/e2_cells.csv | sha256sum`) both have
+  SHA-256 `e315e537ead0f656e4bcd3897e6ff04075f3780a8fbe642e258864739b570823`; `git ls-files --eol` gives
+  `i/crlf w/crlf attr/-text`; the researcher's assertions (SHA-256, CRLF present, no bare LF) pass. No model code,
+  parameter or threshold changed.
 
 ## Errors and Dead Ends
 - GO-A: the first offline explicit install failed because conda matches `url#sha256` specs only through conda-written
@@ -85,8 +94,9 @@ called (graph_stats; resolve_repo) at the start of each session before implement
   Fortran ordered. The reader gate stopped execution as specified; GO-B2 switched to the Parquet sources.
 
 ## Current State
-Local commits on `stream-14`: C1 `04aef07`, C2 `7fbd43f`, merge `93370e4`, C3 `30fc19b` (GO-B2), then C4 (GO-C4, this
-commit). Nothing fetched, rebased or pushed; `stream-17` and the main checkout untouched. Remaining provenance defect:
+Local commits on `stream-14`: C1 `04aef07`, C2 `7fbd43f`, merge `93370e4`, C3 `30fc19b` (GO-B2), C4 `7204730` (GO-C4),
+then C5 (GO-J1, this commit), after which the tracked J1 CSV is the native CRLF file `e315e537…`. Nothing fetched,
+rebased or pushed; `stream-17` and the main checkout untouched. Remaining provenance defect:
 line 3 of `prompts/GO-stream-14-B.md`, committed verbatim in C2, holds the absolute local path of the revision 5 plan
 file (`~/.claude/plans/tu-reprends-uniquement-le-eager-hearth.md` under the user's home directory); per GO-C4 it is not
 rewritten and must be reported before any push. The parent `torch-cf.pth` is **deferred**: a single snapshot found an active Claude Code session in

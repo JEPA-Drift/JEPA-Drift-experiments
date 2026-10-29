@@ -200,3 +200,19 @@ modèle, sans fetch ni push, sans toucher au stream 17 ni au checkout principal.
   signaler avant tout push).
 - Vérification : MCP graphify et jcodemunch appelés avant toute modification ; tests ciblés, `git diff --check`, hook
   `make check` ; un commit local C4 à chemins explicites, sans trailer.
+
+## Décision GO-J1 intégrée
+GO-J1 : `prompts/GO-stream-14-J1.md` (SHA-256 `7ea96abbc92bb26ae1c974521f118ebf1c14d971fdf1dfc8122bc453bcd8b0dc`), après
+C4 `7204730`. Avant toute fusion, `results/e2/e2_cells.csv` doit être suivi en CRLF natif avec le SHA-256
+`e315e537ead0f656e4bcd3897e6ff04075f3780a8fbe642e258864739b570823` ; jusqu'ici le fichier et le blob de HEAD du stream 14
+sont en LF (`206dbe3b…`), et `core.autocrlf=input` (configuration globale de l'utilisateur) normalise un CRLF à
+l'indexation.
+- Seul ajout de configuration : `.gitattributes` racine avec la règle de chemin exact `results/e2/e2_cells.csv -text`,
+  qui supprime toute conversion de fin de ligne pour ce seul fichier.
+- Régénération par `make j1` (cible déterministe existante) sous `.venv` ; inspection de tous les fichiers modifiés ;
+  arrêt si une sortie inattendue reste inexpliquée.
+- Vérifications : assertions Python du chercheur (SHA-256, présence de CRLF, aucun LF isolé) ; `git ls-files --eol`
+  = `i/crlf w/crlf attr/-text` ; SHA-256 du blob indexé = `e315e537…` (arrêt et diagnostic si Git normalise) ;
+  `make prompts-check`, `git diff --check`, `make check` sous `.venv` + shim, quatre gardes torch exécutées sans skip.
+- Inchangés : code du modèle, paramètres, seuils, autres streams, `main`, fichiers GO historiques. Un seul commit local,
+  sans trailer ni contournement de hook ; ni fetch, ni push, ni fusion.
