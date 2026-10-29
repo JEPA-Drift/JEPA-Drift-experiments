@@ -1,4 +1,4 @@
-# Wrap-up — stream 14 (CA-T-JEPA v2): GO-A core (C1), C2, Stream 17 merge, GO-B/GO-B2 real pretrain path (C3)
+# Wrap-up — stream 14 (CA-T-JEPA v2): GO-A core (C1), C2, Stream 17 merge, GO-B/GO-B2 real pretrain path (C3), GO-C4 (C4)
 
 ## Context
 Stream 14 builds the CA-T-JEPA representation of Article C under the v2 directive imposed by the researcher (native
@@ -6,7 +6,8 @@ compact context bottleneck feeding the predictor, visible-only masking, EMA targ
 extraction, separate market channel; post-JEPA PCA only as an ablation). Directive: main checkout
 `prompts/streams/01_STREAM_14_REWRITE_BOTTLENECK.md`, SHA-256 `1b5f2f8e92ba131f9e2845687e82a815b0c18674b85766af07662e008a9362c3`
 (unchanged). Decisions: `prompts/GO-stream-14-A.md` (synthetic core), `prompts/GO-stream-14-B.md` (Stream 17 base and
-real `d3_239` path), `prompts/GO-stream-14-B2.md` (filtered Parquet reader and asset-order integrity after the GO-B stop).
+real `d3_239` path), `prompts/GO-stream-14-B2.md` (filtered Parquet reader and asset-order integrity after the GO-B stop), `prompts/GO-stream-14-C4.md` (contract fix and
+decision provenance).
 The plan with every integrated decision is `prompts/plans/plan-14.md`. MCP graphify and jcodemunch were reconnected and
 called (graph_stats; resolve_repo) at the start of each session before implementation. All project Python ran in
 `.venv` with the `torch-cf` `PYTHONPATH` shim and `MPLBACKEND=Agg`.
@@ -50,15 +51,29 @@ called (graph_stats; resolve_repo) at the start of each session before implement
     D = 9, D' = 8, rows [1256, 6738], 82 s each; only shapes and hashes were recorded.
   - D2/PCA gate after the shared edits: the 4 reference files byte-identical.
   - `make check` rc 0 in 279 s (37 passed; 310 passed, 5 skips); torch guards 4 passed, 0 skipped.
-  - J1 gate: `make j1` rc 0 in 74 s, `results/e2/e2_cells.csv` SHA-256 `e315e537…0823`, native CRLF; restored from the
+  - J1 gate: `make j1` rc 0 in 74 s; the temporary regenerated `results/e2/e2_cells.csv` has the reference SHA-256
+    `e315e537…0823` with native CRLF line endings; the tracked LF file (`206dbe3b…`) was then restored from the pre-J1
     snapshot; `e2_j1_summary.txt` and `logs/e2/run.log` unchanged; Git status equal to the pre-J1 status.
 - **C3 file hashes (SHA-256 prefixes):** `experiments/jepa_pretrain.py` `1d51306f`, `jepadrift/jepa/ca_tjepa.py`
   `403dbfc5`, `jepadrift/jepa/representation.py` `be8043e8`, `jepadrift/representations/extract.py` `11e5605b`,
   `tests/test_ca_tjepa.py` `10f02379`, `tests/test_contracts.py` `2c6f8582`, `configs/ca_tjepa.yaml` `4fd90ba4`,
   `docs/sections/ca_tjepa.md` `f309a3e8`, `docs/audits/ca_tjepa_leakage.md` `f0c35847`,
   `docs/sections/interface_Z.md` `6b468a29`, `docs/sections/contracts.md` `4a29b93f`, `docs/DEVIATIONS.md` `7d805ddc`,
-  `CLAUDE.md` `e2e0d158`, `.gitignore` `122dca34`, `prompts/plans/plan-14.md` `7aa9a3d7`,
-  `prompts/GO-stream-14-B2.md` `bd84e210`.
+  `CLAUDE.md` `e2e0d158`, `.gitignore` `122dca34`, `prompts/plans/plan-14.md` `7aa9a3d7` (the GO-B2 record was not
+  part of C3).
+- **Real smoke gains.** The 2-epoch real smokes have negative engineering gains over the constant predictor
+  (1 − L_model/L_const: d = 2 −0.385, d = 4 −0.460, d = 8 −0.519, d = 16 −0.456); no J4 or scientific inference is drawn.
+- **C4 (GO-C4, `prompts/GO-stream-14-C4.md` `c9756d93…`).**
+  - Contract fix: `ca_tjepa.train` refuses a declared non-synthetic `data["source"]` without ordered asset IDs before
+    any computation or checkpoint write. RED first (`test_declared_real_source_requires_asset_ids`: "DID NOT RAISE"),
+    then GREEN: `test_ca_tjepa`, `test_contracts`, `test_decoupling`, `test_representations` 109 passed; no checkpoint
+    directory is created on refusal; `data=None` and `source="synthetic:..."` still train (`assets_sha256` null).
+  - Archive: the reviewed revision 6 plan copied byte for byte to `prompts/plans/plan-14-B2-revision6.md`
+    (SHA-256 `bf04f2fdb9af477720b363cced06f9f334409c9bf2d9567b6e3a7f52d256b459`, `cmp` identical to the reviewed file);
+    `prompts/GO-stream-14-B2.md` keeps its authorization, only the absolute plan path replaced by that relative path
+    (SHA-256 `9cc5c4749df42346a3f27df426c30d4f2045f62884fa96c70e514d6df9f25590`, `bd84e210…` before);
+    `prompts/PLAN-stream-14-B2.md` (`0c3f29aa…`) and `prompts/GO-stream-14-C4.md` committed as records.
+  - D2/PCA and J1 gates are cited from C3: C4 does not touch their code or inputs.
 
 ## Errors and Dead Ends
 - GO-A: the first offline explicit install failed because conda matches `url#sha256` specs only through conda-written
@@ -70,11 +85,11 @@ called (graph_stats; resolve_repo) at the start of each session before implement
   Fortran ordered. The reader gate stopped execution as specified; GO-B2 switched to the Parquet sources.
 
 ## Current State
-Local commits on `stream-14`: C1 `04aef07`, C2 `7fbd43f`, merge `93370e4`, then C3 (GO-B2). Nothing fetched, rebased or
-pushed; `stream-17` and the main checkout untouched. `prompts/PLAN-stream-14-B2.md` (the researcher's planning request)
-is left untracked, and so is `prompts/GO-stream-14-B2.md` (SHA-256 `bd84e210…`): this verbatim record contains the
-absolute path of the reviewed plan file, which commits must not carry; `prompts/GO-stream-14-B.md`, committed in C2,
-contains the same kind of path. Both await the researcher's decision before any push. The parent `torch-cf.pth` is **deferred**: a single snapshot found an active Claude Code session in
+Local commits on `stream-14`: C1 `04aef07`, C2 `7fbd43f`, merge `93370e4`, C3 `30fc19b` (GO-B2), then C4 (GO-C4, this
+commit). Nothing fetched, rebased or pushed; `stream-17` and the main checkout untouched. Remaining provenance defect:
+line 3 of `prompts/GO-stream-14-B.md`, committed verbatim in C2, holds the absolute local path of the revision 5 plan
+file (`~/.claude/plans/tu-reprends-uniquement-le-eager-hearth.md` under the user's home directory); per GO-C4 it is not
+rewritten and must be reported before any push. The parent `torch-cf.pth` is **deferred**: a single snapshot found an active Claude Code session in
 the `stream-18` worktree and Codex sessions in the main checkout, which share `.venv`. Out-of-repository artifacts:
 `external/torch-cf-stage/`, `external/torch-cf-shim/`, `external/torch-cf-logs/` (J1 snapshots, make-check logs,
 synthetic and real smoke checkpoints, real extractions, GO-B stop record).
@@ -84,7 +99,8 @@ synthetic and real smoke checkpoints, real extractions, GO-B stop record).
 - Without the shim or the `.pth`, `tests/test_ca_tjepa.py` cannot import torch: every worktree that integrates these
   commits needs one of them before `make check` or the pre-commit hook.
 - Real checkpoints are bound to the `d3_239` asset order; a direct Z-1 `fit(X, C, dates)` on arrays cannot verify a
-  caller's column labels.
+  caller's column labels. The training guard relies on the declared `data["source"]`: arrays passed without truthful
+  provenance cannot be recognized as real data automatically, and the Z-1 API is not broadened.
 - `c_beta_252` carries `C-D3-beta-denominator` into the tokens and the group dictionary; P4-D and any P5-D bootstrap FPR
   reading on `d3_239` with H = 750 stay outside calibrated J4 comparisons (`C-P4D-null-insample`).
 - The real smokes cover 200 days and 2 epochs; full pretraining, seeds, ablations and RankMe belong to stream 16 (not

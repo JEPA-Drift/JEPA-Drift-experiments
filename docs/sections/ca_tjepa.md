@@ -76,8 +76,11 @@ bounds, duplicate, missing or extra date × asset keys, any infinity, a null `in
 universe stop the read. `ret_wide.npy` (Fortran order) is never opened; calib rows of row group 0 are dropped in Arrow.
 Gates on the real panel: 2,769 dates (2005-01-03 → 2015-12-31) × 239 assets = 661,791 keys per file, C-order SHA-256 of
 the returns `3115d872…4830` (bit-identical to `ret_wide.npy`), 8 NaN characteristics, all in `c_beta_252`.
-`train_real` requires the ordered, unique asset IDs and the checkpoint keeps only their SHA-256 (`assets_sha256`). The
-smoke takes 200 contiguous pretrain days: 100 estimation days, the 65-day embargo and 35 validation days.
+`train_real` requires the ordered, unique asset IDs and the checkpoint keeps only their SHA-256 (`assets_sha256`);
+`ca_tjepa.train` itself refuses a declared non-synthetic `data["source"]` without asset IDs, before any computation or
+checkpoint write. Arrays passed without truthful provenance cannot be recognized as real data automatically; the Z-1
+API is not broadened for that purpose. The smoke takes 200 contiguous pretrain days: 100 estimation days, the 65-day
+embargo and 35 validation days.
 
 Engineering results (one thread, 2 epochs): about 11–12 s per width d ∈ {2, 4, 8, 16}; two d = 8 runs give the same
 checkpoint; two full CLI extractions with the d = 8 checkpoint are byte-identical. Smoke losses carry no scientific

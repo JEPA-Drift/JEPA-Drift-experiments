@@ -477,6 +477,15 @@ def test_training_rejects_infinities(tmp_path):
             cj.train(a, c, dates, small_cfg(), 0, tmp_path)
 
 
+def test_declared_real_source_requires_asset_ids(tmp_path):
+    X, C, dates, _ = panel()
+    with pytest.raises(ValueError, match="asset IDs"):
+        cj.train(X, C, dates, small_cfg(), 0, tmp_path / "real", data={"source": "d3_239"})
+    assert not (tmp_path / "real").exists()
+    path, _ = cj.train(X, C, dates, small_cfg(), 0, tmp_path / "syn", data={"source": "synthetic:control"})
+    assert json.loads((path / "config.json").read_text())["assets_sha256"] is None
+
+
 IDS = [f"A{i:03d}" for i in range(239)]
 
 

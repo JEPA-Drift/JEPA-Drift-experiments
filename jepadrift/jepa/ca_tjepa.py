@@ -340,6 +340,9 @@ def extract_day(net, x, C, s, b, lambda_f):
 
 def train(X, C, dates, cfg, seed, out_dir, data=None, assets=None):
     """Pretrain on rows dated before train.pretrain_end only; writes the checkpoint and metrics.json; (path, metrics)."""
+    source = (data or {}).get("source")
+    if source is not None and not str(source).startswith("synthetic:") and assets is None:
+        raise ValueError(f"data source {source!r} is not synthetic: training needs its ordered asset IDs")
     mk, tr, ls, lam = cfg["mask"], cfg["train"], cfg["loss"], cfg["neutralization"]["lambda_f"]
     check_mask_kind(mk["kind"])
     configure()

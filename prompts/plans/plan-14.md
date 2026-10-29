@@ -157,8 +157,10 @@ SHA-256 `a266fbab…`), contrairement à la révision 5 ; la validation d'en-tê
 le rejette. Trace : `external/torch-cf-logs/goB_stop.txt`.
 
 ## Décision GO-B2 intégrée
-GO-B2 : `prompts/GO-stream-14-B2.md` (SHA-256 `bd84e2107c4992eb0ee5b7fc7fefe105e77af97dadef5c39b2471909eeb7f26e`) sur
-le plan revu, révision 6 (SHA-256 `bf04f2fdb9af477720b363cced06f9f334409c9bf2d9567b6e3a7f52d256b459`). Il prolonge GO-B
+GO-B2 : `prompts/GO-stream-14-B2.md` (SHA-256 `9cc5c4749df42346a3f27df426c30d4f2045f62884fa96c70e514d6df9f25590`, après
+GO-C4 ; `bd84e2107c4992eb0ee5b7fc7fefe105e77af97dadef5c39b2471909eeb7f26e` avant le remplacement du chemin) sur le plan revu,
+révision 6, archivé à l'octet dans `prompts/plans/plan-14-B2-revision6.md` (SHA-256
+`bf04f2fdb9af477720b363cced06f9f334409c9bf2d9567b6e3a7f52d256b459`). Il prolonge GO-B
 après l'arrêt « ordre Fortran » ; C2 `7fbd43f`, la fusion `93370e4`, les six fichiers GO-B non commités, GO-A, GO-B, le
 stream 17 et le checkout principal sont préservés. Ni autre stream, ni fetch, ni push, ni résultat J4 calibré.
 - Option A : `ret` et `in_universe` lus dans le même row group filtré de `panel.parquet`, C dans `chars.parquet`
@@ -182,3 +184,19 @@ stream 17 et le checkout principal sont préservés. Ni autre stream, ni fetch, 
 - Exécution : `Edit` natif pour toute modification (ni redirection shell, ni `cat`, ni script Python) ; MCP graphify
   et jcodemunch reconnectés et appelés (graph_stats ; resolve_repo) avant implémentation ; `.venv` + shim torch,
   `MPLBACKEND=Agg` ; RED → GREEN ; portes GO-B ; documentation ; wrapup ; C3 local sans trailer. `.pth` différé.
+
+## Décision GO-C4 intégrée
+GO-C4 : `prompts/GO-stream-14-C4.md` (SHA-256 `c9756d933c3b623c2cd3e29155634a5b1f0dbda8d77eea3a7106b6264a4fd5aa`),
+continuation bornée après C3 `30fc19b` : une correction de contrat et un archivage, sans smoke réel, sans réglage du
+modèle, sans fetch ni push, sans toucher au stream 17 ni au checkout principal.
+- Contrat : `ca_tjepa.train` refuse, avant tout calcul et toute écriture de checkpoint, une source de données déclarée
+  non synthétique (`data["source"]` présent et ne commençant pas par `synthetic:`) sans identifiants d'actifs
+  ordonnés ; les appels synthétiques (`data=None` ou `source="synthetic:..."`) restent valides. Test RED puis GREEN ;
+  aucun checkpoint n'est écrit. Limite : des tableaux transmis sans provenance véridique ne peuvent pas être reconnus
+  automatiquement comme des données réelles ; l'API Z-1 n'est pas élargie.
+- Archivage : plan revu de la révision 6 copié à l'octet dans `prompts/plans/plan-14-B2-revision6.md` (SHA-256
+  `bf04f2fd…`) ; dans `prompts/GO-stream-14-B2.md`, seul le chemin local absolu du plan est remplacé par ce chemin
+  relatif ; `prompts/GO-stream-14-B.md` reste verbatim avec son chemin local (défaut historique de provenance à
+  signaler avant tout push).
+- Vérification : MCP graphify et jcodemunch appelés avant toute modification ; tests ciblés, `git diff --check`, hook
+  `make check` ; un commit local C4 à chemins explicites, sans trailer.
