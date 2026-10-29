@@ -1,6 +1,6 @@
 # GO-B — Stream 14, real D3 pretrain and Stream 17 integration
 
-The reviewed GO-B plan is `/home/m53/.claude/plans/tu-reprends-uniquement-le-eager-hearth.md` revision 5, SHA-256 `9895b584a86794847d0cd09680c7eca1599e10863ce1b577d7bcc2ee261e26da`. This GO authorizes its C2 cleanup, local merge of Stream 17 commit `6ed8f8a`, real `d3_239` pretrain path, `ca_tjepa` registration, engineering checks, documentation, and local C3 commit, subject to the corrections below. Preserve GO-A, the Stream 17 worktree, and the dirty main checkout. Do not start Streams 16 or 22, fetch, push, or claim a J4 scientific result.
+The reviewed GO-B plan is plan revision 5 (historical, superseded by plan-14-B2-revision6.md), SHA-256 `9895b584a86794847d0cd09680c7eca1599e10863ce1b577d7bcc2ee261e26da`. This GO authorizes its C2 cleanup, local merge of Stream 17 commit `6ed8f8a`, real `d3_239` pretrain path, `ca_tjepa` registration, engineering checks, documentation, and local C3 commit, subject to the corrections below. Preserve GO-A, the Stream 17 worktree, and the dirty main checkout. Do not start Streams 16 or 22, fetch, push, or claim a J4 scientific result.
 
 ## Required plan corrections before implementation
 
