@@ -31,8 +31,8 @@ declared segment. A representation that normalizes over the full series (fixture
 
 ## Characteristic representations (stream 17)
 
-A representation that reads the characteristics C_t (`extract.NEEDS_C`: IPCA, then CA-T-JEPA and CD-DFM) cannot
-run on D2, so the D2 contracts above loop on `REGISTRY − NEEDS_C`. Each such representation declares a builder in
+A representation that reads the characteristics C_t (`extract.NEEDS_C = {"ipca"}` since stream 17, then CA-T-JEPA
+and CD-DFM; IPCA's builder is `IPCA().pretrain(*pretrain).fit(*calib)`) cannot run on D2, so the D2 contracts above loop on `REGISTRY − NEEDS_C`. Each such representation declares a builder in
 `tests/test_contracts.py::CHAR_CASES`; the meta-test `test_char_registries_agree` imposes
 `NEEDS_C == set(CHAR_CASES) ⊆ REGISTRY`, so a new entry of `NEEDS_C` without its case fails. The builder receives
 `d3_char_data()`, a causal D3 fixture with three `(X, C, dates)` blocks of `d3_239` rows before 2020:

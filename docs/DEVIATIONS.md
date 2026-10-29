@@ -529,3 +529,84 @@ directory holding one absolute link per derived file of the main tree (`assets.j
 path. Nothing is rebuilt and `docs/manifests/d4_manifest.json` is unchanged. The EUROFIDAI tests on real data then
 run in the worktree instead of being skipped. Files a stream writes there (the local D4 extraction) stay in that
 worktree.
+
+## C-IPCA-design — IPCA representation (2026-10-28)
+
+Stream 17 implements the restricted IPCA x_t = C_t Γ f_t + e_t [Kelly, Pruitt & Su, 2019, Characteristics are
+covariances] with these choices (`jepadrift/representations/ipca.py`, `docs/sections/ipca.md`). (1) No intercept
+block Γ_α. (2) Two segments instead of one full-sample fit: Γ_k by ALS on the pretrain rows for every candidate k, K
+and the whitening on the calib rows. (3) P = 4 characteristics, the rank-transformed `sp500.CONTINUOUS_CHARS`; a NaN
+characteristic of an observed cell reads 0 and is counted (`C-inject-F2-nan`); the static GICS dummies enter only the
+retrospective sensitivity rows of `k_selection.csv`. (4) Absent returns are never imputed: f_t is regressed on the
+assets observed on day t; a day is used iff rank(C̃_t) = P (numpy SVD tolerance), and an unusable day gives z = 0.
+(5) ALS starts from the K leading right singular vectors of [y_t / N_t], stops when the projector change is
+≤ 1e-10 (`RuntimeError` after 10,000 iterations) and normalizes Γ'Γ = I, (1/T) Σ f f' diagonal decreasing, largest
+|entry| of each column positive. (6) Whitening W = M^(-1/2), symmetric root of the uncentred calib second moment of f,
+so z(0) = 0 and the odd head stays odd. (7) Option `cash_neutral="constant"`: C and x centred by their observed means
+each day, market channel m_t / s_m. P4-C and P4-D reuse the streams, detectors and calibrations of P3-C and P3-D
+unchanged.
+
+## C-IPCA-K — K by a cross-sectional held-out R² on calib (2026-10-28)
+
+K* maximizes the uncentred R² of x̃_B predicted by C̃_B Γ f_A, with f_A estimated on the observed assets of one
+index-parity fold A only, both directions summed over the used calib days; ties within 1e-12 go to the smallest K;
+candidates 1..min(K_max, P). Γ comes from pretrain (65-day embargo), so the split is temporal for Γ and
+cross-sectional for f_t: this is not the time-series out-of-sample R² of Kelly, Pruitt & Su. Results
+(`results/ipca/k_selection.csv`, `experiments/ipca_k_selection.py`, rows before 2020): target returns, K* = 2 on
+`d3_239` (R²_ho 0.0606), 3 on `d3_500` (0.0688), 2 on D4 (0.0266); target relative returns (cash-neutral), K* = 2,
+4 and 2 (0.0825, 0.0875, 0.0278). R² of different targets are not comparable. The retrospective static GICS rows
+(P = 15, K_max = 6, D3 only) select K* = 6 = K_max on both panels (0.3147, 0.3119): that selection is censored at the
+bound and uses sector labels unknown at the time. The in-sample R² grows with K by construction and selects nothing.
+K = P = 4 converges in one ALS iteration (Γ spans R^P). No fold was skipped; D4 excludes 2 pretrain days (N_t = 0).
+The selected `d3_239` and `d3_500` states are those of the committed extractions (`55a11b…`, `183a37…`). Every row
+inherits `C-D3-beta-denominator` and, on `d3_500` and D4, `C-D3-chars-phantom`: rerun after a data correction.
+
+## C-D3-beta-denominator — faulty denominator of `c_beta_252` (2026-10-28)
+
+In `sp500._compute_chars`, `sx, sy, sxy, sx2, cnt = _rolling_xy_sums(y, mkt, valid, 252)` binds `sx` to the asset sum
+Σr, so the denominator is Σm² − (Σr)²/n instead of Σm² − (Σm)²/n (the numerator is right). `eurofidai.build` reuses
+the function: D4 is affected too. Per GO Q2, `c_beta_252` is used as is and the correction belongs to another stream.
+Audit (`results/ipca/char_audit.csv`, rows before 2020): the faulty formula reproduces the stored ranked
+`c_beta_252` bit for bit on `d3_239`, `d3_500` and D4 (`beta_reproduction_mismatch = 0`;
+`test_beta_denominator_reproduces_stored`). Against the OLS beta on `d3_239` (pretrain / calib): relative error median
+0.0048 / 0.0064, p99 0.146 / 0.220, max 231 / 104; 71.1 % / 75.6 % of the ranks change, by at most 0.636 / 0.707. The
+NaN created by the formula equal the negative faulty denominators: 8 / 24 (`d3_239`), 60 / 26 (`d3_500`),
+4502 / 2231 (D4). The relative error excludes the cells whose OLS beta is exactly 0 (zero covariance: both formulas
+give 0): none on D3, 9487 / 96 on D4 (`beta_ols_zero_cells`); before this exclusion the D4 median, p99 and max were
+NaN (0/0).
+
+## C-D3-chars-phantom — characteristics ranked without a return (2026-10-28)
+
+`_compute_chars` ranks a characteristic over every asset where it is finite, in the universe or not that day; the
+momentum and reversal sums treat invalid days as zeros and need no minimum count, so assets outside the universe
+receive finite values and enter the ranks. Per GO Q9 the ranks are used as is. Counts (`results/ipca/char_audit.csv`,
+pretrain / calib): `d3_239`, no phantom cell; `d3_500`, 219,639 / 27,945 phantom cells for `c_mom_12_1` and
+`c_rev_21`, none for beta and volatility; D4, phantom cells on the four characteristics (beta 26,704 / 13,118,
+volatility 27,733 / 11,430, momentum and reversal 55,889 / 44,896). The largest daily |mean rank of the observed
+assets| reaches 0.094 / 0.031 (momentum) and 0.097 / 0.033 (reversal) on `d3_500` and up to 0.189 (reversal, calib)
+on D4, against the 1/(2N_t) offset of the rank convention (rank / count − 0.5) on `d3_239` (0.0021 = 1/478). IPCA
+estimates on `d3_500` and D4 inherit these ranks.
+
+## C-P4D-null-insample — the D6 null check of P3-D and P4-D re-reads its calibration windows (2026-10-28)
+
+The CLI null check of P4-D on `d3_239` (500 D6 replicates, H = 750, `null_rows = "calib"`;
+`results/ipca/runs_P4-D_d3_239_null.json`, `logs/ipca/null_P4-D_d3_239.log`) is FAIL: 0 alarms in 500 against the
+`~ 0.05` target (99 % region [0.0249, 0.0751]), λ = 57.464158024122, λ_iid = 12.305, Γ^op = 4.670. Stream 17 stopped
+(D3) without tuning. A read-only replay (GO addendum `prompts/GO-stream-17-D3.md`; script `/tmp/s17diag/diag.py`,
+SHA-256 `0874e319fca9345daf0dfe63ff4aa21686e87b6fc7beabefd0a58a8fc8a3185e`, output `/tmp/s17diag/diag.jsonl`,
+SHA-256 `76e9bf6e23f707d0c2f54da3cf6bcb625c43a8a583ecf573e826788638fe1e3f`, outside the repository) found no
+code/artifact mismatch: the spec, the 35 saved state fields, the threshold, the 500 saved starts (175 distinct, all in
+[2834, 3025]) and the 500 alarm flags replay exactly, and the 18 checked artifacts, Git status and HEAD were unchanged.
+Mechanism, from the code: `_cal_p3d` sets λ on all 941 − 750 + 1 = 192 windows of the calib rows, `null_check` draws
+its windows among the same rows, and the D6 signs multiply z_odd only, while z_even = z_odd² is invariant (replayed
+max |q_fit − q_raw| = 0). The check therefore re-reads the windows that set its threshold, with no fresh randomness in
+the even energy channel. Measured: all 192 windows share one CUSUM peak, P4-D 57.46415799519721 on 2019-01-30
+(excursion from 2018-10-05) and P3-D 175.53069329064513 on 2019-01-31 (from 2018-10-02); λ exceeds it by the bisection
+tolerance (2.9e-8, 5.6e-8), so no window exceeds λ (0 of 192 for both). This control cannot estimate an
+out-of-sample FPR: P4-D's FPR is uncalibrated and P4-D is not a calibrated J4 comparator; the P3-D D6 window
+diagnostic is not an out-of-sample FPR estimate either. The result establishes neither the true D3 FPR nor a failure of
+IPCA. The FAIL stays recorded; H, α, `ENERGY_DELTA`, `null_rows`, `N_cal`, the thresholds, seeds, windows and
+`null_target` are unchanged, and no new null control was run. A future independent control needs a separate written
+GO fixing its data source, independence unit, calibration/evaluation split, sample size, target, uncertainty interval
+and verdict rule before any result is observed; a synthetic D5 control would certify its own model only. P4-C's
+saved null check (fresh D6 signs, analytic thresholds) is unaffected: PASS.

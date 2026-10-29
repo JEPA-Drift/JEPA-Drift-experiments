@@ -1,7 +1,7 @@
 # Interface Z (stream 06) — contract of every representation, version Z-1
 
-`jepadrift/representations/` connects every representation (PCA, degree-0 cross-section, ranks, and later IPCA,
-CD-DFM and the JEPA) to the monitors through one contract. A representation is fitted on one calibration-type
+`jepadrift/representations/` connects every representation (PCA, degree-0 cross-section, ranks, IPCA since stream 17,
+and later CD-DFM and the JEPA) to the monitors through one contract. A representation is fitted on one calibration-type
 segment only, encodes each day independently, and exposes a frozen, hashed state. The monitors receive arrays
 (Z or X), never representation objects: `jepadrift/monitors/` imports none of these modules, and
 `jepadrift/representations/` imports neither `jepadrift.monitors`, `jepadrift.injection` nor torch
@@ -95,13 +95,21 @@ the representation has that hook, `fit` on the `calib` rows, then the transforma
   `sp500.CONTINUOUS_CHARS` columns, NaN kept; X = `np.where(chars.load_universe(dataset), ret, nan)`, the returns
   masked by `in_universe` of `panel.parquet` and never imputed. D2 raises `ValueError("D2 has no characteristics")`.
 
-**Registry.** `extract.REGISTRY = {"pca": PCAOrthogonal, "degree0": DegreeZero, "ranks": CenteredRanks}` is the
+**Registry.** `extract.REGISTRY = {"pca": PCAOrthogonal, "degree0": DegreeZero, "ranks": CenteredRanks, "ipca": IPCA}`
+(`NEEDS_C = {"ipca"}` since stream 17) is the
 registry of the contract tests (stream 08). A new representation (IPCA, stream 17; CD-DFM, stream 18; JEPA,
 stream 14) subclasses `Representation`, keeps the contract above, adds its entry to `REGISTRY`, and documents its
 heads here. A characteristic-driven representation also enters `extract.NEEDS_C` and declares its builder in
 `tests/test_contracts.py::CHAR_CASES`; the meta-test `test_char_registries_agree` imposes
 `NEEDS_C == set(CHAR_CASES) ⊆ REGISTRY`, and the D2 contracts loop on `REGISTRY − NEEDS_C`
 (`docs/sections/contracts.md`). C_t and the mask come from the shared loader `jepadrift/data_loader/chars.py`.
+
+**IPCA heads** (stream 17, `docs/sections/ipca.md`). `missing = True`; the hook `pretrain(X, C, dates)` estimates
+Γ_k on the pretrain rows for every k ≤ min(K_max, P), and `fit` selects K and the whitening W on calib.
+`z_odd = W f_t` (dimension K; cash-neutral `constant`: `[m_t / s_m, W f_t]`, dimension K + 1), with f_t regressed on the
+observed assets of day t and z = 0 on a day with rank(C̃_t) < P; `z_even = z_odd ** 2`. `channels = {"residual":
+[0..K−1]}` (cash-neutral: `{"market": [0], "residual": [1..K]}`). The sidecar adds the `pretrain` record (segment,
+fingerprints, ALS runs per candidate K).
 
 **Reference extractions** (`pca`, mode `factor`, Ledoit–Wolf; `logs/representations/extract.log`):
 

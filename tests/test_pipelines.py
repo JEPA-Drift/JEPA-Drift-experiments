@@ -1,4 +1,5 @@
 """Tests for jepadrift.pipelines and jepadrift.monitors.calibration (pytest)."""
+import hashlib
 import json
 import math
 
@@ -8,8 +9,9 @@ import pytest
 
 from jepadrift import floors, injection, sim
 from jepadrift import pipelines as pl
-from jepadrift.data_loader import articleB
+from jepadrift.data_loader import articleB, chars, sp500
 from jepadrift.monitors import calibration, cusum, eprocess, lattice, streams
+from jepadrift.monitors.gamma import required_threshold
 
 BETS = np.array([0.1, -0.1, 0.25, -0.25, 0.5, -0.5, 0.9, -0.9])
 
@@ -361,3 +363,49 @@ def test_cli_null_check_smoke(tmp_path):
     for argv in (["--pipeline", "P7", "--dataset", "d2_us97", "--null-check"], ["--pipeline", "P3-C", "--dataset", "d2_us97"]):
         with pytest.raises(SystemExit):
             pl.main(argv)
+
+
+@pytest.fixture(scope="module")
+def d3():
+    ret, dates, _ = sp500.load_d3_239()
+    rows = slice(*pl.split_rows(dates, sp500.load_splits("d3_239"))["pre_monitor"])
+    X = np.where(chars.load_universe("d3_239", rows), ret[rows], np.nan)
+    C = chars.load_continuous_chars("d3_239", rows)
+    return X, C, pl.split_rows(dates[rows], sp500.load_splits("d3_239"), C=C)
+
+
+def test_p4_wiring(d3):
+    X, C, splits = d3
+    assert {k: pl.make_spec("P4-C")[k] for k in ("reading", "K", "cash_neutral", "channels")} == {
+        "reading": "anytime-valid", "K": "select", "cash_neutral": None, "channels": "all"}
+    assert pl.READINGS["P4-C"] == ("anytime-valid", "exact") and pl.READINGS["P4-D"] == ("bootstrap",)
+    with pytest.raises(ValueError, match="single channel"):
+        pl.make_spec("P4-C", reading="exact")
+    with pytest.raises(ValueError, match="mixture_s2"):
+        pl.make_spec("P4-C", mixture_s2=0.01)
+    assert [pl.run_id(pl.make_spec(p)) for p in ("P2-C", "P3-C", "P3-D", "P3-CS")] == [
+        "267156529856a4d7", "8299c83097da5690", "325d221562a445fd", "fc505024ebf8f425"]
+    assert "C" not in pl.split_rows(splits["dates"], sp500.load_splits("d3_239"))
+    with pytest.raises(ValueError, match="align"):
+        pl.split_rows(splits["dates"], sp500.load_splits("d3_239"), C=C[1:])
+    spec = pl.make_spec("P4-C", reading="exact", channels=[0], alpha=pl.TARGET_FPR, dataset="d3_239")
+    state = pl.fit_pipeline(spec, X, splits)
+    rep, (p0, p1), (c0, c1) = state["rep"], splits["pretrain"], splits["calib"]
+    assert (rep.pretrain_info["first_day"], rep.pretrain_info["days"]) == (str(splits["dates"][p0]), p1 - p0)
+    assert (rep.fit_info["first_day"], rep.fit_info["days"]) == (str(splits["dates"][c0]), c1 - c0)
+    assert rep.fit_info["c_sha256"] == hashlib.sha256(C[c0:c1].tobytes()).hexdigest()
+    sel = lattice.select_threshold(pl.TARGET_FPR, H=pl.H_DET, delta=pl.SIGN_DELTA, sided=2)
+    assert (state["threshold"], state["level"]) == (sel["threshold"], sel["level"])
+    recs = _h0_records(8, len(X), pl.H_DET, [17, 1])
+    rows = pl.run_pipeline(spec, rep.transform_panel(X, C), splits, recs, state)
+    assert len(rows) == 8 and (rows["pipeline"] == "P4-C").all()
+    with pytest.raises(ValueError, match="needs C_t"):
+        pl.run_pipeline(spec, X, splits, recs, state)
+    energy = pl.make_spec("P4-D", dataset="d3_239", N_cal=200)
+    st = pl.fit_pipeline(energy, X, splits, key=[7, 17])
+    q = pl.residual_energy(st["rep"].transform_panel(X[c0:c1], C[c0:c1])["z_even"], st["channels"]["residual"])
+    lam = required_threshold(np.lib.stride_tricks.sliding_window_view(q, pl.H_DET), pl.ENERGY_DELTA, pl.TARGET_FPR,
+                             "fpr", pl.H_DET)
+    assert st["threshold"] == lam and st["gamma_op"] == lam / st["lam_iid"]
+    alarms, summary = pl.null_check([energy], X, splits, 20, [7, 18])
+    assert len(alarms) == 20 and summary["threshold"].iloc[0] == lam

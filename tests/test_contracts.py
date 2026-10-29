@@ -25,6 +25,7 @@ from jepadrift.data_loader import chars, sp500
 from jepadrift.representations import extract
 from jepadrift.representations.base import Representation
 from jepadrift.representations.cross_section import CenteredRanks, DegreeZero
+from jepadrift.representations.ipca import IPCA
 from jepadrift.representations.pca import PCAOrthogonal
 
 REPO = Path(__file__).resolve().parents[1]
@@ -248,7 +249,11 @@ def test_normalization_from_declared_segment_only(small_panel):
 
 # ------------------------------------------------------------------ Characteristic representations (D3)
 
-CHAR_CASES = {}
+def _ipca_case(data):
+    return IPCA().pretrain(*data["pretrain"]).fit(*data["calib"])
+
+
+CHAR_CASES = {"ipca": _ipca_case}
 
 
 def d3_char_data(n_pre=128, n_cal=120, n_after=60):

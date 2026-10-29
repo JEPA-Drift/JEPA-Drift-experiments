@@ -16,13 +16,14 @@ import numpy as np
 from jepadrift.data_loader import articleB, chars, eurofidai, sp500
 from jepadrift.representations.base import _sha256
 from jepadrift.representations.cross_section import CenteredRanks, DegreeZero
+from jepadrift.representations.ipca import IPCA
 from jepadrift.representations.pca import PCAOrthogonal
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DERIVED = REPO_ROOT / "data" / "derived"
 FIT_SEGMENT = "calib"
-REGISTRY = {"pca": PCAOrthogonal, "degree0": DegreeZero, "ranks": CenteredRanks}
-NEEDS_C = frozenset()
+REGISTRY = {"pca": PCAOrthogonal, "degree0": DegreeZero, "ranks": CenteredRanks, "ipca": IPCA}
+NEEDS_C = frozenset({"ipca"})
 DATASETS = {"d2_us97": (articleB.load_d2, articleB.load_splits),
             "d3_239": (sp500.load_d3_239, sp500.load_splits)}
 CHAR_DATASETS = {"d3_500": (sp500.load_d3_500, sp500.load_splits),
@@ -70,7 +71,7 @@ def extract(rep, X, dates, splits, out_dir, dataset, C=None):
 
 
 def _K(value):
-    return value if value == "mp" else int(value)
+    return value if value in ("mp", "select") else int(value)
 
 
 def main(argv=None):
@@ -78,12 +79,14 @@ def main(argv=None):
     parser.add_argument("--dataset", required=True, choices=sorted({**DATASETS, **CHAR_DATASETS}))
     parser.add_argument("--rep", required=True, choices=sorted(REGISTRY))
     parser.add_argument("--mode", help="pca: factor | full | tail10; degree0: factor | full")
-    parser.add_argument("--K", type=_K, help="'mp' (Marchenko-Pastur edge) or an int")
+    parser.add_argument("--K", type=_K, help="pca, degree0: 'mp' (Marchenko-Pastur edge) or an int; ipca: 'select' or an int")
     parser.add_argument("--shrinkage", choices=("ledoit_wolf", "none"), help="pca only")
     parser.add_argument("--b", choices=("pc1", "ones"), help="degree0 only")
+    parser.add_argument("--cash-neutral", choices=("constant",), help="ipca only")
     parser.add_argument("--out", type=Path, help="output directory (default data/derived/<dataset>)")
     args = parser.parse_args(argv)
-    kwargs = {k: v for k, v in (("mode", args.mode), ("K", args.K), ("b", args.b)) if v is not None}
+    kwargs = {k: v for k, v in (("mode", args.mode), ("K", args.K), ("b", args.b),
+                                ("cash_neutral", args.cash_neutral)) if v is not None}
     if args.shrinkage is not None:
         kwargs["shrinkage"] = None if args.shrinkage == "none" else args.shrinkage
     cls = REGISTRY[args.rep]

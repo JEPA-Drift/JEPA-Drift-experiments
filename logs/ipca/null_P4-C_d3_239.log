@@ -1,0 +1,7 @@
+generator: python -m jepadrift.pipelines --pipeline P4-C --dataset d3_239 --null-check --reps 500
+rows: 2005-01-03..2019-12-31 (3775 days before the monitor segment); D6 key [7, 1598770273]
+region: p +- z sqrt(p (1 - p) (1/n + 1/n_cal)), z = 2.5758 (99 %); overlap of windows ignored
+d001068ae16845b5 P4-C anytime-valid variant=None channels="all" H=750 gamma=15000 alpha=None threshold=15000 n=500 fpr=0.0020 target <= 0.050000 region [0.0249, 0.0751] PASS
+224ae46b8ee823fb P4-C exact variant=None channels=[0] H=750 gamma=20 alpha=0.05 threshold=9.1 n=500 fpr=0.0420 target = 0.043947 region [0.0203, 0.0676] PASS
+99f5bb329285bd40 P4-C exact variant=None channels=[1] H=750 gamma=20 alpha=0.05 threshold=9.1 n=500 fpr=0.0460 target = 0.043947 region [0.0203, 0.0676] PASS
+verdict: PASS
