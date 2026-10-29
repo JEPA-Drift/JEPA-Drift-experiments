@@ -72,3 +72,31 @@ def test_d4_shape():
     C, names = chars.load_chars_tensor("d4_eurofidai", rows=slice(0, 20))
     assert dates[19] < PRE_J4 and C.shape == (20, len(assets), len(names))
     assert names[:4] == list(sp500.CONTINUOUS_CHARS)
+
+
+LOADERS = {"d3_239": sp500.load_d3_239, "d3_500": sp500.load_d3_500, "d4_eurofidai": eurofidai.load_d4}
+
+
+@pytest.mark.parametrize("dataset", sorted(LOADERS))
+def test_load_universe_matches_finite_returns(dataset):
+    if dataset == "d4_eurofidai" and not (eurofidai.DERIVED_D4 / "panel.parquet").exists():
+        pytest.skip("D4 is not built in this tree")
+    ret, dates, assets = LOADERS[dataset]()
+    rows = dates < PRE_J4
+    universe = chars.load_universe(dataset, rows=rows)
+    assert universe.dtype == bool and universe.shape == (int(rows.sum()), len(assets))
+    assert np.array_equal(universe, np.isfinite(ret[rows]))
+    assert np.array_equal(chars.load_universe(dataset, rows=slice(1300, 1340)), universe[1300:1340])
+
+
+def test_load_universe_refuses_d2():
+    with pytest.raises(ValueError, match="D2 has no characteristics"):
+        chars.load_universe("d2_us97")
+
+
+def test_load_continuous_chars_selects_by_name(d3_239):
+    C, names = d3_239[0], d3_239[1]
+    C4 = chars.load_continuous_chars("d3_239", rows=slice(100, 140))
+    assert C4.shape == (40, 239, 4) and C4.dtype == np.float64 and C4.flags["C_CONTIGUOUS"]
+    for k, name in enumerate(sp500.CONTINUOUS_CHARS):
+        assert np.array_equal(C4[..., k], C[100:140, :, names.index(name)], equal_nan=True)

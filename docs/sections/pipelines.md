@@ -1,4 +1,4 @@
-# Pipelines (stream 07) — P2-C, P3-C, P3-D, P3-CS, P7 and their calibrations
+# Pipelines (stream 07) — P2-C, P3-C, P3-D, P3-CS, P4-C, P4-D, P7 and their calibrations
 
 `jepadrift/pipelines.py` runs every cross-sectional pipeline through the same detection stack; only the representation
 changes. `jepadrift/monitors/calibration.py` holds the threshold calibrations (numpy only), and the exact lattice
@@ -51,11 +51,11 @@ frozen state (thresholds, ρ̂ and K_eff, Γ^op, σ̄, independence test, repres
 
 | reading | `threshold` | guarantee under H₀ | target of the H₀ tests (`null_target`) |
 |---|---|---|---|
-| `anytime-valid`, e-detector (P2-C, P3-C, P3-CS b) | γ: alarm at log M ≥ log γ | ARL₀ ≥ γ [Shin, Ramdas & Rinaldo, 2024]; P₀(alarm ≤ H) ≤ H/γ (Lorden's decomposition) | FPR ≤ upper end of the 99 % region of min(1, H/γ), tested at γ = 20H |
+| `anytime-valid`, e-detector (P2-C, P3-C, P4-C, P3-CS b) | γ: alarm at log M ≥ log γ | ARL₀ ≥ γ [Shin, Ramdas & Rinaldo, 2024]; P₀(alarm ≤ H) ≤ H/γ (Lorden's decomposition) | FPR ≤ upper end of the 99 % region of min(1, H/γ), tested at γ = 20H |
 | `anytime-valid`, e-process (P3-CS a) | γ | P₀(sup M ≥ γ) ≤ 1/γ [Ville, 1939] | FPR ≤ upper end of the 99 % region of 1/γ, tested at γ = 20 |
 | `anytime-valid` (P7) | γ: CUSUM of the Gaussian LLR at ln γ | ARL₀ ≥ γ under the Gaussian i.i.d. model of Σ̂ only | none: P7 is a bound |
-| `exact` (P3-C, one channel) | lattice threshold (midpoint) | FPR(H) equal to the exact level, or ARL₀ = γ | two-sided 99 % region of the exact level |
-| `bootstrap` (P2-C, P3-D) | λ: quantile of null-window maxima | FPR(H) ≈ α over the window population | two-sided 99 % region of α, calibration noise included for P2-C |
+| `exact` (P3-C, P4-C, one channel) | lattice threshold (midpoint) | FPR(H) equal to the exact level, or ARL₀ = γ | two-sided 99 % region of the exact level |
+| `bootstrap` (P2-C, P3-D, P4-D) | λ: quantile of null-window maxima | FPR(H) ≈ α over the window population; for P3-D and P4-D, over the calib windows that set λ (in sample) | two-sided 99 % region of α, calibration noise included for P2-C; the P3-D/P4-D D6 check re-reads those windows and cannot estimate an out-of-sample FPR (`C-P4D-null-insample`) |
 | `randomization` (P3-CS a) | λ: quantile of sign-flipped null-window maxima | FPR(H) ≈ α; exact conditionally on the magnitudes under symmetry without leverage | two-sided 99 % region of α, calibration noise included |
 | `budget` | — | τ_γ = ln γ / I (Lemma 1, exact) | analytic (`jepadrift/floors.py`), no monitor |
 
@@ -72,6 +72,8 @@ P2-C in the D6 probes of `prompts/plans/plan-07.md`), as its ARL₀ guarantee al
 | P3-C | `PCAOrthogonal(K, mode, shrinkage)`; `channels` ∈ {all, market, residual, [k]} | x = 2·`exact_sign_stream(z_odd[:, channels])` | anytime-valid: `log_dictionary_edetector(x, "cusum")`, equal weights on all channels; exact: strict bilateral CUSUM, δ = 0.1, one channel; option `mixture_s2` | exact: `select_threshold(α, H=H)` or `select_threshold(1/γ, H=None)` | `anytime-valid` (default), `exact` |
 | P3-D | `PCAOrthogonal`, even head | q_t = (Σ_{k residual} z_even[t, k] − D)/√(2D) (`residual_energy`) | strict one-sided CUSUM, δ = 0.5 | all windows of length H of the calib rows, `required_threshold(·, 0.5, α, "fpr", H)`; λ_iid on i.i.d. (χ²_D − D)/√(2D); Γ^op = λ_req/λ_iid | `bootstrap` |
 | P3-CS | `DegreeZero(b, K, mode)`; `variant` ∈ {a, b} (b by default) | (a) pivots z_odd ∈ [−1, 1]; (a, randomization) pivots over their calib RMS; (b) exact signs of z_odd and ‖Px‖ = z_even | (a) `log_average_betting_eprocess`; (a, randomization) first alarm over directions of `bilateral_delay_vec(δ = 0)`; (b) CUSUM e-detector with predictable stakes | randomization: `null_windows(flip=True)`, B = 2000, `bootstrap_threshold`; (b) σ̄ | `anytime-valid` (a, b), `randomization` (a) |
+| P4-C | `IPCA(K="select", cash_neutral=None)`; C_t from `splits["C"]` | as P3-C, on the IPCA z_odd | as P3-C | as P3-C | `anytime-valid` (default), `exact` |
+| P4-D | `IPCA`, even head | `residual_energy` of the IPCA z_even | as P3-D | as P3-D, calib rows transformed with C | `bootstrap` |
 | P7 | Σ̂ = Ledoit–Wolf of the calib rows of `X_fit` | ℓ_t = w_tᵀx_t − ½w_tᵀΔ_t, w_t = Σ̂⁻¹Δ_t, Δ_t = `record["delta"]` | `cusum_trajectory_vec(ℓ, 0)`, alarm at S ≥ ln γ | none | `anytime-valid` (bound) |
 
 Constants: `H_REF, H_DET, N_CAL, TARGET_FPR = 500, 750, 20000, 0.05` (R15 l.194–199), `MASTER_SEED = 42` (R15
@@ -111,6 +113,26 @@ even statistic unchanged, so the threshold comes from the null windows of the ca
 reports λ_req, λ_iid, Γ_z^op = λ_req/λ_iid and Γ^spec of q on the calib rows. Windows longer than the calib segment raise
 `ValueError`: on D2 and `d3_239` (941 calib days) an E1 horizon of 2000 days needs a decision in stream 12
 (`C-P3D-windows`).
+
+### P4-C and P4-D — IPCA (stream 17)
+
+P4-C and P4-D reuse the streams, detectors and calibrations of P3-C and P3-D on the IPCA representation
+(`docs/sections/ipca.md`). C_t travels in `split_rows(dates, splits, C)` (key `"C"`, aligned on the rows);
+`fit_pipeline` calls `pretrain` on the pretrain rows, then `fit` on calib, with C; the CLI masks X by `in_universe`
+and loads the four continuous characteristics. Monitoring takes a Z dict (`rep.transform_panel(X, C)`); an X panel
+without C is refused (`needs C_t`). D6 null checks on `d3_239` (500 replicates, H = 750; `results/ipca/`,
+`logs/ipca/`):
+
+| spec | FPR | target | 99 % region | verdict |
+|---|---|---|---|---|
+| P4-C anytime-valid, dictionary, γ = 15 000 | 0.0020 | ≤ 0.05 | upper end 0.0751 | PASS |
+| P4-C exact, channel 0 / channel 1 | 0.0420 / 0.0460 | = 0.043947 | [0.0203, 0.0676] | PASS |
+| P4-D bootstrap, λ = 57.4642 (λ_iid = 12.3047, Γ^op = 4.670) | 0.0000 | ~ 0.05 | [0.0249, 0.0751] | FAIL |
+
+The P4-D check re-reads the 192 calib windows that set λ, with no fresh D6 randomness in the even energy stream; all
+192 windows share one CUSUM peak just below λ (`C-P4D-null-insample`). P4-D's FPR is therefore uncalibrated, and
+neither P4-D nor the corresponding P3-D window diagnostic is a calibrated reference for J4 without a separately
+approved control.
 
 ### P3-CS — degree-0 cross-section
 
@@ -195,6 +217,7 @@ verbatim). The one-ulp difference at K = 10 comes from the summation order of `n
 | P2-C port and bootstrap at 5 % | `test_p2c_recentred_stream_matches_worker`, `test_p2c_bootstrap_fpr` |
 | R15 identity | `test_r15_identity_rng_free`, `test_r15_bootstrap_identity_k5` |
 | P3-D energy and Γ^op | `test_p3d_energy_and_gamma_op` |
+| P4 wiring: defaults, C path, Z dict, lattice level, Γ^op of P4-D | `test_p4_wiring` |
 | P3-CS stakes, e-process and randomization | `test_p3cs_stakes_predictable`, `test_p3cs_pivot_eprocess_and_randomization` |
 | FPR under H₀ on D6 | `test_null_fpr_d6` |
 | strong F2 detected | `test_strong_f2_detected` |

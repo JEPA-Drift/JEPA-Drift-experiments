@@ -1,0 +1,91 @@
+{
+  "7dec06771ffb49cd": {
+    "spec": {
+      "H": 750,
+      "K": "select",
+      "N_cal": 20000,
+      "alpha": 0.05,
+      "cash_neutral": null,
+      "dataset": "d3_239",
+      "gamma": 20.0,
+      "null_rows": "calib",
+      "pipeline": "P4-D",
+      "reading": "bootstrap"
+    },
+    "state": {
+      "calib": [
+        2834,
+        3775
+      ],
+      "gamma_op": 4.670115198401394,
+      "gamma_spec": 1.7019709498494853,
+      "lam_iid": 12.30465536348917,
+      "representation": {
+        "class": "IPCA",
+        "fit": {
+          "c_sha256": "a069da5632d0c1549ab0606b480e80baddb3af2d4f22df8f312b74db79e2cf71",
+          "days": 941,
+          "first_day": "2016-04-07",
+          "last_day": "2019-12-31",
+          "x_sha256": "4250253148fc8d30be74a8596b1bca7e865aa2f177979e3b49d03b26ca633ceb"
+        },
+        "pretrain": {
+          "P": 4,
+          "als": {
+            "1": {
+              "iterations": 18,
+              "projector_change": 6.886427952759163e-11,
+              "r2_insample": 0.06834631158770021
+            },
+            "2": {
+              "iterations": 114,
+              "projector_change": 9.620852456843694e-11,
+              "r2_insample": 0.08084606802262528
+            },
+            "3": {
+              "iterations": 43,
+              "projector_change": 8.313944571967338e-11,
+              "r2_insample": 0.0904188943045785
+            },
+            "4": {
+              "iterations": 1,
+              "projector_change": 1.0269937034406899e-15,
+              "r2_insample": 0.09545280461585681
+            }
+          },
+          "c_nan_imputed": 8,
+          "c_sha256": "62b1699e5ffcd97ee6298fd8785c92e61358db171f31c70430e52ab17158070a",
+          "days": 2769,
+          "excluded": [],
+          "first_day": "2005-01-03",
+          "last_day": "2015-12-31",
+          "n_assets": 239,
+          "r2_target": "returns",
+          "used_days": 2769,
+          "x_sha256": "32389c367de98e5decc6e0cd71eaea56cebceba254cf90c42a897963dbe8627d"
+        },
+        "state_sha256": "55a11b750d035f5b4a94627e0abf2e14d913d863d4b46d2128cd0d907fc947fb"
+      },
+      "threshold": 57.464158024122
+    },
+    "summary": {
+      "H": 750,
+      "alpha": 0.05,
+      "channels": "null",
+      "fpr": 0.0,
+      "gamma": 20.0,
+      "hi": 0.07510607848902363,
+      "kind": "~",
+      "lo": 0.02489392151097637,
+      "n": 500,
+      "n_cal": null,
+      "ok": false,
+      "pipeline": "P4-D",
+      "reading": "bootstrap",
+      "run_id": "7dec06771ffb49cd",
+      "target": 0.05,
+      "threshold": 57.464158024122,
+      "variant": null
+    }
+  }
+}

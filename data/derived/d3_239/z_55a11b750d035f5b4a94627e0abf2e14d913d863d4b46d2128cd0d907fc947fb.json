@@ -1,0 +1,137 @@
+{
+  "c_sha256": "38b1b0dd0547e397c881bc8e79dfff1ae327247bbb239385ff506ef8cc0a7141",
+  "channels": {
+    "residual": [
+      0,
+      1
+    ]
+  },
+  "config": {
+    "K": "select",
+    "K_max": 4,
+    "cash_neutral": null
+  },
+  "dataset": "d3_239",
+  "dates": [
+    "2005-01-03",
+    "2026-10-16"
+  ],
+  "fit": {
+    "c_sha256": "a069da5632d0c1549ab0606b480e80baddb3af2d4f22df8f312b74db79e2cf71",
+    "days": 941,
+    "first_day": "2016-04-07",
+    "last_day": "2019-12-31",
+    "x_sha256": "793a7d00a2287f8fd92b05d89d6df95f5400259907610ce86a5f1b4f91289f4b"
+  },
+  "fit_segment": "calib",
+  "heads": {
+    "z_even": {
+      "definition": "z_odd ** 2",
+      "degree": 2,
+      "dim": 2,
+      "parity": "even"
+    },
+    "z_odd": {
+      "definition": "[W f_t], f_t = (Gamma' C~_t' C~_t Gamma)^-1 Gamma' C~_t' x~_t on O_t; 0 if rank(C~_t) < P",
+      "degree": 1,
+      "dim": 2,
+      "parity": "odd"
+    }
+  },
+  "interface": "Z-1",
+  "n_assets": 239,
+  "normalization": {
+    "K": 2,
+    "c_nan_imputed_calib": 24,
+    "candidates": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "excluded_calib": [],
+    "fold_skips": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "min_rcond_calib": [
+      1.0,
+      0.4688473812486824,
+      0.33050424994194444,
+      0.2645862002766334
+    ],
+    "r2_heldout_calib": [
+      0.054728522587731976,
+      0.06058526588527735,
+      0.05664200786527929,
+      0.050917014789599424
+    ],
+    "r2_insample_calib": [
+      0.06790264703347859,
+      0.08844220073663156,
+      0.09983761594779905,
+      0.10855747506035762
+    ],
+    "r2_target": "returns",
+    "second_moment": [
+      [
+        0.0001273800455732623,
+        -5.001852086784164e-06
+      ],
+      [
+        -5.001852086784164e-06,
+        7.201731366167106e-05
+      ]
+    ],
+    "used_days_calib": 941
+  },
+  "odd_head": true,
+  "pretrain": {
+    "P": 4,
+    "als": {
+      "1": {
+        "iterations": 18,
+        "projector_change": 6.886427952759163e-11,
+        "r2_insample": 0.06834631158770021
+      },
+      "2": {
+        "iterations": 114,
+        "projector_change": 9.620852456843694e-11,
+        "r2_insample": 0.08084606802262528
+      },
+      "3": {
+        "iterations": 43,
+        "projector_change": 8.313944571967338e-11,
+        "r2_insample": 0.0904188943045785
+      },
+      "4": {
+        "iterations": 1,
+        "projector_change": 1.0269937034406899e-15,
+        "r2_insample": 0.09545280461585681
+      }
+    },
+    "c_nan_imputed": 8,
+    "c_sha256": "62b1699e5ffcd97ee6298fd8785c92e61358db171f31c70430e52ab17158070a",
+    "days": 2769,
+    "excluded": [],
+    "first_day": "2005-01-03",
+    "last_day": "2015-12-31",
+    "n_assets": 239,
+    "r2_target": "returns",
+    "used_days": 2769,
+    "x_sha256": "3115d872421e2df0dc6d58d9093e4a8703b5b314cfcb4c9f1333f54e086c4830"
+  },
+  "representation": "IPCA",
+  "rows": [
+    1256,
+    6738
+  ],
+  "state_sha256": "55a11b750d035f5b4a94627e0abf2e14d913d863d4b46d2128cd0d907fc947fb",
+  "x_sha256": "72baf8b06d819fd7dcf303d5375f5091d300adca95887b0f90ab9e2981f08051",
+  "z_sha256": {
+    "Z_even": "2403ef7ec3407d8596cb2d2d84831f294771e7c2e43f478fee0686add501ea4d",
+    "Z_odd": "787312c0640388ee56a926c1141acfbfc5dfd68136ff5f01c88ceee762fb74af"
+  }
+}

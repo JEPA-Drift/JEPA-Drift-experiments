@@ -29,6 +29,33 @@ for `z_*.npz` and the sidecar JSON. The extraction pipeline is bit-for-bit repro
 declared segment. A representation that normalizes over the full series (fixture:
 `_FaultyNormalization`) fails this contract.
 
+## Characteristic representations (stream 17)
+
+A representation that reads the characteristics C_t (`extract.NEEDS_C = {"ipca"}` since stream 17, then CA-T-JEPA
+and CD-DFM; IPCA's builder is `IPCA().pretrain(*pretrain).fit(*calib)`) cannot run on D2, so the D2 contracts above loop on `REGISTRY − NEEDS_C`. Each such representation declares a builder in
+`tests/test_contracts.py::CHAR_CASES`; the meta-test `test_char_registries_agree` imposes
+`NEEDS_C == set(CHAR_CASES) ⊆ REGISTRY`, so a new entry of `NEEDS_C` without its case fails. The builder receives
+`d3_char_data()`, a causal D3 fixture with three `(X, C, dates)` blocks of `d3_239` rows before 2020:
+
+- `pretrain`: the last 128 pretrain days;
+- `calib`: the first 120 calib days;
+- `after`: the next 60 calib days.
+
+In every block, X is masked by `in_universe` and C holds the four continuous characteristics
+(`chars.load_continuous_chars`). The builder fits on `pretrain` (if the representation has a pretrain step) and on
+`calib`. The contracts, parametrized by `CHAR_CASES`, are:
+
+| contract | test |
+|---|---|
+| (1) perturbing x and C after day t leaves z_{1:t} bitwise unchanged | `test_char_non_anticipation` |
+| (2) ‖φ(−x; C) + φ(x; C)‖_∞ ≤ 1e-6 with C frozen | `test_char_odd_head` |
+| (3) two subprocess builds (`d3_char_data`, `PYTHONHASHSEED=42`, one thread) give the same state hash and Z bytes | `test_char_determinism_subprocess` |
+| (4) rows after calib leave `state_hash` and `normalization` unchanged; a calib row moves the state | `test_char_no_test_statistics` |
+| declared segment: `fit` dates, day count, `x_sha256` and `c_sha256` name the calib rows passed | `test_char_declared_segment` |
+
+Reconstruction goes through the builder, never `type(rep)(**config)`: a characteristic representation may need a
+pretrain step or a checkpoint.
+
 ## Decoupling rules (AST analysis)
 
 | module | must not import |
