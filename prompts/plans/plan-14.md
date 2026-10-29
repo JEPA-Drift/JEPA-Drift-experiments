@@ -151,3 +151,34 @@ moins 65 jours ; s_i, PC1 b et médianes figés sur ces seules lignes) → fichi
 `test_contracts.py`, `interface_Z.md`, `contracts.md`, `DEVIATIONS.md`, `CLAUDE.md`, `.gitignore`) → portes (tests
 ciblés, D2/PCA à l'octet, deux extractions identiques, quatre smokes réels, `make check` ≤ 300 s, J1 CRLF/SHA-256) →
 wrapup → C3 local. `.pth` différé tant qu'un autre stream utilise `.venv`.
+
+Arrêt GO-B (2026-10-29) : `data/derived/d3_239/ret_wide.npy` est en ordre Fortran (npy 1.0, float64, (6738, 239),
+SHA-256 `a266fbab…`), contrairement à la révision 5 ; la validation d'en-tête en ordre C exigée par la correction 2
+le rejette. Trace : `external/torch-cf-logs/goB_stop.txt`.
+
+## Décision GO-B2 intégrée
+GO-B2 : `prompts/GO-stream-14-B2.md` (SHA-256 `bd84e2107c4992eb0ee5b7fc7fefe105e77af97dadef5c39b2471909eeb7f26e`) sur
+le plan revu, révision 6 (SHA-256 `bf04f2fdb9af477720b363cced06f9f334409c9bf2d9567b6e3a7f52d256b459`). Il prolonge GO-B
+après l'arrêt « ordre Fortran » ; C2 `7fbd43f`, la fusion `93370e4`, les six fichiers GO-B non commités, GO-A, GO-B, le
+stream 17 et le checkout principal sont préservés. Ni autre stream, ni fetch, ni push, ni résultat J4 calibré.
+- Option A : `ret` et `in_universe` lus dans le même row group filtré de `panel.parquet`, C dans `chars.parquet`
+  filtré ; `ret_wide.npy` n'est jamais ouvert par le lecteur pretrain ; lecteur en ordre C et tests obsolètes retirés ;
+  fixture `.npy` empoisonnée conservée.
+- Portes de données avant tout entraînement : couverture date × actif exacte et unique, ni clé manquante ni clé en
+  trop, aucun infini, rendements observés présents, bornes de date Parquet fiables, aucun row group monitor ouvert.
+  Grille réelle 2 769 dates × 239 actifs = 661 791 clés ; SHA-256 en ordre C des rendements pretrain
+  `3115d872421e2df0dc6d58d9093e4a8703b5b314cfcb4c9f1333f54e086c4830` ; 8 NaN, tous dans `c_beta_252`, aucun infini dans
+  C. Ni réécriture des sources D3, ni réglage du modèle pour franchir ces portes.
+- Ordre des actifs (correction obligatoire) : un entraînement sur données D3 réelles échoue sans identifiants
+  d'actifs ordonnés ; le checkpoint ne stocke que leur condensat SHA-256 canonique. La CLI `ca_tjepa` rejette un
+  checkpoint sans condensat et une permutation de même effectif. Un checkpoint synthétique de contrat ne reste non lié
+  que s'il est utilisé sans identifiants ; passer les identifiants d'un jeu de données à un checkpoint non lié échoue.
+  `CATJEPA` vérifie les identifiants liés avant `fit` et toute extraction. Chemins acceptés et rejetés testés ; la
+  limite Z-1 des tableaux directs est documentée sans affaiblir la porte.
+- Invariants `CALIB_FREE` et état figé conservés ; tests no-leak réels `group` et `random`, garde temporelle
+  multi-jours sur les deux têtes avec témoin fautif, contrôles du registre et des options CLI, porte d'extraction
+  déterministe complète. Tout témoin, porte de données, test, comparaison D2/PCA ou porte J1 en échec est un STOP avec
+  preuves, jamais un motif d'ajustement.
+- Exécution : `Edit` natif pour toute modification (ni redirection shell, ni `cat`, ni script Python) ; MCP graphify
+  et jcodemunch reconnectés et appelés (graph_stats ; resolve_repo) avant implémentation ; `.venv` + shim torch,
+  `MPLBACKEND=Agg` ; RED → GREEN ; portes GO-B ; documentation ; wrapup ; C3 local sans trailer. `.pth` différé.

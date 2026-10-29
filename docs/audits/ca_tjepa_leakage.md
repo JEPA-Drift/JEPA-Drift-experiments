@@ -22,7 +22,16 @@ training core refuses rows dated on or after 2016-01-01.
 | Deterministic training, global torch and numpy RNG untouched | `test_training_is_deterministic_and_leaves_global_rng` | `torch.randn` changes the global state (asserted) |
 | Checkpoint integrity | `test_checkpoint_integrity` | a flipped byte is refused |
 
-## Not covered under GO-A
-Source-filtered reading of `d3_239` (no monitor row read by `jepa_pretrain`), the NaN path through the shared base
-(`Representation.missing` of Stream 17), the registry entry and `--ckpt`/`--D` in `extract.py`, the characteristic
-contracts and the four real-model guards in `tests/test_contracts.py`: GO-B, after the Stream 17 base is final.
+## GO-B and GO-B2 additions (real `d3_239` pretrain path)
+| Property | Test | Witness that must fail |
+|---|---|---|
+| The pretrain reader opens only row group 0 of each Parquet file and never `ret_wide.npy`; monitor rows (+inf) never reach the arrays | `test_pretrain_reader_never_opens_monitor`, `test_real_pretrain_reader` | a poison `ret_wide.npy` that `np.load` refuses |
+| Overlap with monitor, missing date statistics, missing, duplicate or extra keys, ±inf, null `in_universe`, NaN return inside the universe stop the read | `test_pretrain_reader_validates_inputs` | — |
+| Calib rows inside the read row group change neither the pretrain arrays nor the checkpoint | `test_calib_rows_of_a_read_group_do_not_reach_training` | — |
+| Real-panel integrity gates (2,769 × 239, SHA-256 `3115d872…`, 8 NaN in `c_beta_252`) and equality with the Stream 17 fixture | `test_real_pretrain_reader` | — |
+| Masked returns on real pretrain days leave the context side bit-identical, `group` and `random` masks | `test_context_ignores_masked_returns_on_real_days` | — |
+| Asset identity bound before `fit`; permutation, missing list and unbound-with-IDs refused; registry and CLI options | `test_asset_identity_binding`, `test_registry_and_cli_options`, `test_real_training_requires_asset_ids` | — |
+| Characteristic contracts with `CALIB_FREE` and the four real-model torch guards | `tests/test_contracts.py` | each guard's faulty witness |
+
+Remaining limit: a direct Z-1 call `fit(X, C, dates)` on arrays cannot verify that the caller's columns follow the
+checkpoint's asset order; the CLI relays the dataset's `assets.json` order and `CATJEPA` checks it.

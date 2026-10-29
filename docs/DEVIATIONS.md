@@ -610,3 +610,51 @@ IPCA. The FAIL stays recorded; H, α, `ENERGY_DELTA`, `null_rows`, `N_cal`, the 
 GO fixing its data source, independence unit, calibration/evaluation split, sample size, target, uncertainty interval
 and verdict rule before any result is observed; a synthetic D5 control would certify its own model only. P4-C's
 saved null check (fresh D6 signs, analytic thresholds) is unaffected: PASS.
+
+## C-torch-conda-forge — torch from a conda-forge explicit lock in `.venv/torch-cf` (2026-10-29)
+
+The stream 14 prompt asked for a pinned CPU torch; pip cannot install conda-forge artifacts and the shared `.venv` is
+not a conda prefix. torch 2.14.1 `cpu_generic_py312_h29917d7_0` and its dependencies come from `conda-torch.lock`, an
+`@EXPLICIT` serialization of the validated solve record (65 conda-forge URLs with SHA-256), verified against the
+archives with `sha256sum` and against an offline dry-run before an offline `--copy` install into `.venv/torch-cf`.
+Project code reaches it through a `PYTHONPATH` shim that appends its site-packages after the venv (numpy, scipy and
+pandas still resolve from `.venv`); the parent `.pth` bridge stays deferred while another stream uses `.venv`.
+`requirements.txt` and `requirements.lock` are unchanged.
+
+## C-jepa-v2 — CA-T-JEPA v2 design (2026-10-29)
+
+Per the v2 directive imposed by the researcher (stream 14 GO-A, GO-B, GO-B2): the predictor sees only the native
+d-dimensional context summary z_ctx (d ∈ {2, 4, 8, 16} fixed before training) and the characteristics of the masked
+asset; the PCA-whitened readout of the first design is an ablation, not implemented. Training uses an EMA target
+encoder; extraction uses the frozen context encoder on the full present set (Q5 revised). Market neutralization is
+visible-only with one frozen factor (PC1 of pretrain, identity weights, ridge λ_f = 1e-3); the market column of z_odd is
+f̂(P). Early stopping uses an internal pretrain validation (from 2014-01-01, 65-day embargo); calib is never used for
+weights, epoch choice or masks. The representation fits nothing on calib (`CALIB_FREE` in the contract tests). A
+real-data checkpoint binds the SHA-256 of its ordered asset IDs; a direct Z-1 call on arrays cannot verify column labels.
+
+## C-jepa-char-group-mask — masking by causal characteristic groups (2026-10-29)
+
+The primary mask is not a published scheme: each present asset gets the code Σ_k 2^k 1{C_k > m_k} over the four
+continuous characteristics (16 codes; a tie gives bit 0; any NaN characteristic gives `nochar`), with the medians m_k
+estimated on the internal training part of pretrain and frozen in the checkpoint; whole groups are masked in a seeded
+random order up to a share drawn in [0.3, 0.5], skipping oversized groups and filling uniformly when groups fall short.
+Uniform random masking is a diagnostic. No static GICS sector enters the main variant (`C-D3-gics-static`).
+
+## C-jepa-d3-reader — pretrain rows read from the filtered Parquet row group (2026-10-29)
+
+`data/derived/d3_239/ret_wide.npy` is stored in Fortran order (npy 1.0, float64, (6738, 239)), so a C-order prefix
+read is impossible. `experiments/jepa_pretrain.py` reads `ret` and `in_universe` from `panel.parquet` and C from
+`chars.parquet`, opening only the row groups that start before 2016-01-01 and refusing any selected row group that
+reaches 2020-01-01 (on `d3_239`: row group 0 only; its calib rows are dropped in Arrow before any array, hash or
+checkpoint). `ret_wide.npy` is never opened. Gates before training: exact unique date × asset coverage (2,769 pretrain
+dates × 239 assets = 661,791 keys in each file), no infinity, no NaN return inside the universe, C-order SHA-256 of the
+pretrain returns `3115d872421e2df0dc6d58d9093e4a8703b5b314cfcb4c9f1333f54e086c4830` (equal bit for bit to the
+`ret_wide.npy` rows), 8 NaN characteristics, all in `c_beta_252`.
+
+## C-jepa-inherited-chars — CA-T-JEPA inherits the D3 characteristic defects (2026-10-29)
+
+`c_beta_252` enters both the CA-T-JEPA tokens and its group dictionary, so every `d3_239` checkpoint inherits
+`C-D3-beta-denominator` (used as is, not corrected); `C-D3-chars-phantom` reports no phantom cell on `d3_239` but
+applies to `d3_500` and D4. Stream 14 real-data smokes (200 days, 2 epochs) establish engineering feasibility only.
+P4-D and any bootstrap FPR reading of a P5-D even head on `d3_239` with H = 750 stay outside calibrated J4 comparisons
+(`C-P4D-null-insample`).

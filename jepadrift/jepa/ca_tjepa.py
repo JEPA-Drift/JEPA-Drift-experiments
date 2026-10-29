@@ -281,6 +281,11 @@ def _sha(a):
     return hashlib.sha256(np.ascontiguousarray(a).tobytes()).hexdigest()
 
 
+def assets_digest(assets):
+    """Canonical SHA-256 of the ordered asset IDs (compact JSON list)."""
+    return hashlib.sha256(json.dumps(list(assets), separators=(",", ":")).encode()).hexdigest()
+
+
 def save_checkpoint(out_dir, record, net):
     """Write <out_dir>/<sha256(config.json + weights.npy)>/{config.json, weights.npy}; returns the directory."""
     sd = net.state_dict()
@@ -319,6 +324,10 @@ def load_checkpoint(path):
 def extract_day(net, x, C, s, b, lambda_f):
     """(z_odd, z_even) of one day from the frozen context encoder with mask=none; z_odd[0] = f_hat(P) in float64."""
     present = np.isfinite(x)
+    if present.sum() < 2:
+        raise ValueError(f"an extraction day needs at least 2 observed assets, got {int(present.sum())}")
+    if np.isinf(C).any():
+        raise ValueError(f"C has {int(np.isinf(C).sum())} infinite values")
     u = np.where(present, x / s, 0.0)
     f = (b * u)[present].sum() / ((b * b)[present].sum() + lambda_f)
     Ct = torch.from_numpy(impute_zero(C)[0].astype(np.float32))[None]
@@ -329,7 +338,7 @@ def extract_day(net, x, C, s, b, lambda_f):
     return np.concatenate([[f], (gp - gm) / 2]), (gp + gm) / 2
 
 
-def train(X, C, dates, cfg, seed, out_dir, data=None):
+def train(X, C, dates, cfg, seed, out_dir, data=None, assets=None):
     """Pretrain on rows dated before train.pretrain_end only; writes the checkpoint and metrics.json; (path, metrics)."""
     mk, tr, ls, lam = cfg["mask"], cfg["train"], cfg["loss"], cfg["neutralization"]["lambda_f"]
     check_mask_kind(mk["kind"])
@@ -339,6 +348,10 @@ def train(X, C, dates, cfg, seed, out_dir, data=None):
         raise ValueError(f"rows on or after pretrain_end {tr['pretrain_end']} are refused")
     if X.shape != C.shape[:2] or C.shape[2] != N_CHARS or dates.shape != (len(X),):
         raise ValueError(f"X {X.shape}, C {C.shape} and dates {dates.shape} are not aligned")
+    if np.isinf(X).any() or np.isinf(C).any():
+        raise ValueError(f"X and C hold {int(np.isinf(X).sum())} and {int(np.isinf(C).sum())} infinite values")
+    if assets is not None and (len(assets) != X.shape[1] or len(set(assets)) != len(assets)):
+        raise ValueError(f"assets must hold the {X.shape[1]} ordered, unique asset IDs of the columns of X")
     est, val = internal_split(dates, tr["validation_start"], tr["embargo_days"])
     frozen, coverage = fit_frozen(X[est], C[est], tr["min_obs"])
     present_np = np.isfinite(X)
@@ -421,7 +434,8 @@ def train(X, C, dates, cfg, seed, out_dir, data=None):
               "seeds": {"scheme": "SeedSequence([14, seed, usage])", "usages": USAGES},
               "split": {"estimation": [str(dates[est][0]), str(dates[est][-1]), int(est.sum())],
                         "validation": [str(dates[val][0]), str(dates[val][-1]), int(val.sum())]},
-              "versions": {"torch": torch.__version__, "numpy": np.__version__}}
+              "versions": {"torch": torch.__version__, "numpy": np.__version__},
+              "assets_sha256": None if assets is None else assets_digest(assets)}
     path = save_checkpoint(out_dir, record, net)
     (path / "metrics.json").write_text(json.dumps(metrics, sort_keys=True, indent=1) + "\n")
     return path, metrics

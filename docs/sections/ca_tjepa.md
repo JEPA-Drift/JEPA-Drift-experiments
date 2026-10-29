@@ -1,9 +1,10 @@
 # CA-T-JEPA (stream 14) — native compact representation, visible-only masking
 
-Status: GO-A core (synthetic data only). Real `d3_239` data, source-filtered loading, extraction registration and the
-shared contracts are GO-B work, blocked on the Stream 17 shared base (Stream 17 D3 stop on the P4-D null check).
-Governing text: the v2 directive `prompts/streams/01_STREAM_14_REWRITE_BOTTLENECK.md` of the main checkout
-(SHA-256 `1b5f2f8e…62c3`), `prompts/GO-stream-14-A.md` and `prompts/plans/plan-14.md`.
+Status: GO-A synthetic core, then GO-B and GO-B2 on the local Stream 17 base (`6ed8f8a`, merged as `93370e4`): real
+`d3_239` pretrain reader, `ca_tjepa` registration, characteristic contracts and real-model torch guards. Real-data
+smokes are engineering checks only. Governing text: the v2 directive `prompts/streams/01_STREAM_14_REWRITE_BOTTLENECK.md`
+of the main checkout (SHA-256 `1b5f2f8e…62c3`), `prompts/GO-stream-14-A.md`, `prompts/GO-stream-14-B.md`,
+`prompts/GO-stream-14-B2.md` and `prompts/plans/plan-14.md`.
 
 ## Architecture (`jepadrift/jepa/ca_tjepa.py`)
 - **Frozen inputs.** On the internal estimation rows only: s_i = RMS of the observed returns (refused below
@@ -54,8 +55,9 @@ patience 10, mask share ρ ~ U[0.3, 0.5] per batch. Nothing is tuned on calib or
   synthetic data 4; parameter initialization runs under `torch.random.fork_rng`, so the global RNG is untouched.
 
 ## Training, checkpoints and the no-coupling control (`experiments/jepa_pretrain.py`)
-`--data {synthetic, control}` under GO-A; `--smoke` = 200 days and 2 epochs; `--d` fixes the width; the script prints
-`CHECKPOINT_PATH=<absolute directory>`. The training core refuses any row dated on or after 2016-01-01. A checkpoint
+`--data {synthetic, control, d3_239}`; `--smoke` = 200 days and 2 epochs; `--d` fixes the width; `--fingerprints DIR`
+writes `<hash>.json` (configuration, metrics and the SHA-256 of `config.json` and `weights.npy`, no weights); the script
+prints `CHECKPOINT_PATH=<absolute directory>`. The training core refuses any row dated on or after 2016-01-01. A checkpoint
 directory is named by SHA-256(config.json + weights.npy); `config.json` holds the resolved configuration, frozen state,
 group dictionary, seed scheme, split, data fingerprints, versions and per-part weight checksums; `metrics.json` holds the
 loss history, the selected epoch, head diagnostics (std, off-diagonal energy, RankMe [Garrido et al., 2023]) and the
@@ -66,12 +68,31 @@ constant); L_model and L_const use the same validation days, masks and selected 
 is readable only when the gain 1 − L_model / L_const on a real panel exceeds the gain on the control, because the EMA
 target also attends to visible assets (`coupling_readable`).
 
+## Real `d3_239` pretrain path (`--data d3_239`)
+`load_pretrain` returns (X, C, dates, assets) from the filtered Parquet row groups: `ret` and `in_universe` from
+`panel.parquet`, the four continuous characteristics from `chars.parquet`, only from row groups whose date statistics
+start before 2016-01-01; a selected row group reaching 2020-01-01, missing date statistics, rows outside their stated
+bounds, duplicate, missing or extra date × asset keys, any infinity, a null `in_universe` or a NaN return inside the
+universe stop the read. `ret_wide.npy` (Fortran order) is never opened; calib rows of row group 0 are dropped in Arrow.
+Gates on the real panel: 2,769 dates (2005-01-03 → 2015-12-31) × 239 assets = 661,791 keys per file, C-order SHA-256 of
+the returns `3115d872…4830` (bit-identical to `ret_wide.npy`), 8 NaN characteristics, all in `c_beta_252`.
+`train_real` requires the ordered, unique asset IDs and the checkpoint keeps only their SHA-256 (`assets_sha256`). The
+smoke takes 200 contiguous pretrain days: 100 estimation days, the 65-day embargo and 35 validation days.
+
+Engineering results (one thread, 2 epochs): about 11–12 s per width d ∈ {2, 4, 8, 16}; two d = 8 runs give the same
+checkpoint; two full CLI extractions with the d = 8 checkpoint are byte-identical. Smoke losses carry no scientific
+reading. `c_beta_252` carries `C-D3-beta-denominator` into the tokens and the group dictionary (no correction);
+`C-D3-chars-phantom` reports no phantom cell on `d3_239`.
+
 ## Representation (`jepadrift/jepa/representation.py`)
-`CATJEPA(ckpt, D=None)` verifies the checkpoint SHA-256 (D must equal d), sets `missing = True` and fits nothing on the
-fit rows: `state = {s, b, weights}` (the arrays used at extraction), `stats` counts imputed characteristics and absent
-cells, no `pretrain` hook, day-by-day `transform_panel` from the base class. Its `state_hash` does not move with the fit
-rows: the shared contract that requires it (`test_char_no_test_statistics`) is reconciled under GO-B, after the Stream 17
-base is final.
+`CATJEPA(ckpt, D=None, assets=None)` verifies the checkpoint SHA-256 (D must equal d) and the asset identity before
+`fit` or any extraction: a bound checkpoint needs the dataset's ordered IDs with the same digest (a same-size
+permutation fails), an unbound synthetic checkpoint takes none. It sets `missing = True` and fits nothing on the fit
+rows: `state = {s, b, weights}` (the arrays used at extraction), `stats` counts imputed characteristics and absent
+cells, no `pretrain` hook, day-by-day `transform_panel` from the base class. An extraction day needs at least 2 observed
+assets; ±inf in x or C is refused. Its `state_hash` does not move with the fit rows: `test_char_no_test_statistics`
+requires exactly that for the members of `CALIB_FREE`. The registry entry `ca_tjepa` is a lazy factory; the CLI
+requires `--ckpt` and relays the dataset's ordered asset IDs.
 
 ## Environment
 torch 2.14.1 `cpu_generic_py312_h29917d7_0` and its 64 dependencies come from `conda-torch.lock` (`@EXPLICIT`, 65

@@ -39,3 +39,4 @@ synthetic:
 smoke:
   days: 200
   epochs: 2
+  validation_days: 35
