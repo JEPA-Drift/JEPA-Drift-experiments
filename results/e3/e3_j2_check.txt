@@ -1,0 +1,61 @@
+sizes: full
+secondary calibration check (prompt 13 item 7), not a J2 verdict: the primary J2 (i) verdict is E1 (stream 12) at 2,000 replicates
+exact sign streams on D6, |FPR - lattice level| <= 0.01 per cell; region = pipelines.summarize 99 %
+d2_us97 H=750 P3-C ch0: n=20000 fpr=0.04235 level=0.043947 |gap|=0.00160 within_1pt=yes region99=in
+d2_us97 H=750 P3-C ch1: n=20000 fpr=0.04485 level=0.043947 |gap|=0.00090 within_1pt=yes region99=in
+d2_us97 H=750 P3-C ch2: n=20000 fpr=0.04340 level=0.043947 |gap|=0.00055 within_1pt=yes region99=in
+d2_us97 H=750 P3-C ch3: n=20000 fpr=0.04380 level=0.043947 |gap|=0.00015 within_1pt=yes region99=in
+d2_us97 H=750 P3-C ch4: n=20000 fpr=0.04455 level=0.043947 |gap|=0.00060 within_1pt=yes region99=in
+d2_us97 H=750 P3-C ch5: n=20000 fpr=0.04330 level=0.043947 |gap|=0.00065 within_1pt=yes region99=in
+d2_us97 H=2000 P3-C ch0: n=20000 fpr=0.05000 level=0.045670 |gap|=0.00433 within_1pt=yes region99=OUT
+d2_us97 H=2000 P3-C ch1: n=20000 fpr=0.04615 level=0.045670 |gap|=0.00048 within_1pt=yes region99=in
+d2_us97 H=2000 P3-C ch2: n=20000 fpr=0.04510 level=0.045670 |gap|=0.00057 within_1pt=yes region99=in
+d2_us97 H=2000 P3-C ch3: n=20000 fpr=0.04240 level=0.045670 |gap|=0.00327 within_1pt=yes region99=in
+d2_us97 H=2000 P3-C ch4: n=20000 fpr=0.04555 level=0.045670 |gap|=0.00012 within_1pt=yes region99=in
+d2_us97 H=2000 P3-C ch5: n=20000 fpr=0.04530 level=0.045670 |gap|=0.00037 within_1pt=yes region99=in
+d3_239 H=750 P3-C ch0: n=20000 fpr=0.04475 level=0.043947 |gap|=0.00080 within_1pt=yes region99=in
+d3_239 H=750 P3-C ch1: n=20000 fpr=0.04465 level=0.043947 |gap|=0.00070 within_1pt=yes region99=in
+d3_239 H=750 P3-C ch2: n=20000 fpr=0.04450 level=0.043947 |gap|=0.00055 within_1pt=yes region99=in
+d3_239 H=750 P3-C ch3: n=20000 fpr=0.04160 level=0.043947 |gap|=0.00235 within_1pt=yes region99=in
+d3_239 H=750 P3-C ch4: n=20000 fpr=0.04255 level=0.043947 |gap|=0.00140 within_1pt=yes region99=in
+d3_239 H=750 P3-C ch5: n=20000 fpr=0.04305 level=0.043947 |gap|=0.00090 within_1pt=yes region99=in
+d3_239 H=750 P3-C ch6: n=20000 fpr=0.04735 level=0.043947 |gap|=0.00340 within_1pt=yes region99=in
+d3_239 H=750 P3-C ch7: n=20000 fpr=0.04455 level=0.043947 |gap|=0.00060 within_1pt=yes region99=in
+d3_239 H=750 P3-C ch8: n=20000 fpr=0.04580 level=0.043947 |gap|=0.00185 within_1pt=yes region99=in
+d3_239 H=750 P3-C ch9: n=20000 fpr=0.04320 level=0.043947 |gap|=0.00075 within_1pt=yes region99=in
+d3_239 H=750 P3-C ch10: n=20000 fpr=0.04525 level=0.043947 |gap|=0.00130 within_1pt=yes region99=in
+d3_239 H=2000 P3-C ch0: n=20000 fpr=0.04825 level=0.045670 |gap|=0.00258 within_1pt=yes region99=in
+d3_239 H=2000 P3-C ch1: n=20000 fpr=0.04395 level=0.045670 |gap|=0.00172 within_1pt=yes region99=in
+d3_239 H=2000 P3-C ch2: n=20000 fpr=0.04470 level=0.045670 |gap|=0.00097 within_1pt=yes region99=in
+d3_239 H=2000 P3-C ch3: n=20000 fpr=0.04380 level=0.045670 |gap|=0.00187 within_1pt=yes region99=in
+d3_239 H=2000 P3-C ch4: n=20000 fpr=0.04560 level=0.045670 |gap|=0.00007 within_1pt=yes region99=in
+d3_239 H=2000 P3-C ch5: n=20000 fpr=0.04455 level=0.045670 |gap|=0.00112 within_1pt=yes region99=in
+d3_239 H=2000 P3-C ch6: n=20000 fpr=0.04625 level=0.045670 |gap|=0.00058 within_1pt=yes region99=in
+d3_239 H=2000 P3-C ch7: n=20000 fpr=0.04425 level=0.045670 |gap|=0.00142 within_1pt=yes region99=in
+d3_239 H=2000 P3-C ch8: n=20000 fpr=0.04635 level=0.045670 |gap|=0.00068 within_1pt=yes region99=in
+d3_239 H=2000 P3-C ch9: n=20000 fpr=0.04595 level=0.045670 |gap|=0.00028 within_1pt=yes region99=in
+d3_239 H=2000 P3-C ch10: n=20000 fpr=0.04605 level=0.045670 |gap|=0.00038 within_1pt=yes region99=in
+d2_us97 H=750 P1-C COST: n=20000 fpr=0.04515 level=0.043947 |gap|=0.00120 within_1pt=yes region99=in
+d2_us97 H=750 P1-C SHW: n=20000 fpr=0.04240 level=0.043947 |gap|=0.00155 within_1pt=yes region99=in
+d2_us97 H=750 P1-C SO: n=20000 fpr=0.04155 level=0.043947 |gap|=0.00240 within_1pt=yes region99=in
+d2_us97 H=750 P1-C MDLZ: n=20000 fpr=0.04075 level=0.043947 |gap|=0.00320 within_1pt=yes region99=in
+d2_us97 H=750 P1-C PSA: n=20000 fpr=0.04240 level=0.043947 |gap|=0.00155 within_1pt=yes region99=in
+d2_us97 H=2000 P1-C COST: n=20000 fpr=0.04555 level=0.045670 |gap|=0.00012 within_1pt=yes region99=in
+d2_us97 H=2000 P1-C SHW: n=20000 fpr=0.04700 level=0.045670 |gap|=0.00133 within_1pt=yes region99=in
+d2_us97 H=2000 P1-C SO: n=20000 fpr=0.04545 level=0.045670 |gap|=0.00022 within_1pt=yes region99=in
+d2_us97 H=2000 P1-C MDLZ: n=20000 fpr=0.04430 level=0.045670 |gap|=0.00137 within_1pt=yes region99=in
+d2_us97 H=2000 P1-C PSA: n=20000 fpr=0.04655 level=0.045670 |gap|=0.00088 within_1pt=yes region99=in
+d3_239 H=750 P1-C CASY: n=20000 fpr=0.04305 level=0.043947 |gap|=0.00090 within_1pt=yes region99=in
+d3_239 H=750 P1-C KEY: n=20000 fpr=0.04495 level=0.043947 |gap|=0.00100 within_1pt=yes region99=in
+d3_239 H=750 P1-C GPC: n=20000 fpr=0.04205 level=0.043947 |gap|=0.00190 within_1pt=yes region99=in
+d3_239 H=750 P1-C ERIE: n=20000 fpr=0.04200 level=0.043947 |gap|=0.00195 within_1pt=yes region99=in
+d3_239 H=750 P1-C LRCX: n=20000 fpr=0.04520 level=0.043947 |gap|=0.00125 within_1pt=yes region99=in
+d3_239 H=2000 P1-C CASY: n=20000 fpr=0.04580 level=0.045670 |gap|=0.00013 within_1pt=yes region99=in
+d3_239 H=2000 P1-C KEY: n=20000 fpr=0.04475 level=0.045670 |gap|=0.00092 within_1pt=yes region99=in
+d3_239 H=2000 P1-C GPC: n=20000 fpr=0.04785 level=0.045670 |gap|=0.00218 within_1pt=yes region99=in
+d3_239 H=2000 P1-C ERIE: n=20000 fpr=0.04405 level=0.045670 |gap|=0.00162 within_1pt=yes region99=in
+d3_239 H=2000 P1-C LRCX: n=20000 fpr=0.04640 level=0.045670 |gap|=0.00073 within_1pt=yes region99=in
+cells within 0.01: 54 of 54 (descriptive count)
+region exits: 1 of 54 (descriptive count: the cells share symmetrizations, panels and replicates; no binomial law, no p-value, no joint probability under independence)
+sum of the marginal exit probabilities under exactness (expectation by linearity, valid under any dependence): 0.546
+union bound on at least one cell beyond 0.01 under exactness (valid under any dependence): 1.1e-09

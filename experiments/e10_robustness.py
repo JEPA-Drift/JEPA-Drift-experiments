@@ -44,7 +44,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yaml
-from statsmodels.stats.proportion import proportion_confint
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from jepadrift import floors as fl
@@ -56,6 +55,7 @@ from jepadrift.monitors.cusum import P1, bilateral_delay_vec
 from jepadrift.monitors.gamma import gamma_spectral
 from jepadrift.monitors.streams import exact_sign_stream
 from jepadrift.representations.extract import DATASETS
+from jepadrift.stats.intervals import wilson
 
 STREAM = 27
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -200,12 +200,6 @@ def run_p3c(spec, state, z, records):
     rows = pl.run_pipeline(spec, {"z_odd": z, "z_even": z * z}, None, records, state)
     alarm = rows["alarm_index"].to_numpy()
     return np.where(alarm >= 0, alarm - rows["tau_star"].to_numpy(), -1)
-
-
-def wilson(k, n):
-    """Wilson 95 % interval of k successes out of n (n may be an effective size), clamped to contain k / n in [0, 1]."""
-    lo, hi = proportion_confint(k, n, alpha=0.05, method="wilson")
-    return max(0.0, min(float(lo), k / n)), min(1.0, max(float(hi), k / n))
 
 
 def iid_tolerance(k, n, level):
