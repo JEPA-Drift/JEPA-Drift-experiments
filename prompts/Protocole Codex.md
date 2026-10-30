@@ -9,6 +9,8 @@ Chaque invocation headless (`claude -p`) doit spécifier explicitement le modèl
 - **Streams secondaires (hygiène de dépôt, schémas CSV, documentation, typage de surface) :**
   `--model opus --effort xhigh` (ou `--model sonnet --effort xhigh`).
 
+*Supervision Remote Control :* Chaque invocation doit obligatoirement inclure l'option `--remote-control` (alias `--rc`), étiquetée avec l'identifiant du worktree (ex: `--remote-control "$STREAM_NAME"`), afin d'exposer le flux d'exécution sur l'interface mobile/web claude.ai/code sans bloquer l'orchestration locale.
+
 *Configuration MCP :* Les serveurs d'outils (`graphify`, `jcodemunch`) sont déclarés dans le fichier `.mcp.json` à la racine du dépôt. N'utilise jamais de commande interactive `/mcp` : Claude Code initialise automatiquement les connexions MCP à chaque démarrage de sous-processus headless.
 
 ---
@@ -21,8 +23,10 @@ Pour garantir l'intégrité du dépôt avant toute modification, chaque tâche s
 1. Invoque Claude Code en mode headless non destructif (`--permission-mode plan`) en redirigeant sa sortie vers un artefact dédié :
    ```bash
    cd "$WORKTREE_PATH"
+   STREAM_NAME=$(basename "$PWD")
    claude -p "MODE PLAN : Analyse le codebase, formalise la logique algorithmique, détaille les étapes d'implémentation et les tests associés sans modifier aucun fichier." \
      --model opus --effort max \
+     --remote-control "${STREAM_NAME}-plan" \
      --permission-mode plan > PLAN.md 2> plan_error.log
    ```
 2. Inspecte le fichier `PLAN.md` produit. Vérifie la rigueur mathématique, l'absence de fuite temporelle et la stricte compatibilité de l'environnement (`.venv`).
@@ -40,6 +44,7 @@ Pour garantir l'intégrité du dépôt avant toute modification, chaque tâche s
 
   claude -c -p "Plan validé. Exécute l'implémentation complète conformément à PLAN.md et valide par les tests." \
     --model opus --effort max \
+    --remote-control "$STREAM_NAME" \
     --dangerously-skip-permissions > execution.log 2>&1
   EXIT_CODE=$?
 
