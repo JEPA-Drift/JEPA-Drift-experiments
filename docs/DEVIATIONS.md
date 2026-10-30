@@ -882,3 +882,102 @@ overshoot table is not a reproduction of plan v1. Replacing the reference by the
 tolerance or reading the 20,000-path diagnostic as the gate after seeing the result would reinterpret the primary
 gate; none is done. D8 covers the overshoot cells only (`e3_overshoot.csv`); the other E3 files carry their own
 classifications.
+
+## C-pca-benchmark-design — conception du runner PCA du stream 28 (2026-10-30)
+
+Écarts de conception par rapport au prompt 28 (`prompts/streams/28_STREAM_PCA_DRIFT_RUNNER.md`), fixés par le plan v2
+et le GO (`prompts/plans/plan-28.md`, `prompts/GO-stream-28.md`). Schéma : `docs/sections/pca_drift_benchmark.md`.
+
+**Sorties et interface**
+- Répertoires `results/pca_drift_benchmark/{smoke_predictive_v2,full}/`, sept fichiers, `trials.csv` normalisé. Un
+  `trials.csv` de plus de 50 Mo reste local et non suivi, son hachage figurant au manifest.
+- `--mode smoke|full` remplace `--quick`. Le smoke ne change que les quatre effectifs (40) ; il n'y a pas de `--jobs`.
+
+**Détecteurs**
+- Le détecteur de covariance est un scan, `COV_QUADRATIC_VECH_SCAN`, et non le CUSUM additif `COV_QUADRATIC_CUSUM` du
+  prompt. Il s'applique au flux vech centré par un rôle de nuisance indépendant (`centering`) : jamais par les
+  trajectoires de calibration, ni par le fit, dont la variance du haut du spectre est biaisée.
+- Le flux vech n'est pas présumé gaussien isotrope : quasi-vraisemblance calibrée, tous les tau évalués, aucun GLR ni
+  fenêtre tronquée.
+- Prior fixé ex ante : s2(p) = 2 ln(H/alpha)/(H p).
+- L'énergie est mesurée sur l'indice équipondéré (comparateur `ENERGY_INCREASE_CUSUM`), et non par l'énergie P3-D
+  (`C-P4D-null-insample`).
+
+**Objectifs et scénarios**
+- Objectif moyenne : q plug-in Ledoit-Wolf additif. La KL jointe de population est rapportée à part, sans équivalence
+  des optima.
+- A est normalisé sous la population (SR projeté de 4, KL marginale 16/504).
+- C a des coefficients égaux sur les axes 10..20, avec I = 3 sous Sigma0.
+- Le balayage B 15°/45° est différé.
+
+**Sélection et coûts**
+- La recherche covariance est exhaustive (nmax <= 20). Chaque sous-ensemble est évalué une fois, par lots de (lot, d, d)
+  d'au plus min(20 000, mémoire disponible) sous-ensembles. Les contrôles de durée et de mémoire ont lieu entre tous
+  les lots ; un dépassement donne BLOCKED_RESOURCE, jamais une recherche approchée.
+- Le coût affine est la corde de M entre d = 1 et d = 20. M reste un substitut fluide, jamais un délai exact.
+
+**Données réelles**
+- Le nul réel est D6 pré-2020 (fenêtres chevauchantes, part dans le fit).
+- La bibliothèque de stress équipondère [2008-09-15, 2008-11-20] et [2011-07-25, 2011-10-03], sans remplissage.
+- La lecture se fait par memmap limité aux lignes antérieures au 2020-01-01.
+
+**Durcissements mesurés de l'avenant P1**
+- Encadrement de `mixture_cost` par doublement, avec contrôles de finitude et échec explicite.
+- Contrôle de la dimension p = d(d+1)/2 du flux quadratique.
+- Plan de graines vérifié avant tout tirage :
+  - codes CRC32 distincts sur le vocabulaire fini du run, sinon refus, sans changement de graine ni garantie
+    universelle prêtée au CRC32 ;
+  - entropies SeedSequence canoniques uniques (mots uint32 complétés par des zéros jusqu'à 4) ;
+  - graine dans [0, 2^32).
+
+## C-pca-predictive-rank — seuil par rang prédictif échangeable, schéma /2 (2026-10-30)
+
+**Origine.** Avenant du chercheur `prompts/GO-stream-28-amendment-P0-P1.md` (P0), prioritaire sur la règle du plan v2
+§5.4. Le seuil de calibration ne suit plus le budget empirique r = floor(alpha n), mais
+r = floor(alpha (n + 1)) - 1, avec alpha décimal exact. Si r < 0, la calibration échoue (InsufficientCalibration,
+statut `CALIBRATION_FAILED`, issue explicative), sans seuil ni garantie. À alpha = 0,05, il faut au moins 19 maxima.
+Sinon b = sorted(maxima)[n - r - 1] ; le seuil est b en GT et nextafter(b, +inf) en GE (un seul pas). Un seuil non
+fini donne `CALIBRATION_FAILED`.
+
+**Garantie et portée.** Sous échangeabilité des n maxima de calibration et du maximum d'une nouvelle trajectoire,
+P(max_nouveau > b) <= (r + 1)/(n + 1) <= alpha, les égalités étant conservatrices. La borne vaut 2/41 à n = 40
+(r = 1) et 100/2001 à n = 2 000 (r = 99).
+- La garantie est marginale (calibration et nouvelle trajectoire), conditionnelle aux choix figés sur le fit et la
+  nuisance indépendants.
+- Elle n'est ni conditionnelle à un seuil réalisé, ni une propriété d'e-processus : `anytime_valid` reste False.
+- Elle s'applique aux trajectoires synthétiques indépendantes (`EXCHANGEABLE_SYNTHETIC_PATH_MAXIMA`). Elle n'est
+  pas établie pour les fenêtres historiques D6 chevauchantes (`NOT_ESTABLISHED_HISTORICAL_WINDOWS`,
+  `predictive_bound` NA), ni pour une trajectoire réelle.
+- Le FPR holdout reste une observation indépendante, rapportée telle quelle, sans ajustement vers 5 %.
+
+**Schéma.** `pca_drift_benchmark/2` remplace /1 pour tout nouvel artefact.
+- `calibration.csv` ajoute `threshold_rule`, `predictive_bound` et `guarantee_basis`.
+- `calibration_fraction` reste la fréquence empirique des alarmes de calibration.
+- Le discriminant des `null_calibration_id` devient `predictive_exchangeable_rank_v2`. Les contrats de
+  réutilisation E1/E2 et MIX E3/E2 à k = 20 sont inchangés.
+
+**Résultats et tests antérieurs.**
+- Le smoke /1 de `results/pca_drift_benchmark/smoke/` (36,5 s, 0,308 Gio, 358 partitions) précède l'avenant. Il est
+  conservé octet pour octet, non scellé, et n'est pas une preuve de la règle prédictive ; aucune cellule /1 n'est
+  mêlée aux sorties /2.
+- Les petites fixtures de test devenues insuffisantes sont adaptées sans changer alpha : n_cal 8 → 19, n_null réel
+  factice 6 → 19. Le test n = 5 à alpha = 0,05, qui acceptait un seuil, attend désormais `CALIBRATION_FAILED`.
+
+## C-pca-covid-retrospective — cohorte rétrospective Covid sans embargo (2026-10-30)
+
+**Pourquoi une cohorte dédiée.** Le découpage standard (calib jusqu'au 2019-12-31, embargo de 65 séances, surveillance
+dès le 2020-04-06) rend la fenêtre aiguë Covid [2020-02-24, 2020-03-23] non évaluable
+(`NOT_EVALUABLE_STANDARD_SPLIT`). Une cohorte distincte, `cohort_retrospective_covid`, est donc déclarée. Elle est
+gelée au 2019-12-31, armée à la première séance >= 2020-01-01, sans embargo, de portée
+`REAL_RETROSPECTIVE_EXPLORATORY`, avec des identifiants disjoints de la cohorte standard.
+
+**Règles R1–R5.**
+- R1 : surveillance continue ; chaque alarme est enregistrée, avec redémarrage (S = 0) le lendemain.
+- R2 : les alarmes antérieures à l'onset sont conservées et ne comptent jamais comme détections.
+- R3 : la détection est la première alarme dans [onset, fin] ; sans alarme, la fenêtre est censurée.
+- R4 : lecture H = 250 séparée après l'onset ; `PATH_TOO_SHORT` si la trajectoire est trop courte.
+- R5 : une seule trajectoire, donc ni intervalle ni FPR, et aucune garantie prédictive (`C-pca-predictive-rank`).
+
+**Statut avant J4.** Les deux cohortes restent bloquées (`BLOCKED_PRE_J4`), faute de `configs/FROZEN.json` (stream
+21). Elles ne lisent aucun rendement postérieur au 2019-12-31 ; leurs lignes sont émises avec des métriques NA. Il
+s'agit d'un diagnostic exploratoire, jamais d'un test confirmatoire.

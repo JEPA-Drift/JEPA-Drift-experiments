@@ -1,4 +1,4 @@
-## PROMPT 28 — PCA drift benchmark runner: data, selection, calibration, evaluation
+## PROMPT 28-PCA — PCA drift benchmark runner: data, selection, calibration, evaluation
 
 **ROLE**: critical Claude Code implementation agent, supervised by Codex. **Implement only in your assigned isolated worktree after the read-only plan is approved**. Target: `experiments/pca_drift_benchmark.py`. Read `AGENTS.md`, `docs/DEVIATIONS.md`, `prompts/Protocole Codex.md` if found, the local PCA/monitor implementations, dataset manifests and `12_CODEX_AMORCAGE_PCA_EXPERIMENTS_2026_10_30.md`. The mission text `11_PROMPT_CGPT_REORIENTATION_REFERENCE_EXP_PCA_GEMINI.md` is the experimental request; scientific corrections in the kickoff are mandatory. Do not assume files, commands, versions or datasets exist without checking them.
 

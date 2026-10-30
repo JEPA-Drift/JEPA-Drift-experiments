@@ -10,6 +10,6 @@ echo "[reindex] graphify update ."
 graphify update .
 
 echo "[reindex] jcodemunch index $ROOT"
-jcodemunch-mcp index "$ROOT"
+jcodemunch-mcp index --no-ai-summaries "$ROOT"
 
 echo "[reindex] done"
