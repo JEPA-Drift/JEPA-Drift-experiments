@@ -1,0 +1,17 @@
+# Vibe — trois corrections restantes du stream 29
+
+GO de correction ciblée, Mistral Vibe **large-4 / mistral-large-4, thinking high**. Même worktree stream-29 et plan accepté ; aucune nouvelle planification ni autre session. Lis `docs/audits/stream-29-implementation-rereview.md`, le GO Vibe et les précisions de plan. La correction précédente a résolu les points principaux : **ne les réécris pas**. Corrige seulement les trois écarts restants et la conformité mécanique du style signalés par la re-revue.
+
+1. **Dates.** `fit_first_day` et `fit_last_day` de spectra sont des champs textuels de `/2`. Un CSV de métadonnées factices portant des dates pré-2020 doit être accepté. La détection des véritables colonnes numériques corrompues reste active ; aucune lecture de retours réels.
+2. **Finitude selon effectif.** Pour ALT et HOLDOUT exécutés, deff/n_eff restent présents et finis ; le producteur donne deff=1 et n_eff=n, même à n=1. Les bornes Wilson de détection restent définies à n=1. Seuls **rmst_sd, rmst_se, rmst_lo, rmst_hi** peuvent être NA quand n=1 ; à n>1, ils sont requis finis. Corrige la fixture qui supprimait abusivement deff/n_eff/det_lo/hi, sans toucher au runner. Ajoute les refus de champs applicables manquants aux effectifs 1 et >1, et le positif n=1 avec seulement les quatre champs réellement indéfinis à NA. Conserve les mesures source, aucun nouvel estimateur de SEM/CI.
+3. **Filtres/lignée.** Aucun put() de provenance d'une ligne écartée par le filtre. Vérifie l'égalité exacte entre l'ensemble des clés `(table,row_id,column)` de toutes les cellules exportées et celui de la lignée : ni manquants, ni doublons, ni supplémentaires. Régressions COV, ENERGY et ajout d'une entrée orpheline. Tous les autres pointeurs/source hashes/fingerprints restent vérifiés.
+
+Pour chacun : RED réellement exécuté avant correction, correctif minimal, GREEN. Ne masque pas une erreur par skip/xfail, ne rends pas des champs applicables optionnels pour faire passer un test. Enlève les commentaires de section ordinaires des seuls fichiers Python possédés (seuls # ponytail permis) et respecte les docstrings publiques d'une ligne ; ce nettoyage mécanique n'appelle pas de tests dédiés.
+
+Les archives `audit_fix1_primary/`, `audit_fix1_repeat/`, `audit-fix1-candidate.tar` et les archives audit1 sont conservées intactes. La primaire `results/pca_drift_benchmark/tables/smoke_predictive_v2_closeout/` et `logs/pca_drift_tables/repeat/` ont été libérées par Codex : refais deux rendus neufs --strict, mesure time -v, compare les neuf fichiers, recette de fingerprint et lignée complète. Les 75 tests précédents doivent rester pertinents, avec fixtures corrigées et nouveaux tests ciblés.
+
+Actualise contrat, wrapup et déviation en ajout pour expliquer précisément les champs définis/indéfinis et les trois corrections. Le préfixe historique de DEVIATIONS, les plans/GO/revues Codex, les sept entrées runner et E2/E3 restent intacts. Les fichiers applicatifs existants du 29 sont modifiables pour ces corrections ; ne leur impose pas un hash initial inchangé.
+
+Environnement .venv du projet, variables déterministes/BLAS=1 avant NumPy, aucune dépendance changée. Aucun Git de mutation, make check global, indexer, sous-agent, fichier d'autre stream ou simulation. Ne lance pas le full : le superviseur l'exécutera après clôture du 29. Le 31 reste en standby.
+
+Remets les résultats réels de tests/rendus/hashes/coût et termine ton processus pour nouvelle revue Codex. Aucun commit/push et aucun démarrage du 30.

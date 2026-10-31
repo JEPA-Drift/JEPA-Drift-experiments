@@ -981,3 +981,129 @@ gelée au 2019-12-31, armée à la première séance >= 2020-01-01, sans embargo
 **Statut avant J4.** Les deux cohortes restent bloquées (`BLOCKED_PRE_J4`), faute de `configs/FROZEN.json` (stream
 21). Elles ne lisent aucun rendement postérieur au 2019-12-31 ; leurs lignes sont émises avec des métriques NA. Il
 s'agit d'un diagnostic exploratoire, jamais d'un test confirmatoire.
+
+## C-pca-tables-design — conception de l'assembleur de tableaux du stream 29 (2026-10-31)
+
+**Pourquoi.** L'assembleur `experiments/pca_drift_tables.py` lit un artefact `/2` scellé de
+`results/pca_drift_benchmark/smoke_predictive_v2_closeout/` et produit les tableaux `Tableau_PCA_1/2/3` sans jamais
+relancer le runner, lire un rendement réel, recalculer un RMST/FPR ou réajuster une PCA. Les écarts retenus :
+
+- **H1** : `--input-dir` est obligatoire et désigne un répertoire de run contenant `manifest.json` ; `--output-dir`
+  vaut par défaut `results/pca_drift_benchmark/tables/<basename(input-dir)>/`.
+- **H2** : import en lecture seule `from experiments import pca_drift_benchmark as pdb` (pas de déplacement de code
+  vers `jepadrift/`, qui modifierait le `code_hash` et le `run_fingerprint` de la preuve /2).
+- **H3** : q_k moyenne = recette vérifiée `pdb.q_plugin(beta_nonzero, lambda_lw[:nmax])` (contrôle L18 bloquant :
+  `sum(q[S]) == I_plugin_lw` à l'égalité exacte et `rank_order` exact) ; ce n'est pas le KL joint de population,
+  affiché à part sans équivalence d'optima.
+- **H4** : q_k^cov par axe reste NA (`NOT_EXPORTED_SCHEMA_2`) ; la colonne voisine affiche le cumul source
+  `I_cov_marginal_sum` (diagnostic, jamais le KL joint) ; aucune révision /3 du runner.
+- **H6** : la ligne énergie E1 (k, S, d NA) ne figure pas dans le Tableau 1 ; elle apparaît dans le Tableau 3 (copie
+  E3) et dans les compteurs de validation.
+- **H7** : les lignes (1) et (2) « oracle q » de la rotation B sont des lignes explicites `UNSUPPORTED`, sans
+  métrique, de lignée `RULE`.
+- **H8** : types d'information affichés : `MEAN_GAUSSIAN_PROXY` (q plug-in LW, deux fonds), `MEAN_GAUSSIAN_EXACT`
+  (seulement `I_pop_joint` sur fond gaussien), `COV_GAUSSIAN_MARGINAL_PROXY` ; l'`info_kind` du runner est recopié
+  tel quel dans sa colonne de provenance.
+- **H10** : les 7 fichiers du run, `trials.csv` compris, sont toujours obligatoires sur disque avec un SHA-256 égal
+  au manifest (`TRIALS_LOCAL_ONLY` = non suivi par Git, pas dispensé) ; `--strict` ajoute seulement le recalcul
+  `pdb.identity_block(config, inputs) == manifest.identity`.
+- **H11** : pas de Parquet ; forme longue et lignée dans `table_lineage.csv`.
+- **H14** : horizon H = 250 imposé partout (manifest, agrégats, calibrations) ; sinon refus
+  `HORIZON_INCOMPATIBLE`. Aucune conversion ni libellé variable.
+- **H15** : sous le schéma /2, toute ligne `REAL_EVENT_PATH` n'est admise qu'à l'état NOT_EXECUTED avec tous ses
+  champs empiriques et R1–R5 à NA, quel que soit `pre_j4.frozen_json_present` ; les deux cohortes Covid restent
+  distinctes (identifiants de sélection/métrique/split/calibration disjoints ; les empreintes de contenu peuvent
+  être égales) et bloquées.
+- **Libellé « substitut fluide »** : M(d, γ_M) est un substitut fluide de mélange, jamais un délai exact, RMST ou
+  ARL0 ; en covariance, V = I_cov_joint / coût est un substitut heuristique (`COV_HEURISTIC_SURROGATE`), I_cov_joint
+  n'est pas additif et le classement marginal n'est pas l'oracle covariance.
+
+**Conséquence.** Les tableaux du smoke (N = 239, H = 250, 40 trajectoires par rôle) sont présentés avec leur statut
+(bannière `SMOKE_NO_CLAIMS`) et ne fondent aucune conclusion à n = 2000 ni aucune évaluation réelle post-2019. Le
+contrat de sortie est `pca_drift_tables/1` (`docs/sections/pca_drift_tables.md`) : `row_id`/`block_id`, lignée par
+cellule, manifest et `verify_output_dir(path)` pour les streams 30 et 31.
+
+## C-pca-tables-audit1 — corrections ciblées après l'audit 1 du stream 29 (2026-10-31)
+
+**Pourquoi.** L'audit indépendant `docs/audits/stream-29-implementation-review.md` (verdict WITH_FIXES) a reproduit 13
+défauts du premier candidat malgré 45 tests verts. La correction a été faite dans le périmètre du plan, sans
+re-architecture ni nouveau plan, avec un test de régression RED par défaut puis le correctif minimal (75 tests au
+total). Aucun run, simulation, recalibration, refit PCA ou lecture de rendements réels n'a été effectué ; les fixtures
+full/n=1/D6 sont factices et en mémoire.
+
+- **Inventaire des essais** : l'ensemble attendu des groupes d'essais est exactement les calibrations OK (rôle
+  `calibration`, effectif `n_cal`) plus les agrégats ALT/HOLDOUT OK (rôles `alternative`/`holdout_null`, effectif `n`) ;
+  tout groupe attendu absent est refusé (`TRIALS_GROUP_MISSING`), y compris `trials.csv` vide ; rôle erroné ou orphelin
+  refusé (`TRIALS_COUNT_MISMATCH`/`ORPHAN_TRIALS`).
+- **Coût affine** : T3 affiche désormais `M_cost` (coût fluide de mélange), `C_affine` (corde affine) et
+  `V_denominator` (colonne de coût qui divise I dans le `V_star` source) ; V n'est jamais recalculé. Exemple gaussien C
+  à k = 20 : I = 1,5890738650928768, M = 2,0649289783052449, C = 1,9023780573443245, V = 0,83530918523691711 = I/C.
+  Le diagnostic marginal covariance (D3) conserve à côté la quantité jointe `I_cov_joint` du même S.
+- **Mode réel** : les en-têtes rendent le `run_mode` effectif et chaque effectif de rôle ; le texte « smoke » /
+  « complet prévu, non exécuté » n'apparaît qu'en mode smoke.
+- **Échec de calibration** : contrôle dans les deux directions (les lignes/agrégats en échec doivent référencer une
+  calibration en échec) ; l'exception D6 réelle documentée est conservée : une calibration D6 réelle en échec ne
+  requiert pas la cascade synthétique et les lignes réelles bloquées gardent leur statut du runner.
+- **Horizon** : H doit être présent et exactement 250 (manifest, agrégats ALT/HOLDOUT/REAL, calibrations) ; une valeur
+  fractionnaire (250,5) ou un NA est refusé.
+- **Provenance** : les identifiants (`metric_id`, `selection_id`, sous-ensembles) restent renseignés quand la source
+  les contient, y compris sur les 60 lignes réelles bloquées de T2 ; la provenance de calibration D6 (n_cal, règle de
+  seuil, base de garantie) n'est plus effacée par l'absence de métrique holdout.
+- **Filtres** : `--dataset/--scenario/--detector-family` s'appliquent à chaque ligne de chaque sortie, au
+  sous-tableau T3R et à la lignée.
+- **Identité stricte** : `--strict` recalcule `pdb.identity_block` depuis la config et l'ensemble d'entrées
+  **déclarés** par l'artefact (avec contrôle de chemin relatif et de hash), au lieu de recharger la config par défaut ;
+  les artefacts custom légitimes sont acceptés, la dérive refusée.
+- **Lignée** : une seule ligne de provenance par cellule (les 40 doublons de la copie T3 ligne (2) supprimés) ;
+  les chemins MANIFEST sont des chemins exacts résolubles (plus d'ellipse) ; `validate_lineage` vérifie unicité,
+  complétude et résolution de chaque pointeur SOURCE/MANIFEST.
+- **Fingerprint** : `tables_fingerprint` hache désormais l'objet `input` **complet** du manifest (chemin, empreinte
+  de run, schéma, mode, SHA-256 des 7 fichiers) ; la recette est documentée et recomputable depuis le manifest seul.
+- **Markdown** : ordre des colonnes principales de T3 conforme au plan (RMST250, puis d*, puis FPR250) ; les
+  intervalles de FPR holdout de T1 utilisent les vraies bornes source `fpr_lo`/`fpr_hi`.
+- **Parsing contrôlé** : les hash des fichiers sont vérifiés avant tout parsing numérique ; un CSV bien hashé mais
+  malformé est refusé proprement (`CSV_PARSE_FAILED`, exit 2).
+- **n = 1** : SD/SEM/intervalles et `deff`/`n_eff` sont des champs optionnels (NA légitimes à n = 1, jamais non
+  finis) ; les mesures core (rmst, det_rate, censored_share, alarms, n, fpr…) restent exigées finies.
+
+**Conséquence.** Le contrat `pca_drift_tables/1` est mis à jour en conséquence (colonnes finales de T3, recette de
+fingerprint, règles de lignée, codes de refus, rendu des en-têtes selon le mode) pour le futur consommateur 30 ; aucun
+fichier du stream 30 ni le runner n'a été modifié.
+
+## C-pca-tables-rereview — trois corrections restantes après la re-revue du stream 29 (2026-10-31)
+
+**Pourquoi.** La re-revue indépendante `docs/audits/stream-29-implementation-rereview.md` (verdict WITH_FIXES, 75
+tests verts) a retenu trois écarts fonctionnels plus la conformité mécanique de style. Correction ciblée dans le
+périmètre du plan (`prompts/REPAIR-stream-29-vibe-audit2.md`), sans toucher au runner ni à son producteur : 10 tests
+de régression ajoutés, chacun RED réellement exécuté avant le correctif minimal puis GREEN (85 tests au total,
+`tests/test_pca_drift_tables.py`). Aucun run, simulation, recalibration ou lecture de rendement réel ; les fixtures
+dates/n=1 sont factices.
+
+- **Dates /2** : `fit_first_day` et `fit_last_day` de spectra sont des champs textuels de dates déclarés par le
+  schéma /2 (fenêtres pré-2020 possibles) ; un CSV de métadonnées factices portant `2016-04-07`/`2019-12-31` est
+  accepté en lecture (`read_run_csv` et `load_run`). La détection des véritables colonnes numériques corrompues
+  reste active : un texte dans une colonne numérique -> `CSV_PARSE_FAILED` (exit 2).
+- **Finitude selon effectif** : pour ALT et HOLDOUT exécutés, `deff`/`n_eff` restent présents et finis à tout
+  effectif (le producteur `_rmst_fields` donne `deff` = 1, `n_eff` = n et des bornes de Wilson définies, même à n = 1,
+  idem pour le holdout) ; seuls `rmst_sd`, `rmst_se`, `rmst_lo`, `rmst_hi` sont indéfinis à n = 1 (NA) et exigés
+  finis à n > 1 ; aucun champ n'est jamais non fini. La fixture n = 1 qui supprimait abusivement
+  `deff`/`n_eff`/`det_lo`/`det_hi` est corrigée ; des refus de champs applicables manquants (`NON_FINITE_METRIC`)
+  sont ajoutés aux effectifs 1 et > 1, ainsi que le positif n = 1 avec seulement les quatre champs réellement
+  indéfinis à NA. Mesures source conservées telles quelles ; aucun nouvel estimateur de SEM/CI.
+- **Filtres/lignée** : aucun `put()` de provenance pour une ligne écartée par le filtre (dans T3, le filtre
+  `--detector-family` est appliqué avant toute émission de lignée) ; `validate_lineage` exige désormais l'égalité
+  exacte des ensembles de clés `(table, row_id, column)` des cellules exportées (T1/T2/T3/T3R) et des lignes de
+  lignée : manquants -> `LINEAGE_INCOMPLETE`, doublons -> `LINEAGE_DUPLICATE`, supplémentaires -> `LINEAGE_ORPHAN`.
+  Régressions COV (8 clés orphelines avant la correction) et ENERGY (56 avant), plus une entrée orpheline injectée.
+  Tous les autres pointeurs SOURCE/MANIFEST, source hashes et fingerprints restent vérifiés.
+- **Style mécanique** : commentaires de section ordinaires supprimés des fichiers Python possédés du stream 29
+  (seuls les `# ponytail:` sont permis) et docstrings publiques réduites à une ligne, sans test dédié.
+
+**Conséquence.** Contrat `pca_drift_tables/1` mis à jour (champs textuels de dates, règle de finitude selon
+l'effectif, code `LINEAGE_ORPHAN`, égalité exacte lignée, filtres avant émission de provenance). Deux rendus neufs
+`--strict` (primaire `results/pca_drift_benchmark/tables/smoke_predictive_v2_closeout/`, répétition
+`logs/pca_drift_tables/repeat/`) : les neuf fichiers sont identiques octet par octet entre les deux répertoires,
+`tables_fingerprint` `8c6524e3f294fd5c7a693bbc44fe666b6de8da4ccb8ece16b698f5ba8572e2f1` recomputé indépendamment
+depuis les champs du manifest ; lignée 25 888 clés = 25 888 cellules exportées ; tableaux 180/220/44 lignes,
+48/65/58 colonnes. Les sept fichiers d'entrée du runner, le runner, sa configuration et les archives
+audit1/audit-fix1 restent intacts ; aucun fichier d'un autre stream n'est modifié.
