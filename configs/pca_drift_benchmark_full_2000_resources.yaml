@@ -1,0 +1,47 @@
+schema_version: pca_drift_benchmark/2
+seed: 42
+N: 239
+H: 250
+nmax: 20
+alpha: 0.05
+gamma_M: 504
+T_fit: 1000
+n_center: 2000
+n_cal: 2000
+n_null: 2000
+n_alt: 2000
+minibatch: 100
+cov_search_chunk: 20000
+energy_delta: 0.5
+resources:
+  mem_limit_gib: 24.0
+  max_wall_minutes: 360.0
+synthetic:
+  rho: 0.4
+  backgrounds:
+    SYNTH_GAUSS_EQUICORR: null
+    SYNTH_T7_EQUICORR: 7
+  sr_annual_A: 4.0
+  rotation_deg: 30.0
+  rotation_pair: [1, 2]
+  C_axes: [10, 20]
+  C_I_target: 3.0
+real:
+  dataset: d3_239
+  derived_dir: data/derived/d3_239
+  manifest: data/derived/MANIFEST.json
+  window_start: "2005-01-04"
+  exclude_days: ["2005-01-03"]
+  expected_calib_rows: 941
+  n_null: 2000
+  stress_windows:
+    S2008: ["2008-09-15", "2008-11-20"]
+    S2011: ["2011-07-25", "2011-10-03"]
+  events:
+    COVID_2020: {onset: "2020-02-24", end: "2020-03-23"}
+    STYLE_2022H1: {onset: "2022-01-01", end: "2022-06-30"}
+smoke:
+  n_center: 40
+  n_cal: 40
+  n_null: 40
+  n_alt: 40
