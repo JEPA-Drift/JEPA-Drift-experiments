@@ -1107,3 +1107,53 @@ l'effectif, code `LINEAGE_ORPHAN`, égalité exacte lignée, filtres avant émis
 depuis les champs du manifest ; lignée 25 888 clés = 25 888 cellules exportées ; tableaux 180/220/44 lignes,
 48/65/58 colonnes. Les sept fichiers d'entrée du runner, le runner, sa configuration et les archives
 audit1/audit-fix1 restent intacts ; aucun fichier d'un autre stream n'est modifié.
+
+## C-pca-figures-design — conception du traceur de figures du stream 30 (2026-10-31)
+
+**Pourquoi.** `experiments/figures/plot_figure_1.py` lit un artefact `/2` scellé et ses tableaux
+`pca_drift_tables/1` et produit `Figure_1_mean`, `Figure_1_cov`, `Figure_1_mean_t7` (SVG + PDF + PNG + CSV source +
+légende) sans jamais relancer le runner ni l'assembleur, relire un rendement réel ou recalculer une cellule tracée :
+chaque cellule est résolue par `table_lineage.csv` en un pointeur `SOURCE` du runner et comparée bit à bit (texte
+`%.17g` du même artefact). Les écarts retenus :
+
+- **H2** : `--tables-dir` est ajouté, avec pour défaut `results/pca_drift_benchmark/tables/<basename(input-dir)>/` ;
+  `--output-dir` vaut par défaut `results/pca_drift_benchmark/figures/<basename(input-dir)>/` — le chemin
+  `results/…/figures/` du prompt remplace `figures/<stream>/`, et le SVG vient s'ajouter au PNG/PDF.
+- **H3** : registre prédéclaré de trois entrées (`mean`, `cov` PRIMARY sur fond gaussien ; `mean_t7` ROBUSTNESS) ;
+  `--figure mean` produit `mean` et `mean_t7`. Aucune figure réelle sous le schéma /2 (`D3_239` ou toute cohorte ->
+  `REAL_FIGURE_NOT_EXECUTED_SCHEMA_2`) et aucune figure vide (`EMPTY_SERIES`).
+- **H4** : les options `--dataset-id/--event-id/--cohort-id/--detector-family/--objective-kind` sont des sélecteurs
+  dans le registre, validés contre `pdb.ENUMS` ; hors registre -> `NOT_PREDECLARED`.
+- **H5** : tout l'axe droit de la covariance porte l'étiquette `EXPLORATORY HEURISTIC` avec la phrase encadrée
+  « mean-mixture M is not a covariance detector cost » ; `V_cov = I_cov_joint/M` avec la table de coût M du manifest
+  évaluée à la dimension propre de chaque ligne (`M_cost == costs["M"][d-1]`, V jamais recalculé) ; Σq^cov n'est
+  jamais tracé.
+- **H6** : incertitude = intervalles marginaux du producteur (`rmst_lo/hi` `NORMAL_DEFF1`, Wilson pour le FPR) ; aucune
+  incertitude appariée n'est exportée (recalculer depuis `trials.csv` serait une statistique hors périmètre).
+- **H7** : comparabilité FPR calculée par le code (protocole P + chevauchement de Wilson W, filtre descriptif) ;
+  marqueur `FPR mismatch` et phrase d'interprétation non interprétable aux k non comparables.
+- **H8** : bornes d'axes sans troncature (gauche [0, 100] %, droite [0, max], bas [min(0, min lo), max(250, max hi)]
+  plus marge) ; test dédié.
+- **H10** : `--strict` ajoute le recalcul `pdb.identity_block(config, inputs) == manifest.identity`,
+  `table_manifest.strict == true` et l'égalité des SHA-256 du runner et de `pca_drift_tables.py` avec
+  `table_manifest.code`.
+- **H11** : l'inspection visuelle n'est jamais écrite dans un fichier déterministe ; `FIGURE_CHECK.md` liste les
+  contrôles automatiques en processus et les commandes externes dont les résultats vont dans `logs/` et le wrapup.
+- **H13/H14** : format 3,5 × 5,4 in (1050 × 1620 px à 300 dpi), DejaVu Sans livrée avec matplotlib (nom de base et
+  SHA-256 de la police dans le manifest, aucun chemin absolu), bannière `SMOKE_NO_CLAIMS` sur chaque page, chaque
+  légende et chaque enregistrement du manifest.
+- **Lignes longues des légendes** : à 3,5 in de large, la phrase « model-based, not observed detection speed » et le
+  bloc textuel sont conservés sur une seule ligne quand c'est possible (légende du panneau V, ancrée dynamiquement
+  dans le cadre) et wrappés sinon ; les contrôles de cadre portent sur les étendues rendues.
+- **Mise en page** (corrigée deux fois après inspection visuelle) : deux panneaux verticaux empilés avec x partagé,
+  le panneau haut en axe Y double pleine largeur (`ax_v = ax_cpv.twinx()`, CPV en bleu à gauche, V à droite), au lieu
+  d'une grille 2×2 étroite ; à la place de `constrained_layout` (qui échoue à réserver les légendes sous les axes à
+  3,5 in sous matplotlib 3.11), des marges de grille explicites (`left=0.21, right=0.815, bottom=0.36, top=0.91,
+  hspace=0.55`) ; une seule légende fusionnée CPV+V dans l'espace inter-panneaux ; poignées de la légende RMST prises
+  sur les `ErrorbarContainer` retournés par `_errbar` (et non sur `ax_r.get_lines()`, qui les manque) ; légende du
+  panneau bas ancrée sous le label X (`bbox_to_anchor=(0.5, -0.28)`, `labelpad=2`) ; bloc textuel en `fig.text` ancré
+  en bas (6 pt), avec la phrase H5 complète sur une ligne ; annotation CPV90 en haut à droite du panneau plein ;
+  encadré H5 wrappé en bas à gauche du panneau haut (`(0.04, 0.08)`, wrap 24), hors de contact avec l'axe et les
+  graduations ; marge haute de l'axe V à `vmax * 1.20` pour séparer la courbe de l'annotation CPV90. `render_checks`
+  vérifie en processus l'absence de chevauchement légende/axes, légende/label-X et texte-figure/légende, en plus du
+  cadre, de la police >= 6 pt et des bornes ; résultats consignés dans `FIGURE_CHECK.md`.
