@@ -734,7 +734,7 @@ def render_caption(ctx, entry, src):
 - information domain: plug-in LW proxy q ({'GAUSSIAN_PROXY'}; on the Gaussian background the population joint KL is exact, on t7 it is a proxy), info_kind of the block
 - detector family: `{fam}`: {m['detectors'][fam]}
 - calibration: {cal['threshold_rule']}, n_cal = {nc['n']}, r = {nc['rank_r']}, bound (r+1)/(n_cal+1) = {bound:.6g}, distinct from the observed holdout FPR
-- counts: smoke n = {counts['n_alt']} per role; full {m['differences_from_full']['n_alt']['full']} per role planned, not executed
+{f"- counts: smoke n = {counts['n_alt']} per role; full {m.get('differences_from_full', {}).get('n_alt', {}).get('full', 2000)} per role planned, not executed" if m.get('run_mode') != 'full' else f"- counts: full n = {counts['n_alt']} per role"}
 - FPR250 per series (observed holdout): {'; '.join(fpr_lines)}
 - RMST intervals: NORMAL_DEFF1, marginal, not truncated; no paired uncertainty is exported in this schema
 - oracle flags: {claims} — diagnostic bound, not ex ante
@@ -743,7 +743,7 @@ def render_caption(ctx, entry, src):
 
 ## Measured (this run)
 
-RMST250 curves (prefix P_k vs selected S*_k, marginal intervals) and holdout FPR250 values above; smoke counts of 40 per role, {SMOKE_BANNER}.
+RMST250 curves (prefix P_k vs selected S*_k, marginal intervals) and holdout FPR250 values above; {'smoke counts of 40 per role, ' + SMOKE_BANNER if m.get('run_mode') != 'full' else f'full counts of {counts["n_alt"]} per role.'}
 
 ## Model-based (not tested here)
 
