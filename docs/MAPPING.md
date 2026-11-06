@@ -36,6 +36,20 @@ The six entries come from analytic columns of the G1 arm: Gaussian i.i.d., known
   - For entry 1 it rounds to the same literal (J1 report: measured 16.730, predicted 16.715). That entry is tied to `pred_delay` by the sentence ("Φ gives Lorden-optimal delays"), not by the rounded value.
   - For entries 2–6 the two columns round to different integers.
 
+## Check inputs
+
+`tools/trace_numbers.py` reads only this table and the Entries table. It refuses, before any read, a CSV path outside `results/` or a LaTeX path outside `paper/`, and it parses the CSV strictly. It exits 0 only when both SHA-256 values match, every key names each Key column once (in any order), the Entries table holds exactly the declared number of rows and every entry is `READ_MATCH`. Literals must be integers: the rounding rule covers 0 decimals, and a decimal literal is refused. On its LaTeX line, a literal counts only as a complete unsigned numeral: digits inside a signed (`-`, `+`, `−`), exponent (`e`, `^`), leading-dot or comma-grouped number do not count. `tests/test_trace_numbers.py` runs the check at every `make check`. Its success covers only the verified subset, Entries of Result-bearing occurrences, and certifies no more than `READ_MATCH` does.
+
+| Input | Value |
+|---|---|
+| CSV | `results/e2/e2_cells.csv` |
+| CSV SHA-256 | `e315e537ead0f656e4bcd3897e6ff04075f3780a8fbe642e258864739b570823` |
+| Key columns | `arm, mode, background, dim, sr_annual, gamma` |
+| LaTeX | `paper/sec3_theory.tex` |
+| LaTeX SHA-256 | `6bfebdd022d55ca37abb0e695b946bd61b8d9e44012cea5165bac6bebf7c4013` |
+| Entries | 6 |
+| Result-bearing occurrences | 19 |
+
 ## Entries
 
 | # | LaTeX location | Literal | Reading | Full key | Column | Source text | Rounded | Status |
@@ -54,3 +68,4 @@ A new entry gives:
 - the CSV path relative to the repository, with its SHA-256;
 - a key that selects exactly one row, the column and the source text;
 - the rounding rule, the reading and the producer script.
+- the updated Entries count of Check inputs; the key names exactly its Key columns.
