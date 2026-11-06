@@ -1762,3 +1762,288 @@ pytest -q tests/test_chars.py tests/test_drift_stats.py tests/test_audit.py
 make check && git status --porcelain
 make prompts-check
 ```
+
+````markdown
+## PROMPT 28-PCA — PCA drift benchmark runner: data, selection, calibration, evaluation
+
+**ROLE**: critical Claude Code implementation agent, supervised by Codex. **Implement only in your assigned isolated worktree after the read-only plan is approved**. Target: `experiments/pca_drift_benchmark.py`. Read `AGENTS.md`, `docs/DEVIATIONS.md`, `prompts/Protocole Codex.md` if found, the local PCA/monitor implementations, dataset manifests and `12_CODEX_AMORCAGE_PCA_EXPERIMENTS_2026_10_30.md`. The mission text `11_PROMPT_CGPT_REORIENTATION_REFERENCE_EXP_PCA_GEMINI.md` is the experimental request; scientific corrections in the kickoff are mandatory. Do not assume files, commands, versions or datasets exist without checking them.
+
+### 1. Deliverable and boundaries
+
+Build a deterministic CLI benchmark for **PCA spectral prefixes versus information-selected subsets** on mean and covariance changes, with an independent train/calibration/test separation. Preserve existing outputs and never rewrite the historical E2 CRLF file; do not rerun merged research streams. No code in other agents' ownership; publish an audited immutable data/output schema. Include docstrings and command help in English. Support `--config`, `--output-dir`, `--seed`, `--mode smoke|full`, `--dataset synthetic|real|both`, `--resume` with completed-partition fingerprint checking; if the repository has an established CLI convention, align to it and document the adjustment.
+
+### 2. Existing components to inspect/reuse
+
+- `jepadrift/representations/pca.py`: `PCAOrthogonal`, `pca_directions`, `mp_count`, Ledoit–Wolf fit and frozen projection; infer output structure, `channels={market:[0],residual:[...]}`; **do not accidentally remove PC1 from all mean comparisons**.
+- `jepadrift/monitors/eprocess.py` plus current sequential monitors: inspect dimensional assumptions before reuse. Exact sign symmetry and the isotropic sub-Gaussian mixture are **not** guaranteed for correlated Student returns.
+- Real data and time splitter: inspect `jepadrift/data_loader`, `data/derived/d3_239/`, `MANIFEST.json`, selection hash and feature timestamps. Never invent observation counts.
+- Existing covariance/mean injection utilities, if any: reuse with deterministic seed IDs; do not silently recalculate past reported experiments.
+
+At the start produce in the plan a file-level call graph and a coverage matrix of **mean Gaussian, mean Student, covariance Student, real retrospective** versus eligible detector families. Any missing case is labeled `UNSUPPORTED` with reason.
+
+### 3. Inputs and exact models
+
+Global constants (configurable but defaults fixed): `N=239`, `H=250`, `nmax=20`, `FPR_target=0.05`, `n_calibration=2000`, `n_test_null=2000`, `n_test_alt=2000`, `gamma=504` **only for analytic M-score**, and deterministic root seed. Set `OMP_NUM_THREADS=1`, `OPENBLAS_NUM_THREADS=1`, `MKL_NUM_THREADS=1` before NumPy import, or fail with a clear diagnostics if violated. Persist dtypes (`float64`) and version and seed manifests. Do not convert missing data to zeros silently.
+
+**Synthetic model**: independently generate a PCA-fit sample of `T_fit=1000` trading days and independent calibration/test trajectory sets; each sample has 239 assets. Define an explicit single-factor common-correlation covariance `Σ0=(1−ρ)I+ρ·11^T`, `ρ=0.40`, with unit variances; generate standardized Student-t innovations with `ν=7`, rescaling for unit variance; record whether the common factor and idiosyncratic factors use independent t variables. Include **Gaussian synthetic control** with the same covariance to validate exact Gaussian formulas before using Student-t pseudo-information. Fit PCA to fit-only data, never refit on null test or alternatives.
+
+Synthetic alternatives must operate on return vectors **before frozen PCA**:
+- `A_market_mean`: `Δ || v1`, annualized SR=4 **of the standardized projected market score**; define resulting daily standardized shift `4/sqrt(252)` and write exact Δ in the manifest; under Gaussian control `I=SR²/504` per day.
+- `B_cov_rotate30`: create `Σ1=R_{12}(30°)Σ0R_{12}^T(30°)` with `R` rotating the two empirical frozen PCA axes (or document population-eigenbasis alternative as distinct scenario). Record angles **15°, 30°, 45°** when the sweep is requested, with 30° primary. The rotation creates **off-diagonal** covariance in the fixed PC basis. Compute `Σ0,S`, `Σ1,S` and joint Gaussian proxy `I_cov(S) = 0.5[tr(Σ0,S^{-1}Σ1,S)−logdet(Σ0,S^{-1}Σ1,S)−|S|]`. Also report the per-axis marginal proxies `q_k^cov=0.5(r_k−1−log r_k)`, `r_k=Var1(z_k)/Var0(z_k)`, but **never sum them as actual joint KL**. In t7 model label them gaussian covariance proxies, not true t7 KL. Include a unit test that explicitly witnesses joint≠sum marginals.
+- `C_residual_mean`: Δ orthogonal to PC1 and supported on frozen axes numbered 10..20 inclusive, normalized so `0.5·Δ^TΣ0^{-1}Δ=3.0` nats/day on the relevant Gaussian reference; record reproducible weights and inverse covariance used. If a sample covariance rather than population covariance defines the constraint, make that precise and separate the corresponding achieved theoretical value.
+
+**Real data**: 239 asset S&P panel, fit Ledoit–Wolf PCA **only on actual documented 2016-04-07..2019-12-31 calibration segment (941 valid daily complete rows when manifest confirms)**; train period 2005–2015 is **not** a PCA fit. Monitoring starts after the actual 65 trading-session embargo. Record panel composition/survivorship limitations. **Two mandatory and incompatible historical cohorts** (both with covariance/whitening/thresholds frozen no later than 2019-12-31):
+  - `cohort_standard_embargo`: preserve the 65-trading-day embargo after 2020-01-01, and emit a Covid row `NOT_EVALUABLE_STANDARD_SPLIT` (no spurious 0 or imputed missing RMST). This is the only cohort eligible for standard split claims.
+  - `cohort_retrospective_covid`: **explicit separate retrospective exploratory deviation** recorded in manifest/issues and, subject to Codex approval, in `docs/DEVIATIONS.md`; monitor continuously from the first actual session `2020-01-02` with no post-2019 embargo, event onset `2020-02-24`, event end `2020-03-23`. Check all dates against the loaded market calendar rather than use a fixed observation count. This cohort is `REAL_RETROSPECTIVE_EXPLORATORY`, never `MAIN_TEST_VALID` or independent confirmation. No observations from 2020 onward may affect PCA fit, selection of ex-ante axes, null thresholds or detector parameters. Define pre-onset false-alarm and reset handling **before** computing detection: continuous monitoring carries its statistic from January into February; a preceding alarm is `PRE_ONSET_ALARM`, not silently erased. Report (i) first qualifying alarm **within** `[2020-02-24,2020-03-23]` and event-window censoring; (ii) separately, a `H=250` post-onset restricted delay if the path supports it, clearly labeling an alarm after 2020-03-23 as **post-event**. Never relabel a historical crash as a stationary enduring Gaussian mean shift. The 2022-01..2022-06 style rotation is retrospective, with exact observable sample days, no invented independent 2000 crises. Both real cohorts must carry unique `cohort_id`, `split_hash`, `event_window_id`, `status`, and `null_calibration_id` through all outputs; never reuse the cohort-standard metric or calibration IDs for the no-embargo cohort unless the configuration fingerprint proves the parameters and null reference are identically frozen. Event-difference Δ estimated with post-event returns is an **ex-post oracle diagnostic only**, never an ex-ante selection rule. If no manifest/series is available, report `DATA_UNAVAILABLE`; do not simulate and label real.
+
+**Ex-ante selector:** build stress-library `qbar_k` only from predefined historical 2008/2011 windows and the 239 identities, using information observable by end-2019. PCA basis learned 2016–2019 may project older history, but never uses 2020/2022 event data to select. Stress events, window endpoints, missing-asset policy and weights must be frozen in config before evaluation. Missing coverage => no ex-ante result, issue row rather than hindsight backfill.
+
+### 4. Spectral baselines, candidate sets, information
+
+- Fit `Σ_LW` with repository function on PCA-fit data; `λ1≥…≥λN>0`, ordered signed eigenvectors; persist basis hash, whitening scales and trace.
+- Prefix candidates `P_k={1,…,k}`, for **every** k=1..20; use same exact frozen eigenvectors, not rerun PCA per k. Compute `CPV_k = Σ_{j≤k}λ_j / tr Σ_LW`; record actual CPV and actual first k reaching 90% **over full spectrum**. If first 20 never reaches 90%, report `CPV90_OUTSIDE_TOP20`, do not insert `k=14` or pretend it is the CPV baseline within the restricted experiment.
+- Marčenko–Pastur cutoff computed from sample **correlation** eigenvalues at `(1+sqrt(N/Tfit))²`, not from `Σ_LW`; Kaiser `corr_eig>=1` and only meaningful in the correlation scale. These count markers are descriptive and must not be hardcoded.
+- For **mean Gaussian**, `q_k=(v_k^TΔ)^2/(2λ_k)` is additive only where the PCA basis diagonalizes the chosen reference covariance; detect/sample-vs-population mismatch, and either compute joint subspace KL or label sum a **surrogate**. Build top-q oracle subsets over `P_k` for all k; tie-break by ascending axis index; evaluate every cardinality d=1..k against `V(S)=I(S)/M(d,γ)`. The analytic `M` is the **Gaussian mean-mixture fluid multiplier**: solve `x=A+d/2*log(1+2x/d)`, `A=logγ`, `M=x/A`, with a reliable bracketing root solver and assertions for uniqueness/positivity. Never call it an exact ADD/finite-ARL cost.
+- For covariance B, compute **joint subspace covariance Gaussian KL proxy** for each candidate S; its contribution is generally **not additive**. Provide a predeclared covariance selector (e.g. exhaustive only for small k, documented beam search otherwise), store `selection_exact=False` where approximate. Never claim oracle top-marginal-q is the joint optimum. The user's `q_k^cov` ranking may be reported in an **ablation diagnostic** but cannot inherit mean-oracle contracts.
+- Ex-ante `qbar` greedy ranks an independently frozen stress-library information estimate. It cannot equal real-event oracle by design. All selectors restricted to axes 1..20 in experiment 3. For mean case, define `forward greedy` precisely as sorting/addition by fixed marginal qbar and evaluating **every** size, not early stopping on a local decline in score.
+- Cost-affine oracle `C(d)=a+c d`, with `a,c>0` fixed before evaluation, separately labeled `AFFINE_SURROGATE`, not the mixture cost. Choose a/c in config with documented rationale; do not silently substitute the obsolete heuristic or relabel as a theorem.
+
+### 5. Detector and calibration protocol — precise separation
+
+**Critical:** `V(S)` is a selection **surrogate**. Actual empirical RMST must be measured by a **fully specified detector** with separate null calibration. In the implementation plan explicitly select which of the repository's detectors are usable, their predictive statistics, update equations and their null-validity domain.
+
+Recommended families if existing code is insufficient:
+1. **MANDATORY `MEAN_GAUSSIAN_MIXTURE_SCAN_CUSUM` — no GLR fallback, no truncation of change-start candidates**. For selected whitened vectors `z_t in R^d`, prefix sums `S_0=0`, `S_t=sum_{i=1}^t z_i`, candidates `tau in {1,...,t}`, segment length `n=t-tau+1`, and segment sum `D_{tau:t}=S_t-S_{tau-1}`, compute **exactly (for the specified Gaussian-mixture statistic)**:
+
+   ```text
+   logL(tau,t) = -(d/2)*log1p(n*s2)
+                 + s2*||D(tau:t)||_2^2 / [2*(1+n*s2)]
+   W_t = max_{tau=1,...,t} logL(tau,t)
+   T_h = inf{t>=1: W_t >= h}
+   ```
+
+   Use a **predeclared** positive prior variance `s2` for every eligible method, based exclusively on training / independent calibration; never tune `s2` from the test injection `Delta` except in a separately marked `ORACLE_PRIOR_SCALE` ablation. The theoretical `M(d,gamma)` uses an **alternative-matched** scale and is therefore only a model-based selector surrogate, not this scan-CUSUM's exact calibrated expected delay. Cache 0-based prefix sums with the correct tau-1 subtraction, and compute all `tau` candidates with stable vectorized NumPy operations (`log1p`, squared norms, deterministic tie handling). Complexity `O(t*d)` per step, `O(H^2*d)` over a horizon `H`, `O(H*d)` prefix storage for one evaluated subset; use bounded memory minibatches/shared prefixes for the 2,000-replicate and k=1..20 grid. The computational burden is not a license to replace the detector. If full mode exceeds an explicitly audited execution/resource budget, report `BLOCKED_RESOURCE` after a verified smoke run; do **not** silently switch to a windowed GLR.
+
+   Distinguish this **scan/max over segment-mixture likelihoods** from the classical scalar additive CUSUM recursion; there is no claimed O(1) update for this statistic. Under an exact joint Gaussian null and correct fixed whitening it is constructed from valid likelihood-ratio e-process segments; under correlated/heavy-tailed Student t7 or imperfect historical whitening the same formula is a **quasi-likelihood**, without an unconditional e-process guarantee. For all experiment metrics, independently calibrate the threshold `h` to `FPR(250)<=0.05` and measure holdout FPR; never set `h=log(gamma)` merely because `gamma=504` was used for the analytic `M` score. The independent-null calibration and equal detector family are mandatory for all `k` and subsets. A known-Delta Gaussian LR detector is permitted **only** as an explicitly separate oracle diagnostic, never as the common comparator.
+2. `COV_QUADRATIC_CUSUM`: calibrated quadratic covariance-change statistic sensitive to up/down and off-diagonal shifts; require explicit null/alternative matrices for any oracle version; no future Σ1 in an ex-ante detector. Include `ENERGY_INCREASE_CUSUM` separately as historical comparator to reveal its blind spots. **Do not reuse mean-mixture M as the justified covariance cost**; show it only as a clearly marked heuristic sensitivity analysis, or `NA` in covariance main table.
+
+For each dataset/scenario/family/selected S, calibrate a threshold via **independent null trajectories** (`n=2000`, horizon 250), using maxima over the trajectory and a deterministic quantile/tie rule; report calibration fraction and independent holdout null FPR with binomial uncertainty. Target is `P0(T≤250)≤0.05`; do not force observed FPR to exactly 5%. Selectors are frozen before calibration test. **Pair data**: all methods and subsets for a replicate use the same generated return trajectory, injected Δ/Σ1, onset and seed. Save sample-level first-hit indices and censoring. Evaluate alternatives from a documented time origin (onset-aligned vs continuous pre-onset); do not silently conflate. `T=∞` if no alarm by 250, `RMST250=mean(min(T,250))`, plus detection fraction. For real history, do not claim a valid FPR for 2020/2022 without explicitly defining independent historical null windows and their limitations.
+
+### 6. Reproducibility and artifacts (authoritative producer)
+
+Write `results/pca_drift_benchmark/{manifest.json,spectra.csv,selection.csv,calibration.csv,trials.parquet,aggregates.csv,issues.csv}` or an exactly equivalent **schema approved in PLAN.md**. Include methods `BASELINE_PREFIX`, `ORACLE_Q_AFFINE`, `ORACLE_Q_MIX`, `EXANTE_QBAR` and, for covariance, explicit `COV_JOINT_ORACLE` / `COV_MARGINAL_DIAGNOSTIC` labels; every row includes `source_kind`, `cohort_id`, `split_hash`, `event_window_id`, `event_id`, `detector_family`, `k`, `S` (sorted JSON list, 1-based), `d`, `objective_kind`, `metric_id`, `config_hash`, `basis_hash`, `calibration_hash`, `null_calibration_id`, `seed`, `status`. Store numeric `FPR`, `RMST250`, n, confidence interval and censoring as computed, not as copy/pasted target values. All `metric_id` are unique to a true common trial group and deterministic on rerun. Do not write synthetic or computed quantities to fields named observed real KL.
+
+**Experiment 1:** prefix rows k=1..20 per admissible dataset/scenario/detector. **Experiment 2:** same prefix **references exactly the same metrics/IDs and values** as experiment 1, plus oracle subset per P_k. **Experiment 3:** per event, baseline CPV90 (if eligible), affine oracle, mixture oracle and ex-ante; all candidate axes limited to 1..20. `ORACLE_Q_MIX` at k=20 must reuse the exact experiment 2 selection and metric ID, never re-evaluate and compare floats. Covariance additive-oracle column is diagnostic only, not presented as a joint oracle.
+
+### 7. Required executable checks and handoff
+
+- Smoke tests run without proprietary files; full mode requires actual datasets (and correctly fails or marks real rows blocked if unavailable).
+- Determinism: same config/seed/inputs => identical rows and fingerprint; track source/checksums, RNG stream hierarchy, scalar vs batch equivalence, non-NaN, positive eigenvalues, calibrated null/test separation, no future leakage, honest missing data.
+- Negative tests: rotation joint KL differs from sum of marginal KL; Student pseudo-info is not labeled true KL; Covid blocked in **standard** cohort and visible as **exploratory** in separate no-embargo cohort only; scan-CUSUM exact prefix-sum formula vs direct slow reference on short streams; Student null lacks a claimed anytime validity; `CPV90_OUTSIDE_TOP20` does not crash; raw covariance `lambda<1` not miscalled Kaiser; no predefined figure outcomes.
+- Preserve historical `results/e2/e2_cells.csv` including CRLF and SHA; do not mutate `docs/DEVIATIONS.md` to erase prior failures. Tests of cross-table identity are owned by stream 31, but provide stable fingerprints and selectors for that stream.
+- Run available non-regression checks in your worktree; log commands, results, sources, remaining unsupported cases. Produce a concise schema/reference handoff for streams 29/30/31. Commit only after protocol-mandated wrapup/check; Codex alone arbitrates integration.
+````
+
+````markdown
+## PROMPT 29 — Three reproducible PCA benchmark tables (CSV and Markdown)
+
+**ROLE**: Claude Code stream responsible exclusively for table assembly/formatting in an isolated worktree; Codex must approve the read-only plan first. Target `experiments/pca_drift_tables.py`. Read `11_PROMPT_CGPT_REORIENTATION_REFERENCE_EXP_PCA_GEMINI.md` §3, stream 28 schema handoff, kickoff scientific corrections, `AGENTS.md` and repository conventions. **Never simulate observations, refit PCA, calibrate thresholds, or recompute a detector here.** All scientific data must come from the runner's immutable outputs.
+
+### 1. Inputs / outputs
+
+CLI: `--input-dir results/pca_drift_benchmark`, `--output-dir results/pca_drift_benchmark/tables`, optional `--dataset`, `--scenario`, `--detector-family`, `--format csv|md|both`, and `--strict`. Validate `manifest.json`, `spectra.csv`, `selection.csv`, `aggregates.csv`, `calibration.csv`, `issues.csv` (or the exact signed schema from stream 28). Match on stable keys (`dataset_id`, `cohort_id`, `split_hash`, `event_window_id`, `event_id`, `null_id`, `detector_family`, `k`, `selection_id`, `metric_id`, `config_hash`, `basis_hash`, `calibration_hash`, `null_calibration_id`, `seed`). Reject duplicate metric keys and stale schema/fingerprint; never join only on k.
+
+Write `Tableau_PCA_1.csv/.md`, `Tableau_PCA_2.csv/.md`, `Tableau_PCA_3.csv/.md` plus `TABLES_VALIDATION.md`, `table_manifest.json`, and optional `tables_long.parquet`. Numeric files UTF-8 and machine-readable, displayed decimals separate from unrounded source values. Source provenance and footnotes are **part of the result**, not cosmetic.
+
+### 2. Tableau_PCA_1 — spectral variance baseline (k=1..20)
+
+Per valid scenario/detector family, exactly 20 rows in ascending k or explicit `BLOCKED/NA` status. Schema/output columns (preserve French titles in Markdown):
+
+1. `Indice k` (1..20);
+2. `Valeur propre λ_k` from **Ledoit–Wolf covariance**, never eigenvalue from correlation disguised as covariance;
+3. `Variance cumulée CPV_k (%)` from `Σ_{j≤k}λ_j/Σ_{j≤N}λ_j` on the same fit split;
+4. `Critères standard` indicating MP count (**calculated on sample correlation**), 90% CPV when reached, Kaiser applicable only to correlation `λ>=1`, or `—`; do not print `Kaiser λ<1` as selection convention;
+5. `RMST250 préfixe (jours)` measured from **actual first-alarm times**, not inferred from analytic V;
+6. `Dimension retenue` = k for the prefix;
+7. `FPR250 hors dérive` from **independent evaluation null** (never hardcode 5%);
+8. `n_cal / n_eval / n_alt`, `detector_family`, `status`, `metric_id`, `CI`, `source_kind` (extra provenance columns or footnote).
+
+The source table example's `k=14, CPV=90.2%`, sample λ, RMST and FPR numbers are **placeholders, not findings**. For a 239-dimensional equicorrelated covariance with ρ=0.4, even the *population* CPV of the first 14 eigenvalues is only `(96.2+13×0.6)/239≈43.5%`; do not force 90% at k=14. Calculate actual `k90_full` over all N. When `k90_full>20`, annotate `CPV90_OUTSIDE_TOP20`, with no fake baseline. If data unavailable or split invalid, use `NA` + explicit reason.
+
+### 3. Tableau_PCA_2 — prefix versus selected subset within P_k
+
+At each k, show the **same prefix** as Tableau 1 plus the best subset S*_k selected from axes 1..k under the declared objective. Required columns:
+
+- `Indice PCA k`, `Variance λ_k (H0)`, `Information marginale q_k` **with information type** (`MEAN_GAUSSIAN_EXACT`, `MEAN_GAUSSIAN_PROXY`, `COV_GAUSSIAN_MARGINAL_PROXY`);
+- `Score préfixe V(P_k)`, `RMST250 préfixe`;
+- `Sous-ensemble optimal S*_k` serialized deterministically as 1-based sorted axis IDs, `Score V(S*_k)`, `RMST250 sélection`, `Dimension optimale d*_k`, `FPR250 préfixe`, `FPR250 sélection`;
+- `metric_id_prefix`, `metric_id_subset`, `selector_kind`, `selection_exact`, `status`, `CI`, `dataset_id`, `event_id`, `detector_family`.
+
+**Identity invariant**: matching `cohort_id`, `split_hash`, detector, null cohort and evaluation horizon are prerequisites. Prefix RMST/FPR and their `metric_id_prefix` are **retrieved as exact values from the corresponding Tableau 1 aggregate**, never recomputed, rounded then compared, or resimulated. The requested bitwise identity is attainable only by referencing the same source metric object/bytes.
+
+**Mean shift**: for diagonal Gaussian reference in the fixed PCA basis, `I(S)=Σq_j`; at each k, optimal additive selection is top-`d` q by descending value for every d=1..k, then maximize `I(S_d)/M(d,γ)` with deterministic tie rules. Never stop before evaluating every d. If Student background, mark `q` and `V` as **Gaussian-model proxies**, even while empirical RMST is genuine.
+
+**Covariance rotation**: report marginal `q_k^cov` for diagnostic only. A rotated alternative is not diagonal in fixed PCA coordinates; `Σ marginal KL` is **not** `I_cov_joint(S)`. The primary covariance selection uses runner-provided joint covariance Gaussian proxy and a declared approximate/exact subset search; mark `selection_exact` honestly. `M(d,γ)` is a mean-mixture fluid cost and **not theoretically validated as covariance-delay penalty**. Therefore either (a) present covariance `V=I_cov_joint/M` only as `COV_HEURISTIC_SURROGATE`, with explicit warning, or (b) print `NA` for theoretical V, alongside empirical covariance RMST. Do not call the marginal-q ranking the covariance oracle. Keep mean and covariance outputs in separate named blocks/files if necessary.
+
+### 4. Tableau_PCA_3 — ablation and historical ex-ante selection
+
+For each eligible scenario and **cohort_id**, show baseline CPV90, oracle q+affine surrogate, oracle q+Gaussian-mixture-fluid surrogate, ex-ante qbar greedy; in covariance add an explicitly marked joint-covariance-search diagnostic (do **not** conflate with additive oracle). Required user-facing core columns:
+
+`Rupture testée | Pipeline & règle | Information I(S) / type | Coût M(d) / applicability | Score V(S) / meaning | RMST250 (jours) | Dimension retenue d* | FPR250`.
+
+Append `n`, CI, detection rate, censoring, event window, oracle status, calibration ID, basis hash, selection axes, `metric_id`, `status` and footnotes. `d*` is printed after RMST and before FPR, as requested.
+
+- Mean rows: ensure **same** `S*` and `V*` as Exp 2 at k=20 for `ORACLE_Q_MIX`, and **same** RMST/metric_id from the exact cached trial aggregate; no rerun.
+- Affine oracle: `C(d)=a+cd`, a,c fixed, distinct from Gaussian-mixture M.
+- Ex-ante greedy: qbar from 2008/2011 historic stresses, independent of 2020/2022 tested events; do not call it oracle. Return information proxy and RMST only after valid test.
+- CPV90: if global cutoff exceeds top20, mark `OUTSIDE_TOP20` and `not_comparable_under_common_candidate_universe`, optionally show real full-spectrum CPV90 only in a separate diagnostic, not as a competing 20-axis selection.
+- **Both Covid cohort rows are mandatory and must be distinct**: `cohort_standard_embargo` (65-session post-2020 embargo; `NOT_EVALUABLE_STANDARD_SPLIT`, `RMST=NA`, `FPR=NA`) and `cohort_retrospective_covid` (no post-2019 embargo; monitor starts `2020-01-02`; `REAL_RETROSPECTIVE_EXPLORATORY`; onset `2020-02-24`, episode ends `2020-03-23`). Include `cohort_id`, split dates, whether the monitor was armed and its pre-onset alarm/reset policy, and event-specific status columns. Display `time_to_alarm_during_event`, `detected_during_event`, and separately `RMST250_post_onset` **only when well-defined**; alarms after 2020-03-23 cannot be described as detection during the acute event. Historical real episodes are single paths, not 2,000 independent replicates; do not publish pseudo-binomial confidence intervals or a stand-alone independent null-FPR estimate from the single Covid trajectory. Ex-post Δ = diagnostic oracle, forbidden as ex-ante input. The standard and retrospective rows cannot share the `metric_id` or silently merge.
+- Real 2022: any q from observed 2022 shift is **EX_POST_ORACLE** and not an ex-ante stress predictor. On real data, theoretical Gaussian proxy is not true observed KL, and event windows are not 2000 independent alternate samples.
+
+### 5. Display and audit requirements
+
+- Real measured results must never be inferred from prefilled 4.8/4.9/5.0/5.1/5.2% examples, ideal `d=2`, `12 days`, or any other target picture. Targets and results always use distinct fields.
+- Show `FPR_calibration` and `FPR_test_null` distinctly. If only a target exists, show target and `NOT_MEASURED` for achieved FPR.
+- All numeric `V`, `q`, `M`, CPV, RMST from the same compatible assumptions / model; no comparison of a Gaussian mean `M` against a covariance experiment as though it were theoretically exact.
+- Each Markdown table includes above it: dataset, N, fit/cal/test dates or synthetic lengths, distribution, injected change and amplitude, detector family and threshold calibration, H, n and selection provenance. Under it: status of covariance surrogates and any selection/censoring caveat. Add methodology/definition section **inside** tables document, not hidden in slide notes.
+- Leave missing cells `NA`, not `0`, not `...`, and not prefilled illustrative numbers.
+- The rendering code must handle wide tables via concise abbreviations plus a legend, not by silently dropping required fields. CSV retains full precision and all provenance fields.
+- Generate a machine-readable lineage map: every displayed cell has a pointer to source file + row ID or formula + inputs. Document exact command to regenerate from immutable runner results.
+
+### 6. Tests / acceptance
+
+Assert (1) 20 prefix rows per eligible dataset/scenario; (2) CPV nondecreasing, `CPV_20<=1`; (3) table 1 vs table 2 RMST/FPR/metric_id identity **from same artifact**; (4) table 2 at k=20 vs table 3 oracle-mixture S, V and RMST identical on compatible **mean** scenarios; (5) covariance oracle cannot masquerade as additive-q theorem; (6) real 2020 embargo preserved; (7) no result from a missing trial or uncalibrated detector; (8) CSV and MD values round only at display time; (9) stable ordering and SHA/fingerprint on second run. Provide `TABLES_VALIDATION.md` with counters, skipped blocks, source hashes and errors. Follow isolated-worktree plan/implementation protocol, prompt synchronization, historical SHA and wrapup requirements. Codex decides integration.
+````
+
+````markdown
+## PROMPT 30 — Two primary PCA figures: mean-shift comparison and covariance-rotation diagnostics
+
+**ROLE**: Claude Code visualization stream working only in an isolated audited worktree. Implementation target: `experiments/figures/plot_figure_1.py`. Read experiment request §4, Codex kickoff, runner schema and table assembly contracts; plan in read-only mode first. Do not generate new simulated data or run new detectors from this script; **plot exactly the signed aggregate files**.
+
+### 1. Scientific message and plot design
+
+Both figures compare (a) **historical-variance selection** and model-based information selection from the **same 20 PCA candidate axes** and (b) **measured** restricted delays. User requests a top dual-y-axis panel and a lower delay panel, sharing x = `k=1..20` (index of spectral reservoir P_k).
+
+**Top panel:** left y (blue continuous) `CPV_k` calculated from **all N eigenvalues** but accumulated only to k=20; thin 90% horizontal threshold if within y-range, with intersection annotation **only when actual CPV crosses** in top20. Right y: red dashed `V_pref(P_k)`, green solid `V_opt(S*_k)` from the **specified objective type**, both read from runner/table values; line legend includes `model-based, not observed detection speed`. Plot both V series **only** when they have comparable mathematical interpretation. Mean-shift Gaussian model is supported; Student background means Gaussian surrogate. Covariance figure, if requested, must use `I_cov_joint(S)` and explicitly label any `V=I_joint/M` as **exploratory heuristic**, not theorem; never plot `Σ q_k^cov` as true joint KL.
+
+**Bottom panel:** red `RMST250(prefix P_k)` and green `RMST250(selected S*_k)`, with paired uncertainty if available. These are **actual recorded restricted delays**, not `1/V`, not interpolations, not values from illustrative examples. Explain `RMST250 = mean[min(T,250)]`, `FPR250` measured on **independent holdout null** and calibrated separately. Display FPR range for each curve/series in caption or small text; where methods are not FPR comparable, mark the mismatch and avoid a strong comparative claim. Censoring cap at 250 days is a natural y-axis limit, not proof that any particular series reaches 250.
+
+**Most important instruction:** the source document's desired shapes (`CPV ~35→95%`, 90% at k14, V red maximum at k2, green plateau, RMST red >180 at k11, 250 at k20, selected ~12 days) are **hypotheses, not data**. Do not enforce, fake, smooth, interpolate, extrapolate or annotate these numbers unless actual aggregates support them. A flat or counterintuitive figure is a valid scientific result. No invented 95% confidence intervals.
+
+### 2. Input and CLI
+
+Read `results/pca_drift_benchmark/{manifest.json,spectra.csv,selection.csv,aggregates.csv}` and validated table data using the **same stable metric_id**; refuse invalid/missing fingerprint or if table 1/2 prefix identity fails. CLI should include:
+
+```text
+--input-dir
+--output-dir
+--dataset-id
+--event-id
+--figure mean|cov|both
+--cohort-id
+--detector-family
+--objective-kind
+--strict
+```
+
+Generate **two coequal primary figures** from the frozen runner outputs. Their scenarios are fixed before reading the results; do not select an experiment because its curves are visually convenient:
+
+1. `Figure_1_mean` — predeclared primary synthetic scenario `C_residual_mean`, with a Gaussian control (KL exact only relative to the true generating covariance; sample-fit Ledoit–Wolf pseudo-information must be labeled `GAUSSIAN_PROXY`) and Student t7 as separately qualified robustness panel/output. For the mean Gaussian control the top information criterion is additive and `M(d,gamma)` is the Gaussian mean-mixture **fluid surrogate**; no assertion of perfect agreement between its ranking and empirical RMST until tested. The common detector is `MEAN_GAUSSIAN_MIXTURE_SCAN_CUSUM`, no GLR substitution.
+2. `Figure_1_cov` — predeclared synthetic rotation `B_cov_rotate30`, **30 degrees** between the first two fixed axes, tag exactly `COV_SURROGATE_EXPLORATORY` printed on the page and in metadata. Covariance changes create off-diagonal dependence in the frozen PCA basis. The joint Gaussian covariance KL `I_cov_joint(S)` drives the covariance-aware selector. Sum of one-dimensional covariance KL values must **never** be plotted as the joint information. If plotting `V_cov(S)=I_cov_joint(S)/M(|S|,gamma)`, mark the **entire** right axis `EXPLORATORY HEURISTIC: mean-mixture M is not a covariance detector cost`; otherwise omit V and plot a truthful joint-KL curve. The bottom panel compares measured covariance-aware detection with the historical **unilateral index-energy** baseline as a separate clearly named curve; do not call this an apples-to-apples test of two equally general detectors. Display empirical FPR and detector-family labels for each curve. The source panel may be Student-t7; in that case all Gaussian covariance KL values are proxies. It is valid and important to show that the historical baseline can be blind to a **decrease** of index variance, but this is not evidence of a universal information-theoretic PCA advantage. No prespecified performance shape is obligatory.
+
+Do not blend mean and covariance panels into one curve. Both figures may be mentioned in the main report, with status labels and different inferential claims. Do not choose the scenario post hoc based on its prettiest looking curves. Real 2020 event blocked by embargo must not appear as confirmatory figure; 2022 is retrospective and requires qualified labeling.
+
+### 3. Artifact format and presentation
+
+Write:
+
+- `results/pca_drift_benchmark/figures/Figure_1_mean.svg`, `.pdf` and `.png` (300 dpi), and `Figure_1_cov.svg`, `.pdf` and `.png`, all vector formats from the same plotted CSV data; metadata and hashes in `figure_manifest.json` with two separately keyed records;
+- `Figure_1_mean_caption.md` and `Figure_1_cov_caption.md` each explaining the exact dataset, dates/horizon, N, k reservoir, change definition, mean/covariance proxy domain, detector family, threshold calibration, sample sizes, FPR and RMST uncertainty; separate tested outcomes from theory;
+- `Figure_1_mean_source.csv` and `Figure_1_cov_source.csv`, each containing **only** plotted x/y/CI/null-FPR values and their upstream `metric_id`, and `FIGURE_CHECK.md` recording traceability, missing entries and visual inspection.
+
+Use matplotlib or existing project style, accessible distinguishing colors **blue for CPV, red for prefix, green for selected**, different line dashes/markers even in grayscale. Upper panel contains a dual axis but colors, tick labels and titles must disambiguate CPV (percent) from V (information-per-cost). Lower panel labels the actual restricted delay and H=250. Chart must be publication readable in single-column and two-column contexts, with title/legend not overlapping data. Tick k=1,2,5,10,15,20 or a readable subset; candidate identifiers are 1-based. Never hardcode axis minimum/maximum to hide contrary values; lower y can be [0,250] but show observed bounds and uncertainty.
+
+Missing k rows: leave gaps and annotate missing provenance, never fill by interpolation. Distinguish theoretically impossible/blocked from missing measurements in caption. Do not compute a 'best' curve by cherry-picking distinct detector families at each k; all points in a series must use the same detector and comparable null calibration protocol.
+
+### 4. Reproducibility and quality assurance
+
+- Compare each point in both `Figure_1_*_source.csv` to the corresponding aggregate/table row ID, not merely rounded values. Assert x=1..20 for eligible data or explicate missing rows.
+- Both figures must display mandatory status `COV_SURROGATE_EXPLORATORY` only on covariance output; figure color/legend correctness; readable fonts; no clipping; SVG/PDF/PNG render same data; generated figures are deterministic up to documented metadata and font version. Use fonts already available in the environment; do not download or package proprietary fonts.
+- Assert no label claims `k90=14`, `peak at 2`, `RMST≈12`, `250 days at k20`, etc., unless values actually establish that claim and a code-generated conditional checks it.
+- Cross-check figure's reported FPR from holdout null with corresponding table FPR. If FPR comparability criterion fails, visually flag `FPR mismatch` and downgrade causal language.
+- For both figures, assert captions, `figure_manifest.json`, data fingerprints and provenance flags; no empty fabricated figures if covariance metrics are missing. Automated smoke run with controlled tiny fixture generated by the **test suite**, not crafted to imitate desired real results. Visual QC: inspect exported PNG and PDF/SVG where tooling permits; log actual output checks rather than claim inspection without executing it.
+- Preserve the historical CRLF/SHA guard and avoid modifications outside assigned files. Follow the approved bi-phase headless protocol, prompt sync and project wrapup before integration by Codex.
+````
+
+````markdown
+## PROMPT 31 — PCA benchmark scientific invariants and pytest contracts
+
+**ROLE:** independent Claude Code QA stream, isolated worktree, supervised and merged by Codex only. Target `tests/test_pca_drift_contracts.py`, plus minimal local test fixtures/helpers under `tests/` if absolutely necessary. First produce a read-only `PLAN.md` that reads the accepted runner and tables schema and all relevant project tests. Never change production experiment logic to make a test pass without Codex's explicit approval. Preserve historical `results/e2/e2_cells.csv` byte-for-byte. No `xfail`/`skip` to conceal a scientific contract violation; if a dataset-dependent test cannot run, mark it separately as unavailable, and keep all mathematical/unit tests runnable offline.
+
+### 1. Mathematical unit tests (offline, deterministic)
+
+**Mean Gaussian KL**:
+- For SPD `Σ`, Δ, confirm `I_full=Δ^TΣ^{-1}Δ/2`.
+- In **the actual eigenbasis of the same Σ**, verify `I_full = Σ_k(v_k^TΔ)^2/(2 λ_k)` to numeric tolerance dictated by floating-point precision. Verify subspace cumulative information is monotone **for a fixed Δ** and fixed nested basis. Demonstrate covariance eigenvalue order alone does not guarantee information marginal order; craft counterexamples where only first or last axis carries Δ.
+- For `q_k>=0` and cost depending only on cardinality, compare **exhaustive subset enumeration** for small k (k≤12), sorted top-d q optimization and forward-add-largest-q with full cardinality scan; ensure same deterministic selected set and V, with explicit tie-breaking. Do not assert 'early-stop greed' equivalence without a unimodality theorem. Ex-ante qbar differs from true-oracle q unless they happen to coincide.
+
+**Covariance rotation**:
+- Construct `Σ0=diag(4,1)` and `Σ1=R(45°)Σ0R(45°)^T`. Compute `KL_joint = 0.5[tr(Σ0^-1Σ1)-logdet(Σ0^-1Σ1)-2] = 0.5625` in this Gaussian example; compare with `Σ_k 0.5(r_k−1−log r_k)≈0.3393`: they are **not equal**. Reject a table that labels their sum `TRUE_KL` or uses the mean oracle's additive optimum on this rotation.
+- Verify `Σ1` SPD, nonzero off-diagonal in original eigenbasis, exact symmetry of covariance, and that an energy-increase-only statistic can decrease under a rotation despite positive joint KL.
+- On Student-t synthetic data, assert information fields are `GAUSSIAN_PROXY`, never `EXACT_T_KL`.
+
+**Fluid Gaussian-mixture analytic cost**:
+- Solve `x=A+(d/2)log1p(2x/d)` with `A=logγ>0`. Verify unique positive solution numerically by monotone function, residual tolerance, `M=x/A>1`, and finite for d=1,4,20,500; with γ=504 check M(4) approximately 1.5696, M(500) approximately 9.6427 to sensible numeric precision. Never label it `EXACT_ADD`, `ARL0`, or `COV_EXACT_COST`.
+- Check `V(S)=I(S)/M(|S|,γ)` is *a surrogate ranking* and does not equal measured RMST by definition.
+
+**Covariance and selection**:
+- Sample covariance nonnegative, Ledoit–Wolf SPD as required, eigenvectors orthonormal, projected test values equal stored transform from same fitted calibration data. Sample-correlation cutoff `λ_MP=(1+sqrt(N/T))²` counts factors on correlation, not LW covariance. Kaiser `corr_eigenvalue>=1`, not a universal `raw_cov_eigenvalue<1`. Test `CPV_k` monotonic with full-spectrum trace and `CPV_20<0.9` possible; in population equicorrelation N=239,ρ=.4 first14 CPV≈0.435146, *not* 0.902. The test must allow `CPV90_OUTSIDE_TOP20`.
+
+**Exact mean Gaussian-mixture scan-CUSUM (required, no GLR fallback):**
+- For short deterministic vectors (`d=1,2,4`, `H<=12`) compute the slow nested loops over all pairs `1<=tau<=t` and compare *every* `logL(tau,t)`, `W_t`, and first-alarm index to the vectorized-prefix implementation, with strict floating-point tolerance (not bitwise equality across different summation orders). Include paths with no alarm, immediate alarm, repeated equal maxima, and nonzero-prefix candidate starts.
+- Require `S_0=0`, `S_t=sum_{i<=t}z_i`, segment `S_t-S_{tau-1}`, length `n=t-tau+1`, and `log1p(n*s2)` with a `s2>0` fixed before null test. Complexity instrumentation verifies all t candidate starts are considered, including starts before t-H only when a longer full-monitoring convention is declared. At H=250 full history is 250.
+- Student-t7/null from empirical Ledoit–Wolf whitened vectors must not be stamped `EXACT_EPROCESS` or assumed to satisfy Gaussian mgf bounds; holdout null FPR is obligatory. Explicit test rejects `GLR_WINDOWED` as the declared mean primary detector, and rejects alternative-matched `s2` on non-oracle test arms.
+
+### 2. Cross-experiment exact-reuse contracts
+
+Use the **same immutable trial/aggregate** and identical `metric_id` (not recomputation) for prefix P_k in Experiments 1 and 2. For every supported `(dataset_id,event_id,detector_family,k,config_hash,basis_hash,calibration_hash)`:
+
+```text
+Tableau_PCA_1.RMST250(P_k) == Tableau_PCA_2.RMST250_prefix(P_k)
+Tableau_PCA_1.FPR250(P_k)  == Tableau_PCA_2.FPR250_prefix(P_k)
+Tableau_PCA_1.metric_id   == Tableau_PCA_2.metric_id_prefix
+```
+
+Equality must be exact at the **source serialized precision**, because both reference one value; do not invoke independent Monte Carlo for the same cell. Do not compare independently formatted rounded strings against full-precision floats and call that bitwise equality.
+
+For each eligible **additive Gaussian mean-shift** scenario at reservoir k=20:
+
+```text
+S_star_experiment2_k20 == S_star_experiment3_oracle_mix
+V_star_experiment2_k20 == V_star_experiment3_oracle_mix
+metric_id_experiment2_k20 == metric_id_experiment3_oracle_mix
+RMST250_experiment2_k20 == RMST250_experiment3_oracle_mix
+```
+
+Make negative tests that fail when subset array order differs, axis indexing is off by one, the selected set includes an axis beyond 20, a detector family differs, or FPR was borrowed from a different null. **Do not apply these equalities to covariance surrogate selectors** where additive optimality fails or to a retrospective oracle versus ex-ante qbar.
+
+### 3. Time, leakage, and sampling contracts
+
+- Synthetic fit, independent null-calibration, independent null-test and alternative test IDs are **disjoint**; thresholds do not consume holdout null/alternative data. Ensure root-seed child streams are unique and reproducible. Paired trajectories across candidate methods have identical returns, injection, onset and replicate ID.
+- Test `H=250`, independent null FPR from holdout, `RMST250 = arithmetic mean(min(hit_time,250))`, and `detect_rate + censored_rate = 1` within tolerance. Test no double-counting of false alarms before a documented onset; origin must be explicit.
+- Real split: PCA fitting/calibration 2016-04-07 to 2019-12-31 where data manifest confirms. Test **two disjoint cohort identifiers**: `cohort_standard_embargo` retains 65 trading days and requires Covid `NOT_EVALUABLE_STANDARD_SPLIT`, with unavailable metrics; `cohort_retrospective_covid` uses monitor start `2020-01-02` and retrospective event `[2020-02-24,2020-03-23]`, allows `REAL_RETROSPECTIVE_EXPLORATORY` **only**, with a documented no-embargo deviation. Inject a deliberate fake confirmatory status to ensure the test fails. Assert no 2020 data in PCA fit/null thresholds/ex-ante stress library, and no metric-ID collision across cohorts. Ensure earlier alarms before Feb 24 are not silently reset; an event-window hit is not equated with a hit later in the 250-day horizon. The 2022 event requires `RETROSPECTIVE` status for any ex-post shift estimate. Ex-ante stress-library entries must be historical 2008/2011 and free from 2020/2022 labels/returns.
+- Train/validation/test samples must be label-safe and feature-safe; selection on the event's Δ is an **oracle** and any use to create ex-ante qbar is a hard failure. Simulated true covariance Σ1 is allowed only in an explicitly labeled oracle diagnostic.
+- Real missing/embargoed data => `NA/BLOCKED`, never 0 RMST or 5% FPR. Sample size on real events is not artificially declared 2000 independent paths.
+
+### 4. Reproducibility, provenance, integration
+
+- Run a tiny deterministic **fixture** suite for both mean and covariance that avoids proprietary files. Reproduce outputs twice with same seed/config and compare normalized CSV bytes/fingerprints; variation due to timestamps must be excluded from reproducibility-critical hashes or documented separately.
+- Table/figure schema tests: **both** `Figure_1_mean` and `Figure_1_cov` must be generated from measured upstream records; the latter has mandatory `COV_SURROGATE_EXPLORATORY` metadata and visual legend and cannot label summed marginal covariance KL as joint KL. Every figure point traces to one aggregate row and validated table ID; wrong/stale source hash fails; absent data yields gap/NA not fabricated interpolation. Ensure the figure code cannot hardcode `CPV90 at 14`, `d*=2`, `selected RMST~12`, or FPR=5% measured merely from target.
+- Validate parser of axis lists, `1<=axis<=20`, unique axes, sorted stable representation, `d==len(S)`, no silent zero eigenvalues, NaN or negative information for valid Gaussian KL. If severe numerical near-zero negative Gaussian KL arises, allow documented machine-epsilon clipping only after validation; never silently sanitize material negatives.
+- Historical invariant: `sha256sum results/e2/e2_cells.csv` equals `e315e537ead0f656e4bcd3897e6ff04075f3780a8fbe642e258864739b570823` and the Git index blob hash obtained with `git show :results/e2/e2_cells.csv` hashes identically. Native CRLF must remain unchanged. `docs/DEVIATIONS.md` retains historical D8 FAIL +5.2833%; no newly 'passed' rerun of that case.
+- **Canonical filename and parser contract:** exact new paths `prompts/streams/{28,29,30,31}_STREAM_PCA_DRIFT_*.md` beginning with unique `## PROMPT 28 —` through `## PROMPT 31 —`. The CURRENT `tools/check_prompts.py` discovers only `prompt-*.md`; merely renaming would cause silently vacuous pass. Under an explicitly approved tooling change (separate from application code, Codex supervises), update it to collect `prompt-*.md` **and** `[0-9][0-9]_STREAM_PCA_DRIFT_*.md`; validate unique PROMPT IDs, reject duplicate aliases, check expected 28–31 ID set and **exact bytes of each** in `prompts/Prompts_Claude_Code_v5.md` after `--sync-master`. Add regression test: if one canonical prompt is deleted or modified relative to master, `make prompts-check` must fail. Only report 100% sync after demonstrating all four were discovered. After integration run `python tools/check_prompts.py --sync-master` and `make prompts-check`. Run `make check`, then the new test file, report actual outputs and time/split manifest. Do not claim CI success without execution.
+
+### 5. Deliverables and failure policy
+
+Commit `tests/test_pca_drift_contracts.py`, associated fixtures only where needed, and `PCA_CONTRACTS_VALIDATION.md` listing tests run, pass/fail/blocked counts, actual hash verification, and scientific decisions. No re-run of archived streams, no fabrication of future metrics, no modifying application code directly within QA stream except after explicit Codex approval with a new contract. An expected failure from the original mission's invalid assumptions (additive covariance q, Covid event embargo, CPV90 at k14) is a **successful negative test** and must not be erased to make the suite green. Follow read-only planning, headless implementation, worktree isolation, prompt sync and approved wrapup/merge protocol.
+````
