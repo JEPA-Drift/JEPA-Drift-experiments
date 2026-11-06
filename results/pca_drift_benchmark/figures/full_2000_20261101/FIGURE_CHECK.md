@@ -3,7 +3,7 @@
 - input: `results/pca_drift_benchmark/full_2000_20261101` ; run_fingerprint `ea702d03b9faf332d0ae74a7746422189b92854fbe728ceff9cb842a3ce7985a` ; schema `pca_drift_benchmark/2` ; run_mode `full`
 - tables: `results/pca_drift_benchmark/tables/full_2000_20261101` ; tables_schema `pca_drift_tables/1` ; tables_fingerprint `06c5600b8468360fc555cc709d85c9965f071d6646e0c4c7c5675b66b7071f59`
 - strict checks: PASS
-- code SHA-256: `experiments/figures/plot_figure_1.py` `5346b314f858ed02621b5818a87902b09f79655302152f9ea151b9d32cdafa85`, `experiments/pca_drift_benchmark.py` `8324b47b505ca935cd6bbd8ad6757db59bf78795678f4d94af128da0d9c0b373`, `experiments/pca_drift_tables.py` `13d386fe12c24e0d9ddeb994a7a113043b541d5e2b52f9c497377eb7eb0f4c5c`
+- code SHA-256: `experiments/figures/plot_figure_1.py` `a38fc46b1b45ed3e6e257a53c4ce29f9152b8e956b68d9d55771c58ff48634f2`, `experiments/pca_drift_benchmark.py` `8324b47b505ca935cd6bbd8ad6757db59bf78795678f4d94af128da0d9c0b373`, `experiments/pca_drift_tables.py` `13d386fe12c24e0d9ddeb994a7a113043b541d5e2b52f9c497377eb7eb0f4c5c`
 
 ## Runner sources read (SHA-256)
 - `spectra.csv`: `fa518118b12e75eae5901f6addf4272172332d4e1beea4f5cd61d6b11c4d42bc`

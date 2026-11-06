@@ -457,7 +457,7 @@ def build_entry(ctx, key):
             "title": f"Figure 1 ({spec['kind']}): {spec['event_id']}, {spec['dataset_id']}",
             "tags": tags, "cpv90_k_full": None if k90 == "NaN" else int(k90),
             "cpv90_status": t1_by_k[1]["cpv90_status"], "fpr_mismatch_k": fpr_mismatch_k, "missing": missing,
-            "is_cov": spec["comparator"] is not None}
+            "is_cov": spec["comparator"] is not None, "n_null": int(ctx.manifest["config"]["n_null"])}
     return {"key": key, "spec": spec, "source": source, "meta": meta, "fpr_mismatch_k": fpr_mismatch_k,
             "missing": missing, "claim_flags": claims}
 
@@ -579,7 +579,7 @@ def render_figure(src, meta):
             fpr_parts.append(f"energy [{float(en.null_fpr):.3g}] Wilson [{float(en.null_fpr_lo):.3g}, {float(en.null_fpr_hi):.3g}]")
         if fpr_parts:
             lines.append("FPR250: " + "; ".join(fpr_parts))
-        lines.append("FPR comparability (P identity + Wilson W): descriptive filter, not an equality test (n = 40)")
+        lines.append(f"FPR comparability (P identity + Wilson W): descriptive filter, not an equality test (n = {meta['n_null']})")
         for name, miss in meta["missing"].items():
             ks = sorted(k for k in miss if k is not None)
             if ks:

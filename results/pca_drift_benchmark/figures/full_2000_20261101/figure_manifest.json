@@ -1,6 +1,6 @@
 {
   "code": {
-    "experiments/figures/plot_figure_1.py": "5346b314f858ed02621b5818a87902b09f79655302152f9ea151b9d32cdafa85",
+    "experiments/figures/plot_figure_1.py": "a38fc46b1b45ed3e6e257a53c4ce29f9152b8e956b68d9d55771c58ff48634f2",
     "experiments/pca_drift_benchmark.py": "8324b47b505ca935cd6bbd8ad6757db59bf78795678f4d94af128da0d9c0b373",
     "experiments/pca_drift_tables.py": "13d386fe12c24e0d9ddeb994a7a113043b541d5e2b52f9c497377eb7eb0f4c5c"
   },
@@ -22,7 +22,7 @@
     "pandas": "3.0.6",
     "python": "3.12.9"
   },
-  "figures_fingerprint": "9c1fff931a1a1d3541128ae3cab9b0b4c9d77374a64c8041709968a5c3b86473",
+  "figures_fingerprint": "57a25a08dfcc2304ef7538ca3601b30d5e33185774da63a6c4aec3b343971b6c",
   "figures_schema": "pca_drift_figures/1",
   "filters": {
     "cohort_id": null,
@@ -48,63 +48,63 @@
   "outputs": {
     "FIGURE_CHECK.md": {
       "bytes": 3251,
-      "sha256": "238a45cbd0b2b71b143d40939eb059abfb22b7c54ad6edb7e7516e3ff3282553"
+      "sha256": "54bdab2478b95396856f85e9b09d6e298c2345f91d2b508f33168f37e3ec3f36"
     },
     "Figure_1_cov.pdf": {
-      "bytes": 28966,
-      "sha256": "1195c18cd6fffd0b7e488e253961756e411d164a2d3e06c7030aeb37c142f2dd"
+      "bytes": 28566,
+      "sha256": "750ec0575538adb4a1bf22ee9c669e53a484220927e92468b194d6437a06564a"
     },
     "Figure_1_cov.png": {
-      "bytes": 307231,
-      "sha256": "6521e1ef132bfb2110d65b144892ca0d86485106e7bf756dd21b394b59fca9ad"
+      "bytes": 294498,
+      "sha256": "605b755671e2acdcf94a844891b2ee566664f3d59ae8d93711dc3feca324c174"
     },
     "Figure_1_cov.svg": {
-      "bytes": 155171,
-      "sha256": "005cdc1e0d159b1d6c92d8d174ed337ea8924c2374c75031f522f0dea68c82e4"
+      "bytes": 150770,
+      "sha256": "1870a952accebd3d40591783bc942ccfd08de900d1906363894861162bcf7742"
     },
     "Figure_1_cov_caption.md": {
-      "bytes": 1885,
-      "sha256": "271c8ee04f46aa3d80cbc960d2cd254878c35380f84c6d6869fb27ff0537171a"
+      "bytes": 1807,
+      "sha256": "cdfdd68aa5cee2e2d93a6928664259f9c4cab6e575c4646470c97f43e12aea98"
     },
     "Figure_1_cov_source.csv": {
       "bytes": 22990,
       "sha256": "8a2ec3a4a9f8aebf770ee3b339b399ec178404ca8a7af073a9d3c9c2580cd586"
     },
     "Figure_1_mean.pdf": {
-      "bytes": 28141,
-      "sha256": "694490fabe1800cab292fa54fcae7dc0e5add156b912e4114f9d26fe72cff2c3"
+      "bytes": 27645,
+      "sha256": "8dcc3d4bda33f38aebc06609a9fb378c5313dce1fd6e487d12ed3e579bfb0998"
     },
     "Figure_1_mean.png": {
-      "bytes": 253880,
-      "sha256": "358c3cbf9065f3aab93f8730d951e805a14174f7fde628e1734aa3ee93b2dfb0"
+      "bytes": 241437,
+      "sha256": "912662d7ad1c41cf10d10c22de63c7f13b85a80af7c126472b9e379c49c685ea"
     },
     "Figure_1_mean.svg": {
-      "bytes": 132204,
-      "sha256": "b7ec36b4e8841c5f5518cc5643102cb78344292f86ecd3fc44e06dd452b42350"
+      "bytes": 127675,
+      "sha256": "27ca7737840d19a9c0483312d2d8ab3147fedf58fd0ae7357dc0881602230e65"
     },
     "Figure_1_mean_caption.md": {
-      "bytes": 1768,
-      "sha256": "0334ce6778b6852d17be222af8c08130728cfc2e1110864a79f4685a8aa35ff3"
+      "bytes": 1690,
+      "sha256": "8c0f7a26ce54d3a7a0be42298de6ede6a7b47c64b3004e3b1c2dc7cc237fe6e3"
     },
     "Figure_1_mean_source.csv": {
       "bytes": 22598,
       "sha256": "a4c343a2ee74b593bf29fafe37f19a0115f48d0a69b8b9c8e5a0c4ad0f64a004"
     },
     "Figure_1_mean_t7.pdf": {
-      "bytes": 28307,
-      "sha256": "f9d09685068951afce72673db40f7590ad690fa28edfe53ab893340f7c45daae"
+      "bytes": 27901,
+      "sha256": "87a8a5e22b8bd0d4e8163cb4def669f76cc8b0bfc9575a9264ffa4b27a4843fc"
     },
     "Figure_1_mean_t7.png": {
-      "bytes": 257044,
-      "sha256": "bb8259b71c86d55ca62a2e801dd3a4fc76998c10a9e6696de8f5fb4ad89af10b"
+      "bytes": 244776,
+      "sha256": "5a7fbd6abc5b5f4a9a0e55168fdc2ed5efd2ecd05d085d1b5974a194bcfa1390"
     },
     "Figure_1_mean_t7.svg": {
-      "bytes": 133883,
-      "sha256": "098e1747b9f01be413d2bebd95606de34c819ba5650345e3ae4965c2ae5b65e1"
+      "bytes": 129491,
+      "sha256": "cbc9937059871db92ab0fdbb656b76a66ad6e258f4e88810e010e0cdf01ae42d"
     },
     "Figure_1_mean_t7_caption.md": {
-      "bytes": 1814,
-      "sha256": "dcc1917ea9f17048bb02d6bb0ba48679df84035dd6198dd97a9db518ec1e6d30"
+      "bytes": 1736,
+      "sha256": "fa6fe2817ac05425f3e7f39dea938836a05f48f63d679d26927b3753c6398006"
     },
     "Figure_1_mean_t7_source.csv": {
       "bytes": 22608,
@@ -136,9 +136,9 @@
         "key": "cov",
         "kind": "cov",
         "missing": {},
+        "n_null": 2000,
         "stem": "Figure_1_cov",
         "tags": [
-          "SMOKE_NO_CLAIMS",
           "COV_SURROGATE_EXPLORATORY",
           "EXPLORATORY_HEURISTIC",
           "DETECTOR_FAMILY_MISMATCH"
@@ -167,7 +167,6 @@
         ]
       },
       "tags": [
-        "SMOKE_NO_CLAIMS",
         "COV_SURROGATE_EXPLORATORY",
         "EXPLORATORY_HEURISTIC",
         "DETECTOR_FAMILY_MISMATCH"
@@ -199,9 +198,9 @@
         "key": "mean",
         "kind": "mean",
         "missing": {},
+        "n_null": 2000,
         "stem": "Figure_1_mean",
         "tags": [
-          "SMOKE_NO_CLAIMS",
           "GAUSSIAN_PROXY"
         ],
         "title": "Figure 1 (mean): C_residual_mean, SYNTH_GAUSS_EQUICORR"
@@ -223,7 +222,6 @@
         ]
       },
       "tags": [
-        "SMOKE_NO_CLAIMS",
         "GAUSSIAN_PROXY"
       ]
     },
@@ -253,9 +251,9 @@
         "key": "mean_t7",
         "kind": "mean",
         "missing": {},
+        "n_null": 2000,
         "stem": "Figure_1_mean_t7",
         "tags": [
-          "SMOKE_NO_CLAIMS",
           "GAUSSIAN_PROXY",
           "T7_ROBUSTNESS"
         ],
@@ -279,7 +277,6 @@
         ]
       },
       "tags": [
-        "SMOKE_NO_CLAIMS",
         "GAUSSIAN_PROXY",
         "T7_ROBUSTNESS"
       ]

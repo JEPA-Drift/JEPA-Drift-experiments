@@ -23,4 +23,4 @@ V = I/M curves are model-based, not observed detection speed; the whole right ax
 
 ## Status and limits
 
-Tags: SMOKE_NO_CLAIMS · COV_SURROGATE_EXPLORATORY · EXPLORATORY_HEURISTIC · DETECTOR_FAMILY_MISMATCH. SMOKE_NO_CLAIMS: no claim is made from these smoke counts.
+Tags: COV_SURROGATE_EXPLORATORY · EXPLORATORY_HEURISTIC · DETECTOR_FAMILY_MISMATCH.

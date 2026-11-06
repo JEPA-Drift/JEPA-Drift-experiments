@@ -2,7 +2,7 @@
 
 > Exécutant : superpowers:executing-plans, en exécution native **sans sous-agent**, et superpowers:test-driven-development. Cases `- [ ]` pour le suivi.
 
-**Statut : plan v2 revu par Codex. GO d’exécution du lot 1 uniquement ; lot 2 non autorisé.**
+**Statut : lot 1 intégré et poussé dans 20ad9e860a58373ec85405de6ee19a68322dd02e ; lot 2 mesuré à 44/0 après le correctif D7b sous plan et GO séparés ; clôture Git en revue (§11).**
 - Il y aura deux GO d'exécution distincts. Le **GO outillage** ouvre le lot 1. Le **GO QA** ouvre le lot 2, et seulement après revue et commit du lot 1 par Codex.
 - Choisir « modifier le plan » ou approuver cet écran ne donne aucune permission d'implémenter.
 - Le v1 est archivé par Codex : `logs/orchestration_reprise_20261106/plan-v1.md`, SHA-256 `34f07a35ee96abe7e24eb268224b2d75a2da6d653f214ef4c494c5ea437fa01d`.
@@ -179,7 +179,8 @@ Aucun fichier de fixture n'est prévu sous `tests/`.
   - `splits.yaml` et `MANIFEST.json` locaux ;
   - `expected_calib_rows` **calculé sur ce calendrier** avec `segment_rows`, et non 941 (corr. 5) ;
   - lignes post-2019 en NaN (variante a) ou à 1e6 (variante b) ;
-  - `run_benchmark(…, "both")`.
+  - `run_benchmark(…, "both")` avec `mode = "full"` exigé par l’API, sur les seuls petits effectifs factices ; aucun run de production ;
+  - chaque chemin de rendements pointe explicitement vers `tmp_path`, sans lecture de rendements du dépôt.
 - **Artefacts scellés, lus en place :**
 
   | Alias | Chemin sous `results/pca_drift_benchmark/` |
@@ -371,7 +372,8 @@ Aucun fichier de fixture n'est prévu sous `tests/`.
 | `metric_id` partagé | `COHORT_ID_SHARED` |
 
 **C8 [NOUVEAU] `test_post2019_rows_never_reach_fit_thresholds_stress`**
-- F-fake (a) contre (b) : les lignes réelles de spectra, calibration et selection, ainsi que le bloc `real` du manifeste, sont identiques. Les effectifs sont ceux du calendrier factice.
+- F-fake (a) contre (b) : les résultats numériques de spectra, calibration et selection, ainsi que le bloc `real` hors `files`, sont identiques. Les effectifs sont ceux du calendrier factice.
+- Les modifications des entrées changent légitimement `inputs`, `input_hash`, `run_fingerprint` et leurs identifiants dérivés. La liste limitée de champs non comparés entre les deux runs est définie au §9 ; aucune exclusion générique de tous les IDs/hashes. `basis_hash`, `x_fit_sha256`, `split_hash`, `calibration_hash`, `maxima_sha256`, S, seuils et bibliothèque de stress restent comparés strictement.
 - Témoin : la perturbation d'une ligne calib change le `basis_hash`.
 
 **C9 [EXTENSION] `test_stress_library_historical_and_qbar_not_oracle`**
@@ -436,8 +438,8 @@ Aucun fichier de fixture n'est prévu sous `tests/`.
 
 **E3 [EXTENSION] `test_clip_tolerance_and_documented_rejections` (corr. 2)**
 - `clip_kl` : la tolérance documentée est −1e-12·max(1,|I|), une **constante de tolérance et non l'epsilon machine**. −1e-13 donne 0 avec un compte de 1 ; −2e-12 lève `ArithmeticError`.
-- `kl_cov_raw` rejette un déterminant de signe non positif (diag(1,−1)) et des entrées non finies. C'est la vérification documentée, fondée sur le signe de `slogdet`.
-- **Observation, non contrat** : diag(−1,−1), dont le déterminant est > 0, n'est pas rejetée. La limite de validation SPD est consignée et à arbitrer séparément.
+- `kl_cov_raw` rejette un déterminant de signe non positif (diag(1,−1)). Son prérequis déclaré est une paire de matrices SPD ; le contrôle implémenté porte seulement sur le signe de `slogdet`.
+- **Observations hors domaine SPD fini** : diag(−1,−1) n'est pas rejetée par `kl_cov_raw` ; certaines entrées NaN/inf et `clip_kl(NaN)` renvoient NaN. Le plan attribuait à tort un rejet non fini à cette primitive. Ces limites sont rapportées séparément, sans PASS de validation des entrées et sans correctif producteur ; toute sortie non finie pour une entrée du domaine déclaré reste un FAIL bloquant. Arbitrage Codex du §10.
 
 **F1 [NOUVEAU] `test_e2_cells_crlf_disk_and_index_unchanged`**
 - SHA disque = SHA de `git show :results/e2/e2_cells.csv` = `e315e537…0823`, et les octets sont égaux.
@@ -541,4 +543,46 @@ Amendements pratiques sans changement de périmètre :
 - Les comptes 9 tests ciblés / 582 tests globaux sont des attentes du plan, pas des valeurs à forcer ; consigner les comptes et durées réellement obtenus.
 - Après le lot 1 : arrêt pour revue Codex. Aucun fichier de contrats PCA, aucune exécution de D7b, aucun Git ni reindex par Claude.
 
-**Lot 2 : aucun GO d’exécution.** La QA, son intégration locale full et le diagnostic D7b attendent un GO distinct après la clôture du lot 1. Aucun changement des producteurs, données ou figures scellées n’est autorisé.
+**État historique à 09:42 : aucun GO du lot 2.** La décision ultérieure du §9 ouvre seulement la QA bornée après clôture du lot 1. Aucun changement des producteurs, données ou figures scellées n’est autorisé.
+
+## 9. Décision GO intégrée — QA, 2026-11-06 à 12:22 UTC
+
+GO Codex dans le mandat délégué, sans signature personnelle du chercheur. Base : `20ad9e860a58373ec85405de6ee19a68322dd02e`, vérifiée sur main et le distant après le hook réussi (37 + 545 tests passés, 5 ignorés). Le worktree 31 est propre avant la présente décision et aucun hook n’est en cours. Référence exécutoire : `prompts/GO-stream-31.md`.
+
+La reprise native en mode plan est archivée sans changement dans `logs/orchestration_reprise_20261106/qa-readiness-plan-reviewed.md` : 114 lignes, SHA-256 `e6765d9beeb0436f84e66b2fc2bb8a3be4b449aaa04ccda30be04f8584fcd128`. Les précisions P1–P5 de cette revue sont retenues, avec les bornes suivantes.
+
+**QQA1 — C8 accepté comme correction de référence.** `identity_block` inclut les hashes d’entrées ; les IDs de null/calibration/sélection/métrique en dépendent. Pour la comparaison entre les deux panels factices seulement, la liste explicite autorisée est `run_fingerprint`, `config_hash`, `null_id`, `null_calibration_id`, `selection_id`, `metric_id`, `null_metric_id`. `config_hash` ne peut différer qu’à cause des chemins factices, après contrôle que le reste de la configuration est identique. Les blocs `identity` ne diffèrent que par `inputs`/`input_hash` et ce `config_hash` éventuel ; code, environnement et graines restent identiques. Dans le bloc `real`, seule la provenance `files` est exclue. Tous les autres champs, y compris les hashes scientifiques de base/calibration et les données de stress, restent comparés. Les références et l’intégrité des IDs sont contrôlées séparément dans chacun des deux artefacts. Le témoin sur une ligne de calibration est conservé.
+
+**QQA2 — Fixture F-fake autorisée.** Le nom de mode `full` est une exigence de l’API pour `dataset="both"`. Il ne donne aucun GO au benchmark full : petits effectifs du plan, rendements entièrement factices sous `tmp_path`, aucune lecture de rendements réels et aucune sortie dans les répertoires scellés. Les 941 dates réelles de C6 sont un contrôle de métadonnées séparé.
+
+**QQA3 — Arrêt et Git.** Aucun commit, hook ou `make check` du worktree 31 après le FAIL de contrat, aucune suppression/déplacement du test pour rendre une suite verte. Le rapport indique les comptes réels. Les autres worktrees documentaires sont isolés ; ils ne collectent pas ce fichier QA.
+
+**FULL sans trials local.** Lire les six sorties locales présentes avec vérification SHA. Ne pas appeler `pdt.load_run(FULL)`, qui exige les sept fichiers. Mutations et validation de run sur SMOKE ; G1 lit les trials directement par la variable prévue, sans copie ni lien. `pf.load_context(FULL, TAB_FULL)` reste autorisé en lecture seule.
+
+**Précision B1/B3 et scan.** T2 n’a pas de colonne `execution` : utiliser T1 et `status_prefix`, et les colonnes `metric_id_subset`/`rmst_selected*`/`fpr_selected*` pour la copie E3. Les comparaisons de W sur tout l’horizon utilisent le scan sans arrêt anticipé ; les premières alarmes sont testées séparément en respectant sa règle GE et son comportement documenté après alarme.
+
+**Ordre Q8–Q9 amendé.** Les groupes et G1 sont exécutés avant D7b. Après écriture de D7b en dernière position et pyflakes, une unique exécution finale du fichier avec G1 et `-x` mesure les comptes et atteint D7b en dernier si les autres contrats passent. Le premier défaut producteur confirmé déclenche immédiatement STOP ; aucune seconde exécution ni nouvelle tâche de code ensuite, seulement le rapport d’incident. Cette séquence remplace toute lecture de Q9 qui autoriserait un rerun après STOP.
+
+**Propriété.** Claude crée seulement `tests/test_pca_drift_contracts.py`, `docs/audits/PCA_CONTRACTS_VALIDATION.md` et les journaux ignorés. Le plan, ce GO, l’audit et le wrapup du lot 1 appartiennent à Codex. Aucun changement producteur ni correction du texte « n = 40 ». Tous les autres invariants et exclusions du plan restent applicables.
+
+## 10. Reprise après quota et arbitrages de revue — 2026-11-06, 13:25 UTC
+
+Le chercheur confirme la réinitialisation du quota pour cinq heures et demande la reprise des trois streams. Le registre QA constate 26 tests réussis (F/E, A, B), sans mesure finale et sans STOP de défaut producteur. Reprendre aux groupes C, puis D et G1 ; ne pas recommencer les groupes inchangés.
+
+**E3, correction de référence.** Codex a reproduit sous le venv le retour NaN de `kl_cov_raw(I, diag(NaN,1))`, `kl_cov_raw(I, diag(inf,1))` et `clip_kl(NaN)`. La docstring exige des matrices SPD, ne promet pas un validateur universel. Retirer l'attribution erronée de rejet automatique du plan, consigner `O-E3-NONFINITE` comme limite observée et non comme succès de contrôle. Le rejet du signe non positif, le clipping documenté et la finitude/non-négativité dans le domaine SPD fini restent testés. Aucun rejet existant ni exigence de finitude applicable n'est supprimé.
+
+**Finitude E2.** Une valeur NA n'est admise que pour un champ non applicable au rôle et au type d'information de la ligne. Les champs d'information requis sur une ligne OK doivent être renseignés, finis et non négatifs avant tout filtrage. Ne pas transformer un NaN requis en absence inoffensive. Réutiliser les contrôles existants s'ils couvrent exactement ce point, sinon ajouter le plus petit témoin QA.
+
+**B4, ordre des refus.** La mutation d'une famille incompatible avec la méthode E3 est rejetée en `UNEXPECTED_ROW_STATE` avant la vérification de lignée, conformément à l'applicabilité documentée. Ce refus est accepté ; conserver le second témoin compatible E2 qui atteint `L16_PREFIX_IDENTITY`, ainsi que les contrôles d'axes et de null étranger.
+
+**Ingésions et corrections.** Toute lecture CSV utilise explicitement `float_precision='round_trip'`, y compris le lecteur en texte. La limite de trois corrections concerne les tentatives d'un même incident QA diagnostiqué ; une divergence scientifique confirmée ne relève jamais de cette procédure et impose STOP immédiat. La correction A7 déjà consignée reste dans le rapport.
+
+Le GO QA reste borné aux deux livrables et journaux autorisés. Aucun producteur, dépendance, donnée, figure, valeur scellée ou seuil ne change. La séquence finale unique avec `-x`, D7b en dernier et rapport après STOP reste inchangée.
+
+## 11. Réception après l'avenant D7b — 2026-11-06
+
+Le STOP initial du lot 2 a donné 43 réussites et un échec D7b ; ses preuves et ses journaux sont conservés. Le chercheur a ensuite autorisé le correctif ciblé et le remplacement des deux seuls dossiers full par son avenant `FIX-stream-31-nb-assets.md` (SHA-256 `ce91c1899db2fac30dcb88e64f3b1043861263adb7c2988d5394a706b84735e6`).
+
+Le plan séparé `prompts/plans/plan-31-fix.md` et le GO `prompts/GO-stream-31-fix.md` ont été enregistrés avant l'exécution. Ils remplacent, pour ce seul correctif, les interdictions antérieures sur le traceur et les deux dossiers full. Les décisions QA des §9–10 restent inchangées.
+
+La réception Claude mesure 44 contrats réussis, sans échec ni skip, G1 exécuté, puis `make check` : 37 + 589 réussites et cinq skips D4 préexistants. Le traceur ne change que sur deux lignes ; les CSV sources, les smoke, les tables, le runner, J1 et D8 gardent leurs octets. Le rapport `docs/audits/PCA_CONTRACTS_VALIDATION.md` distingue la mesure historique de la nouvelle et porte la revue indépendante Codex. La réindexation, les contrôles pré-commit, le commit et l'intégration restent à terminer par Codex.

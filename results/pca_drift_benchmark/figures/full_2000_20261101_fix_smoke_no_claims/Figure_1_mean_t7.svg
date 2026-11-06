@@ -2961,8 +2961,8 @@ z
     <use xlink:href="#DejaVuSans-44" transform="translate(3236.515625 0)"/>
     <use xlink:href="#DejaVuSans-51" transform="translate(3297.796875 0)"/>
    </g>
-   <!-- equality test (n = 40) -->
-   <g transform="translate(93.742969 362.820286) scale(0.06 -0.06)">
+   <!-- equality test (n = 2000) -->
+   <g transform="translate(89.925469 362.820286) scale(0.06 -0.06)">
     <defs>
      <path id="DejaVuSans-54" d="M 947 1747 
 Q 947 1113 1208 752 
@@ -3010,9 +3010,11 @@ z
     <use xlink:href="#DejaVuSans-3" transform="translate(761.609375 0)"/>
     <use xlink:href="#DejaVuSans-20" transform="translate(793.390625 0)"/>
     <use xlink:href="#DejaVuSans-3" transform="translate(877.1875 0)"/>
-    <use xlink:href="#DejaVuSans-17" transform="translate(908.96875 0)"/>
+    <use xlink:href="#DejaVuSans-15" transform="translate(908.96875 0)"/>
     <use xlink:href="#DejaVuSans-13" transform="translate(972.59375 0)"/>
-    <use xlink:href="#DejaVuSans-c" transform="translate(1036.21875 0)"/>
+    <use xlink:href="#DejaVuSans-13" transform="translate(1036.21875 0)"/>
+    <use xlink:href="#DejaVuSans-13" transform="translate(1099.84375 0)"/>
+    <use xlink:href="#DejaVuSans-c" transform="translate(1163.46875 0)"/>
    </g>
    <!-- FPR mismatch at k = [14] -->
    <g transform="translate(87.383906 370.021927) scale(0.06 -0.06)">
