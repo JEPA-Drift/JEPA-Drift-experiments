@@ -450,9 +450,12 @@ def build_entry(ctx, key):
     source = pd.DataFrame(rows, columns=list(SRC_COLS))
     claims = sorted({f for v in sel2.claim_flag for f in json.loads(v)})
     k90 = t1_by_k[1]["cpv90_k_full"]
+    tags = list(spec["tags"])
+    if ctx.manifest.get("run_mode") == "full":
+        tags = [t for t in tags if t != SMOKE_BANNER]
     meta = {"key": key, "kind": spec["kind"], "stem": spec["stem"],
             "title": f"Figure 1 ({spec['kind']}): {spec['event_id']}, {spec['dataset_id']}",
-            "tags": list(spec["tags"]), "cpv90_k_full": None if k90 == "NaN" else int(k90),
+            "tags": tags, "cpv90_k_full": None if k90 == "NaN" else int(k90),
             "cpv90_status": t1_by_k[1]["cpv90_status"], "fpr_mismatch_k": fpr_mismatch_k, "missing": missing,
             "is_cov": spec["comparator"] is not None}
     return {"key": key, "spec": spec, "source": source, "meta": meta, "fpr_mismatch_k": fpr_mismatch_k,
@@ -518,7 +521,9 @@ def render_figure(src, meta):
         else:
             ax_v.set_ylabel(_wrap("V = I_plugin/M(d, γ) (nats/day), GAUSSIAN_PROXY", 26), color=DARK)
         top_handles = [ax_cpv.lines[0], ax_v.lines[0], ax_v.lines[1],
-                       Line2D([], [], color="none", label=MODEL_BASED), _banner_handle()]
+                       Line2D([], [], color="none", label=MODEL_BASED)]
+        if SMOKE_BANNER in meta["tags"]:
+            top_handles.append(_banner_handle())
         for name, color, line in (("CPV", BLUE, ax_cpv.lines[0]), ("V_prefix", RED, ax_v.lines[0]),
                                   ("V_star", GREEN, ax_v.lines[1])):
             if name in meta["missing"]:
@@ -586,7 +591,8 @@ def render_figure(src, meta):
         if meta["is_cov"]:
             lines.append(H5_PHRASE)
             lines.append("DETECTOR_FAMILY_MISMATCH: " + FAMILY_MISMATCH_PHRASE)
-        rhandles.append(_banner_handle())
+        if SMOKE_BANNER in meta["tags"]:
+            rhandles.append(_banner_handle())
         ax_r.legend(handles=rhandles, loc="upper center", bbox_to_anchor=(0.5, -0.28), borderaxespad=0.0,
                     frameon=False)
         fig.text(0.5, 0.006, "\n".join(_wrap(l, 72) for l in lines), ha="center", va="bottom", fontsize=6)
@@ -751,7 +757,7 @@ V = I/M curves are {MODEL_BASED}; the whole right axis of the covariance figure 
 
 ## Status and limits
 
-Tags: {' · '.join(spec['tags'])}. {SMOKE_BANNER}: no claim is made from these smoke counts.
+Tags: {' · '.join(entry['meta']['tags'])}.{(' ' + SMOKE_BANNER + ': no claim is made from these smoke counts.') if m.get('run_mode') != 'full' else ''}
 """
 
 

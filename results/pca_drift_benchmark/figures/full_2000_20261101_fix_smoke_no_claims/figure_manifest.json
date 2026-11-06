@@ -1,0 +1,294 @@
+{
+  "code": {
+    "experiments/figures/plot_figure_1.py": "c40a5e77c4dbc54a17b8d5148b8271be46a5e1a16b8c99b9dcefd84ffe79a516",
+    "experiments/pca_drift_benchmark.py": "8324b47b505ca935cd6bbd8ad6757db59bf78795678f4d94af128da0d9c0b373",
+    "experiments/pca_drift_tables.py": "13d386fe12c24e0d9ddeb994a7a113043b541d5e2b52f9c497377eb7eb0f4c5c"
+  },
+  "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_CBWR=COMPATIBLE PYTHONHASHSEED=42 \\\n.venv/bin/python experiments/figures/plot_figure_1.py --input-dir results/pca_drift_benchmark/full_2000_20261101 --tables-dir results/pca_drift_benchmark/tables/full_2000_20261101 --output-dir <OUT> \\\n  --figure both --strict",
+  "environment": {
+    "MKL_CBWR": "COMPATIBLE",
+    "MKL_NUM_THREADS": "1",
+    "MPLBACKEND": "Agg",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "PYTHONHASHSEED": "42",
+    "font": {
+      "file": "DejaVuSans.ttf",
+      "name": "DejaVu Sans",
+      "sha256": "3fdf69cabf06049ea70a00b5919340e2ce1e6d02b0cc3c4b44fb6801bd1e0d22"
+    },
+    "matplotlib": "3.11.2",
+    "numpy": "2.4.4",
+    "pandas": "3.0.6",
+    "python": "3.12.9"
+  },
+  "figures_fingerprint": "df4e5c30c9f891922e989a477a6fe608f111a171f6b658afc14929294737633d",
+  "figures_schema": "pca_drift_figures/1",
+  "filters": {
+    "cohort_id": null,
+    "dataset_id": null,
+    "detector_family": null,
+    "event_id": null,
+    "figure": "both",
+    "objective_kind": null
+  },
+  "input": {
+    "path": "results/pca_drift_benchmark/full_2000_20261101",
+    "run_fingerprint": "ea702d03b9faf332d0ae74a7746422189b92854fbe728ceff9cb842a3ce7985a",
+    "run_mode": "full",
+    "schema_version": "pca_drift_benchmark/2",
+    "sha256": {
+      "aggregates.csv": "54a705298f4335a4c1fbbf2aa1511ec97679cfe6e640140265a8a8e3645480f5",
+      "calibration.csv": "430e1e1097b6283d575b2b5538d8b6af5008da9ba47d0ef97287629b89507b2f",
+      "manifest.json": "3b2299bc1c841ef5c9f425a135ad9e318b310c08acfbfaf228a0b49034372f47",
+      "selection.csv": "19189d60580f03ffcb914ab29f242ea5b33fdcad220924d5b24dc4e7d6b41a5c",
+      "spectra.csv": "fa518118b12e75eae5901f6addf4272172332d4e1beea4f5cd61d6b11c4d42bc"
+    }
+  },
+  "outputs": {
+    "FIGURE_CHECK.md": {
+      "bytes": 3251,
+      "sha256": "0cbd7a9e93ba2e8e8060aae50252a8d37f14cda552e318d2aa0c8cf5aabe9c4a"
+    },
+    "Figure_1_cov.pdf": {
+      "bytes": 28564,
+      "sha256": "ede9fb31b08ea6928ef9021b40d7ff1c1ab0e6a0ca64f6b131c5e92c0e8c6190"
+    },
+    "Figure_1_cov.png": {
+      "bytes": 294402,
+      "sha256": "7b4ae577eb46bf871e717cfc42fd74e87416119e30fb9f4f8c371bf30b38bb6e"
+    },
+    "Figure_1_cov.svg": {
+      "bytes": 150618,
+      "sha256": "716e1c3079cc5b0b5b578ca78ecd09d9d4294e4958dbd99042a5b67abd890b61"
+    },
+    "Figure_1_cov_caption.md": {
+      "bytes": 1807,
+      "sha256": "cdfdd68aa5cee2e2d93a6928664259f9c4cab6e575c4646470c97f43e12aea98"
+    },
+    "Figure_1_cov_source.csv": {
+      "bytes": 22990,
+      "sha256": "8a2ec3a4a9f8aebf770ee3b339b399ec178404ca8a7af073a9d3c9c2580cd586"
+    },
+    "Figure_1_mean.pdf": {
+      "bytes": 27641,
+      "sha256": "a32f4364a4de01988f805796af3ddfd4f70287a5ee2583701a3bb1527c4f574e"
+    },
+    "Figure_1_mean.png": {
+      "bytes": 241337,
+      "sha256": "dd8967d74d9980a8a21b4fc1f7f8eb70c1efda886f9e45421b74e51f29bae08c"
+    },
+    "Figure_1_mean.svg": {
+      "bytes": 127523,
+      "sha256": "60ceea02a69d2dbf6dc9738a5aeb5e4568fb3e9e23d0309c6852188eb1197603"
+    },
+    "Figure_1_mean_caption.md": {
+      "bytes": 1690,
+      "sha256": "8c0f7a26ce54d3a7a0be42298de6ede6a7b47c64b3004e3b1c2dc7cc237fe6e3"
+    },
+    "Figure_1_mean_source.csv": {
+      "bytes": 22598,
+      "sha256": "a4c343a2ee74b593bf29fafe37f19a0115f48d0a69b8b9c8e5a0c4ad0f64a004"
+    },
+    "Figure_1_mean_t7.pdf": {
+      "bytes": 27897,
+      "sha256": "1aa8366e0cbc2374e2043c233eb069785aae289a99913312f69ada4c1d30aee4"
+    },
+    "Figure_1_mean_t7.png": {
+      "bytes": 244676,
+      "sha256": "5345e5288d5311a583a31313bbb0f4f95ac0e3b964530510f5782986d8199583"
+    },
+    "Figure_1_mean_t7.svg": {
+      "bytes": 129339,
+      "sha256": "e7e6dabd5af9f95626998f87cfa3bdcfdc3d8afb768ebd3daec9c6caf559e007"
+    },
+    "Figure_1_mean_t7_caption.md": {
+      "bytes": 1736,
+      "sha256": "fa6fe2817ac05425f3e7f39dea938836a05f48f63d679d26927b3753c6398006"
+    },
+    "Figure_1_mean_t7_source.csv": {
+      "bytes": 22608,
+      "sha256": "f8ec238cc85ce82250970a99163d3e89a9ee07ea3cfd8e4f1da5024f277d713b"
+    }
+  },
+  "records": {
+    "cov": {
+      "claim_flags": [
+        "COV_SURROGATE_EXPLORATORY",
+        "HEURISTIC_COST",
+        "ORACLE_TRUE_SIGMA1"
+      ],
+      "fpr_mismatch_k": [],
+      "missing_k": {},
+      "outputs": [
+        "Figure_1_cov.svg",
+        "Figure_1_cov.pdf",
+        "Figure_1_cov.png",
+        "Figure_1_cov_source.csv",
+        "Figure_1_cov_caption.md"
+      ],
+      "predeclared": true,
+      "render": {
+        "cpv90_k_full": 158,
+        "cpv90_status": "CPV90_OUTSIDE_TOP20",
+        "fpr_mismatch_k": [],
+        "is_cov": true,
+        "key": "cov",
+        "kind": "cov",
+        "missing": {},
+        "stem": "Figure_1_cov",
+        "tags": [
+          "COV_SURROGATE_EXPLORATORY",
+          "EXPLORATORY_HEURISTIC",
+          "DETECTOR_FAMILY_MISMATCH"
+        ],
+        "title": "Figure 1 (cov): B_cov_rotate30, SYNTH_GAUSS_EQUICORR"
+      },
+      "role": "PRIMARY",
+      "source_rows": 101,
+      "spec": {
+        "comparator": [
+          "ENERGY_INDEX_COMPARATOR",
+          "ENERGY_INCREASE_CUSUM"
+        ],
+        "dataset_id": "SYNTH_GAUSS_EQUICORR",
+        "detector_family": "COV_QUADRATIC_VECH_SCAN",
+        "event_id": "B_cov_rotate30",
+        "kind": "cov",
+        "objective_kind": "COV_JOINT_MIX_HEURISTIC",
+        "role": "PRIMARY",
+        "stem": "Figure_1_cov",
+        "tags": [
+          "SMOKE_NO_CLAIMS",
+          "COV_SURROGATE_EXPLORATORY",
+          "EXPLORATORY_HEURISTIC",
+          "DETECTOR_FAMILY_MISMATCH"
+        ]
+      },
+      "tags": [
+        "COV_SURROGATE_EXPLORATORY",
+        "EXPLORATORY_HEURISTIC",
+        "DETECTOR_FAMILY_MISMATCH"
+      ]
+    },
+    "mean": {
+      "claim_flags": [
+        "ORACLE_INJECTED_DELTA"
+      ],
+      "fpr_mismatch_k": [
+        12
+      ],
+      "missing_k": {},
+      "outputs": [
+        "Figure_1_mean.svg",
+        "Figure_1_mean.pdf",
+        "Figure_1_mean.png",
+        "Figure_1_mean_source.csv",
+        "Figure_1_mean_caption.md"
+      ],
+      "predeclared": true,
+      "render": {
+        "cpv90_k_full": 158,
+        "cpv90_status": "CPV90_OUTSIDE_TOP20",
+        "fpr_mismatch_k": [
+          12
+        ],
+        "is_cov": false,
+        "key": "mean",
+        "kind": "mean",
+        "missing": {},
+        "stem": "Figure_1_mean",
+        "tags": [
+          "GAUSSIAN_PROXY"
+        ],
+        "title": "Figure 1 (mean): C_residual_mean, SYNTH_GAUSS_EQUICORR"
+      },
+      "role": "PRIMARY",
+      "source_rows": 101,
+      "spec": {
+        "comparator": null,
+        "dataset_id": "SYNTH_GAUSS_EQUICORR",
+        "detector_family": "MEAN_GAUSSIAN_MIXTURE_SCAN_CUSUM",
+        "event_id": "C_residual_mean",
+        "kind": "mean",
+        "objective_kind": "MEAN_MIX_FLUID_SURROGATE",
+        "role": "PRIMARY",
+        "stem": "Figure_1_mean",
+        "tags": [
+          "SMOKE_NO_CLAIMS",
+          "GAUSSIAN_PROXY"
+        ]
+      },
+      "tags": [
+        "GAUSSIAN_PROXY"
+      ]
+    },
+    "mean_t7": {
+      "claim_flags": [
+        "ORACLE_INJECTED_DELTA"
+      ],
+      "fpr_mismatch_k": [
+        14
+      ],
+      "missing_k": {},
+      "outputs": [
+        "Figure_1_mean_t7.svg",
+        "Figure_1_mean_t7.pdf",
+        "Figure_1_mean_t7.png",
+        "Figure_1_mean_t7_source.csv",
+        "Figure_1_mean_t7_caption.md"
+      ],
+      "predeclared": true,
+      "render": {
+        "cpv90_k_full": 152,
+        "cpv90_status": "CPV90_OUTSIDE_TOP20",
+        "fpr_mismatch_k": [
+          14
+        ],
+        "is_cov": false,
+        "key": "mean_t7",
+        "kind": "mean",
+        "missing": {},
+        "stem": "Figure_1_mean_t7",
+        "tags": [
+          "GAUSSIAN_PROXY",
+          "T7_ROBUSTNESS"
+        ],
+        "title": "Figure 1 (mean): C_residual_mean, SYNTH_T7_EQUICORR"
+      },
+      "role": "ROBUSTNESS",
+      "source_rows": 101,
+      "spec": {
+        "comparator": null,
+        "dataset_id": "SYNTH_T7_EQUICORR",
+        "detector_family": "MEAN_GAUSSIAN_MIXTURE_SCAN_CUSUM",
+        "event_id": "C_residual_mean",
+        "kind": "mean",
+        "objective_kind": "MEAN_MIX_FLUID_SURROGATE",
+        "role": "ROBUSTNESS",
+        "stem": "Figure_1_mean_t7",
+        "tags": [
+          "SMOKE_NO_CLAIMS",
+          "GAUSSIAN_PROXY",
+          "T7_ROBUSTNESS"
+        ]
+      },
+      "tags": [
+        "GAUSSIAN_PROXY",
+        "T7_ROBUSTNESS"
+      ]
+    }
+  },
+  "strict": true,
+  "tables": {
+    "path": "results/pca_drift_benchmark/tables/full_2000_20261101",
+    "sha256": {
+      "Tableau_PCA_1.csv": "1db07a14dd58316cf6544fadc349b8655387687460002ed8f79c94e9a7d9e33e",
+      "Tableau_PCA_2.csv": "fa4523c28b91cac452dc9db476ffb3a0520d742cfbc955f2ddbeca76b8004ba7",
+      "Tableau_PCA_3.csv": "b91c7fd7a14b33cf8c5876baffe06c113f56f30831e3dffb40fe3dde64c1e345",
+      "table_lineage.csv": "bba1482eb3f1a03546220012f95c7d62edd00dc017b5b6f2d4554080970ad81a"
+    },
+    "tables_fingerprint": "06c5600b8468360fc555cc709d85c9965f071d6646e0c4c7c5675b66b7071f59",
+    "tables_schema": "pca_drift_tables/1"
+  }
+}
