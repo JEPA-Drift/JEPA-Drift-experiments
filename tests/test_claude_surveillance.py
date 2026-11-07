@@ -1,11 +1,28 @@
 import json
 import os
+import shutil
 import subprocess
 import time
 
 import pytest
 
 from tools.ops import monitor_claude_sessions as monitor
+
+
+def test_shell_entry_finds_host_tools_with_minimal_cron_path(tmp_path):
+    entry = tmp_path / "tools/ops/monitor_claude_sessions.sh"
+    entry.parent.mkdir(parents=True)
+    shutil.copy2(monitor.ROOT / "tools/ops/monitor_claude_sessions.sh", entry)
+    (tmp_path / ".venv").symlink_to(monitor.ROOT / ".venv", target_is_directory=True)
+    (entry.parent / "monitor_claude_sessions.py").write_text(
+        "import subprocess\n"
+        "subprocess.run(['git', '--version'], check=True)\n"
+        "subprocess.run(['tmux', '-V'], check=True)\n"
+    )
+    result = subprocess.run([str(entry)], cwd="/", capture_output=True, text=True,
+                            env={"HOME": str(tmp_path), "PATH": "/usr/bin:/bin"}, timeout=20)
+    assert result.returncode == 0, result.stderr
+    assert "git version" in result.stdout and "tmux" in result.stdout
 
 
 @pytest.mark.parametrize(("screen", "alive", "expected"), [
