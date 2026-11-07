@@ -1,4 +1,3 @@
-cat << 'EOF' > tools/ops/auto_wake_codex.sh
 #!/usr/bin/env bash
 set -euo pipefail
 
