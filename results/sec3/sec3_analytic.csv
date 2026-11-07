@@ -1,0 +1,10 @@
+id,quantity,parameters,reading,approximation,anchor,value
+ARL0ADD-G252-SR1,arl0_over_add_diffusion,gamma=252; sr_annual=1.0,exact,diffusion,expected run to a false alarm,1.7741629469770654
+M-D1-G504,mixture_multiplier,D=1; gamma=504,anytime-valid,fluid,$M=,1.2239421009676335
+M-D10-G504,mixture_multiplier,D=10; gamma=504,anytime-valid,fluid,$M=,2.0057517760705341
+M-D64-G504,mixture_multiplier,D=64; gamma=504,anytime-valid,fluid,$M=,3.905601272609708
+M-D500-G504,mixture_multiplier,D=500; gamma=504,anytime-valid,fluid,$M=,9.6426581917156557
+M-D128-G504,mixture_multiplier,D=128; gamma=504,anytime-valid,fluid,$M=,5.2252126569106583
+ABS-R2.5,absorption_ratio,tau_a/tau_gamma=2.5,budget,fluid,\tau_a/\tau_\gamma=,2.0117973905426254
+ABS-R4,absorption_ratio,tau_a/tau_gamma=4,budget,fluid,\tau_a/\tau_\gamma=,1.3862943611198906
+ABS-R8,absorption_ratio,tau_a/tau_gamma=8,budget,fluid,\tau_a/\tau_\gamma=,1.1507282898071236
