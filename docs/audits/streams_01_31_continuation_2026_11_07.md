@@ -109,3 +109,28 @@ Root's fresh final run gave 190 passed in 9.58 s, with no skip or xfail and clea
 The installed wrap-up skill produced the six-section English checkpoint before the controlled session exited. Its Current State records the earlier inventory snapshot, SHA-256 `5931a375e58add2232dfbbe02151f5e92193ffab9cbf5f23bb9ac39a20d60d5b`; this reception appendix was added by Codex afterwards. The prior inventory text is retained without rewriting that snapshot. At this documentary checkpoint, the final reindex, full closing check, commit and push remain for the serialized integration workflow; their completion must be checked in Git and the closing journal.
 
 Next authorized work is the separate 21-R documentary runner contract. The four 21-S endpoints remain UNSOURCED; the 19 scientific protocol, 23 reproduction and later experimental streams retain their individual gates. The native worker and its worktree are retained as an audit trail; no foreign worktree or personal Claude session was modified.
+
+## Publication of F and documentary reception of R, 2026-11-08
+
+Lot 21-F is integrated and published at `26a2a5696a4412af8aceb6dbde3a9874e996aaad`. Its closing hook passed: 37 contracts in 37.44 s, then 1,156 tests and five D4 availability skips in 490.86 s, totaling 1,193 PASS / 5 skips / zero failures. The clean main advanced by fast-forward and the advertised remote main matched. No torch or PCA contract was skipped. The earlier precommit text above remains a timestamped reception snapshot.
+
+Lot 21-R now delivers the documentary contract only. Its native plan was revised under an eight-point Codex review with independent read-only review, then recorded with the integrated delegated GO before writing. The final YAML decision rejects anchors, aliases and explicit tags/directives, while admitting implicit finite JSON values; the existing appendix loader is unchanged.
+
+| Artifact | Received SHA-256 |
+|---|---|
+| `prompts/plans/plan-21-R.md` | `0f838115917c0064f278a60141e07a2c0439ff608f9c7473d70b5f3a88884bc0` |
+| `prompts/GO-stream-21-R.md` | `0a4b0a46bd9b8b1faf7f8890a09ed424074fb5d702ddfb0802feac9d9148b14a` |
+| `docs/sections/benchmark_runner_contract.md` | `2414f1dafef18c638d0c799c923e4700d35c3f9df9283868a048da9f4be63481` |
+| `prompts/wrapups/wrapup-21-R.md` | `2d3156c965efa2609341fd7cd6f43c61bcc8a84cd6cb188ac8a84faba590b58d` |
+
+The 564-line contract has twelve sections. The worker's final shell documentary checks report 23 PASS; Codex's fresh checks confirm the perimeter, section count, width, canonical-document pins and protected hashes. The independent reviewer supports the targeted producer/F facts and confirms the earlier findings addressed. Final clarifications reserve the results-namespace `run.json`, exclude self-hashing, distinguish runner I/O from target failures and bound the reader-precedent claim. The future witnesses are specifications, not executed tests.
+
+The installed wrap-up produced the six-section English checkpoint before official session exit. Its Current State predates this reception appendix and the final integration work; it is retained unchanged. The owned R process and tmux session are stopped and its context remains on disk. The unrelated personal session is untouched. The final reindex, full regression check, commit and publication are still due at this documentary snapshot and must be established by Git and the closing journal.
+
+The global stream 21 remains PARTIEL. No runner source, effective freeze, FROZEN file, J4 activation, E5 configuration, experiment or training was produced. All candidate targets remain UNQUALIFIED, production remains DEFERRED behind G1–G10, E2/E3/PCA are preserved and mapping stays 15/19 with four UNSOURCED endpoints.
+
+## Latest instruction: hold further Claude streams
+
+After the R checkpoint, the user authorized finalizing this lot and forbade any new Claude Code stream until their explicit return. This later instruction supersedes the next-19 recommendation in the historical checkpoint and the earlier queue above. No 19 worker or worktree was launched. The ignored mission is preparation only. Elapsed time and an automatically injected `continue` do not lift this hold.
+
+Stream 19's documentary protocol and the conditional stream-23 preparation stay pending. The original stream-23 tree remains clean at `3d0bd2071cb86afc6b196b5020ff729204746a93`, with `7e4c7a1` then `3d0bd20` unintegrated; C1–C7 and a dedicated experimental authorization still gate migration/reproduction. Other deferred or blocked scientific scopes retain their previously recorded gates.
