@@ -1,0 +1,17 @@
+# Amendement documentaire — 21-qualification-20261112
+
+12 novembre 2026. GO Codex documentaire dans le même mandat délégué, sans GO scientifique. Cet amendement complète `prompts/GO-stream-21-qualification-20261112.md` et prime sur son raccourci de classification des refus de lecteur ainsi que sur la précision 6 du plan canonique. Leurs empreintes d'origine restent inchangées ; aucun schéma ni comportement de production n'est décidé.
+
+Document reçu : `docs/audits/stream_21_qualification_20261112.md`, 223 lignes, SHA-256 `97375cb3b8016c92ff898cb7564f83de725f4607d47eef1df9d25917c5dd3fe1`, archivé par Codex dans les journaux avant correction. Même session, modèle, effort et contexte ; aucun nouveau Claude.
+
+## Trois corrections bornées avant réception
+
+1. **Holdout.** La phrase générale « No untouched holdout exists » du §3.2 est fausse pour l'ensemble d'E3. `experiments/e3_calibration.py:4-7` décrit les chemins D5 de calibration et d'évaluation indépendants ; `tests/test_e3.py:196-217` en fixe le contrat. Remplacer par la distinction : les fenêtres réelles décrites restent rétrospectives/descriptives sans holdout indépendant ; E3 possède un contrôle D5 P1-D avec rôles cal/eval séparés et intervalle Wilson, qui certifie son propre modèle synthétique seulement. Garder l'absence de lecteur réel borné et de qualification de cible. Restreindre de même les autres affirmations d'absence de holdout aux volets réellement concernés.
+2. **Classification DATA / TARGET_FAILED.** Codex avait repris à tort dans le GO le raccourci « lecteur avant calcul ⇒ DATA ». Le contrat `docs/sections/benchmark_runner_contract.md:265-266` classe toute exception de l'import ou de `target.main` en TARGET_FAILED, y compris une exception d'un lecteur appelé dans main. Les lignes 220-224 et 378 portent sur la preuve du lecteur vérifiée à l'acceptation : preuve absente ou divergente ⇒ DATA. Les refus de descripteur avant import sont une troisième phase (l. 194-195). Le format de preuve et la remontée d'un refus du lecteur restent DEFERRED/G9-G10. Corriger §3.4 et les témoins §5 ; ne pas prétendre qu'un refus du lecteur est déjà classé par un mécanisme approuvé. Un témoin peut demander l'absence de calcul après refus sans préjuger du futur code de remontée.
+3. **Gardes.** Préciser que les gardes refusent l'accès post-2019 ou la demande de test-window, sans consulter FROZEN ; ne pas écrire qu'elles refusent toute entrée sans condition. Les fenêtres permises avant 2020 restent acceptées selon leurs bornes propres.
+
+## Périmètre et contrôles
+
+Modifier le seul document et son journal ignoré avec les outils d'édition natifs, après lecture. Aucun code, test, configuration, donnée ou contrat scellé ne change. Le document conserve 230 lignes au maximum, les cartes, G1-G10 OPEN et les marqueurs de proposition. Contrôles shell et sources ciblées seulement, sans Python, test ni calcul. Actualiser le journal en conservant l'échec de largeur initial et en distinguant les corrections sémantiques de Codex.
+
+L'amendement est un quatrième fichier Codex déclaré pour le contrôle du périmètre ; le protéger par son empreinte et ne pas le modifier. Le plan et le GO initiaux gardent leurs empreintes. À REVIEW_READY, arrêter les éditions. Aucun wrapup avant la réception indépendante corrigée et l'allocation explicite de Codex. Aucune question de schéma, expérience ou autorisation scientifique n'est levée.
