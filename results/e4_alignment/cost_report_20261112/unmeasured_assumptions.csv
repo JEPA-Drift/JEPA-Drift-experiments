@@ -1,0 +1,7 @@
+item,assumption,cpu_s,status
+workers_parallel,the pilot runs jobs=1: parallel worker overhead and concurrent memory are unmeasured,NaN,UNMEASURED_ASSUMPTION
+merge_future_partitions,merging the partitions of a future campaign is neither implemented nor measured,NaN,UNMEASURED_ASSUMPTION
+resume_after_interruption,recomputation after an interrupted partition is not measured,NaN,UNMEASURED_ASSUMPTION
+scientific_payload_io,pilot IO writes small cost/identity files; future scientific payload serialization and hashing are not measured,NaN,UNMEASURED_ASSUMPTION
+scientific_long_table_assembly,future J_k and trial long-table assembly is not measured; planned row counts are not byte or RSS measurements,NaN,UNMEASURED_ASSUMPTION
+full_memory,serial pilot peak RSS does not establish the memory required by future complete scientific aggregation,NaN,UNMEASURED_ASSUMPTION

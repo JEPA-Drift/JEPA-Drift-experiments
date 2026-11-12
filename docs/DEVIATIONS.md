@@ -1157,3 +1157,75 @@ chaque cellule est résolue par `table_lineage.csv` en un pointeur `SOURCE` du r
   graduations ; marge haute de l'axe V à `vmax * 1.20` pour séparer la courbe de l'annotation CPV90. `render_checks`
   vérifie en processus l'absence de chevauchement légende/axes, légende/label-X et texte-figure/légende, en plus du
   cadre, de la police >= 6 pt et des bornes ; résultats consignés dans `FIGURE_CHECK.md`.
+
+## C-e4-fixed-info — information gaussienne fixée pour la famille résiduelle E4 (stream 19, 2026-11-12)
+
+**Origine.** GO scientifique conditionnel `prompts/GO-stream-19-e4-science-20261112.md` ; protocole
+`docs/audits/stream_19_protocol_proposal_20261112.md` (§3 et §12) ; plan `prompts/plans/plan-19-e4-code-20261112.md`.
+
+**Écart.** Pour la seule famille synthétique `SYNTH_RESIDUAL_ISOTROPIC_FIXED_INFO`, le lot E4 quitte la convention
+d'amplitude par actif (C-inject-conv-b). La dérive résiduelle c·u_N, de direction isotrope dans l'orthogonal de 1, porte
+une information gaussienne I* constante en N, fixée analytiquement avant tout tirage par ln(gamma_H)/I* = H/40, avec
+c = sqrt(2 (1 − rho) I*). La convention (b) reste inchangée pour toutes les autres expériences.
+
+**Portée.** Simulation synthétique uniquement. Sous t7, I* est un proxy gaussien étiqueté `INFO_GAUSS_PROXY_T7`, jamais un
+KL t7. I* n'est jamais réajusté sur les effets observés. Code : `experiments/e4_alignment.py` (`i_star`, `drift_scale`,
+`residual_direction`), `configs/e4_alignment.yaml` ; témoins : `tests/test_e4_alignment.py`.
+
+## C-e4-eigen-canonical — convention locale des vecteurs propres E4, `eigh_desc` inchangé (2026-11-12)
+
+**Origine.** Arbitrage C du GO scientifique ; plan D2.
+
+**Écart.** `jepadrift.stats.covariance.eigh_desc` (inversion de l'ordre de `numpy.linalg.eigh`, signe par somme
+positive) reste inchangé pour tous ses appelants. E4 applique localement, à la base issue de `pdb.fit_basis` :
+- une tolérance d'écart de 64·eps_float64·max(1, lambda_max), fixée avant tout tirage ; un bloc d'écart inférieur ou égal
+  est refusé sous le statut `EIGENVALUE_TIE_UNRESOLVED`, sans base canonique ni orientation arbitraire ;
+- un contrôle d'ordre décroissant stable ;
+- un signe fixé par la première coordonnée de valeur absolue maximale.
+
+Les états du registre (W de PCAOrthogonal, U de DegreeZero) sont recopiés avec ces signes. `basis_hash_e4` décrit la
+base effectivement utilisée ; `basis_hash_legacy` ne sert qu'à la provenance.
+
+**Portée.** Un refus porte sur la base (fond, N) : SPEC-prefix8, SPEC-full, P3-CS(b) et O-score1 sont refusés, EW et
+O-dir restent calculés, et tout contraste dont la grille contient une cellule refusée est `NOT_IDENTIFIED`. Aucune règle
+numérique n'identifie statistiquement des axes individuels dans un sous-espace dégénéré.
+
+## C-e4-scalar-calibration — seuil scalaire commun à EW, O-dir et O-score1 (2026-11-12)
+
+**Origine.** Arbitrage B du GO scientifique ; plan D1 et précision 1 de sa « Décision GO intégrée ».
+
+**Écart.** Au lieu d'une calibration par cellule, un seuil unique de rang prédictif est calculé une seule fois sur n_cal
+chemins indépendants de signes équitables 2B − 1 (domaine de graines `scalar_cal`). Ces chemins passent au même
+e-détecteur CUSUM scalaire (huit mises, même règle de franchissement). Le seuil est gelé puis appliqué au holdout et aux
+alternatives des trois méthodes, pour tous les N et les deux fonds. Les trajectoires de calibration, de holdout et
+d'alternative sont disjointes.
+
+**Portée.** Hypothèse du Lemme 2 : projection fixée indépendamment du chemin, nul centralement symétrique. Le FPR
+holdout reste mesuré séparément par méthode, fond et N ; les trois dictionnaires restent calibrés par cellule.
+
+## C-e4-rank-log — lecture principale par rang prédictif en espace log (2026-11-12)
+
+**Origine.** Plan D4 ; arbitrage Q5 (a) du NO-GO technique v0.
+
+**Écart.** Le registre ne fournit aucune lecture par rang. E4 applique `pdb.rank_threshold` (règle
+`predictive_exchangeable_rank_v2`, scellée, ni déplacée ni modifiée) aux maxima des chemins log de l'e-détecteur. La
+règle GE fixe le seuil à nextafter(b, +inf) en espace log, sans aller-retour exp/log. Les jours d'alarme suivent un
+contrat unique, 1..H ou −1, pour les deux lectures : `predictive_rank`, et `anytime_valid_horizon` (décalage de
+`first_alarm` plus un).
+
+**Portée.** Garantie marginale de rang prédictif ; la lecture par rang n'est jamais étiquetée anytime-valid.
+
+## C-e4-registry-adapter — adaptateur local au lieu de `run_pipeline` (2026-11-12)
+
+**Origine.** Plan D3 ; groupe 7 du NO-GO technique v0.
+
+**Écart.** La règle du projet veut que les expériences appellent `pipelines.run_pipeline` avec un état ajusté sans
+dérive. E4 ne l'appelle pas : ses lignes portent `reading="anytime-valid"` et n'exposent pas le chemin log nécessaire à
+la lecture par rang. E4 réutilise `fit_pipeline` sur des lignes de fit sans dérive, les constructeurs de flux du registre
+(`PIPELINES[p][1]`) et les noyaux `eprocess` de `PIPELINES[p][2]`.
+
+**Garde-fous.**
+- Le registre partagé n'est pas modifié et aucun runner générique n'est ajouté.
+- Un test exige l'égalité binaire des décalages `first_alarm(kernel_log_path(spec, x)) == PIPELINES[p][2](spec, state,
+  x)` pour SPEC-full, SPEC-prefix8 et P3-CS(b).
+- Les labels de lecture restent distincts.

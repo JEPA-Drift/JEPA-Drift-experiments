@@ -113,3 +113,25 @@ The anchor must stand on the LaTeX line, and the selected row must carry the ID,
 | ABS-R2.5 | sec3_analytic | `paper/sec3_theory.tex:105` | `2.01` | `\tau_a/\tau_\gamma=` | budget | fluid | quantity=absorption_ratio, parameters=tau_a/tau_gamma=2.5 | `value` | `2.0117973905426254` | 2.01 | `READ_MATCH` |
 | ABS-R4 | sec3_analytic | `paper/sec3_theory.tex:105` | `1.39` | `\tau_a/\tau_\gamma=` | budget | fluid | quantity=absorption_ratio, parameters=tau_a/tau_gamma=4 | `value` | `1.3862943611198906` | 1.39 | `READ_MATCH` |
 | ABS-R8 | sec3_analytic | `paper/sec3_theory.tex:105` | `1.15` | `\tau_a/\tau_\gamma=` | budget | fluid | quantity=absorption_ratio, parameters=tau_a/tau_gamma=8 | `value` | `1.1507282898071236` | 1.15 | `READ_MATCH` |
+
+## Stream 19 E4 cost-pilot sources (measured, 2026-11-12)
+
+These files are the sources of the numbers reported in `docs/audits/stream_19_e4_cost_pilot_20261112.md`. They hold
+CPU/RSS measurements, conditional `ESTIMATE` scenarios, schema arithmetic and a deterministic analytic diagnostic, and no
+detection performance; the scientific full campaign was not executed. Producer: `experiments/e4_alignment.py` (SHA-256
+`e457ebae9011a5f1d1b0b9bc43d38f2ab97a70bccd64069dba07ad51996efd01`, configuration `configs/e4_alignment.yaml`
+`5b9086948f3d7a49753a64d5b2ff01616ecaa1e02e2574777f45db51a3b3d1f2`); aggregation command
+`logs/stream_19_e4_code/cost-report-command-20261112.md` (ignored log). The SHA-256 of each per-partition `cost.csv`,
+`partition.json` and `session.json` is listed in `source_manifest.csv`.
+
+| Reported quantity | File | SHA-256 | Status |
+|---|---|---|---|
+| Analytic one-atom clocks (report section 6) | `results/e4_alignment/precheck_20261112/partitions/precheck/analytic_precheck.csv` | `afe7164dee6e331d1ae132991a5514ad137671cac6ac9163636a9bcb7611e012` | `DETERMINISTIC_ANALYTIC` |
+| Per-attempt external CPU, wall time, RSS (section 3) | `results/e4_alignment/cost_report_20261112/external_attempts.csv` | `45b79711c50eac4b286cfc9d8326b64dc241f2033c75cd07d0d83b4099b66925` | `MEASURED` |
+| Consumed CPU, peak RSS, attempt counts (section 3) | `results/e4_alignment/cost_report_20261112/resource_summary.csv` | `afdd2ee23d1d8ca4f328d0f5d8e4f7a8de9bdbb8ecf3b87988aaa82ad1c2b4ce` | `MEASURED` |
+| Stage and in-process invocation rows (sections 3, 8) | `results/e4_alignment/cost_report_20261112/cost_rows.csv` | `478238fb1471e18b7b043197a24d66b3a709618d5e724ef8beab07bc3235c5da` | `MEASURED` |
+| Forecast scenarios (section 4) | `results/e4_alignment/cost_report_20261112/forecast_scenarios.csv` | `b3267d0c8d43bde1e5c27e4748d0654c3d44dab3cd60e768c1d1d1aec63da4a3` | `ESTIMATE` |
+| Unmeasured overhead (section 5) | `results/e4_alignment/cost_report_20261112/unmeasured_assumptions.csv` | `05830ac6f0b3d54700158eaa5fbb8a2c03f23de9fc0ca3afce8a406c68c8ee5e` | `UNMEASURED_ASSUMPTION` |
+| Planned row counts (section 5) | `results/e4_alignment/cost_report_20261112/planned_output_volume.csv` | `fc55a907d82bb95f8c9ac367e7ff3990b010ae6be0d4c2b7c2c881ef1a98e835` | `SCHEMA_MAXIMUM_IF_NO_REFUSAL` |
+| Source and partition fingerprints (section 1) | `results/e4_alignment/cost_report_20261112/source_manifest.csv` | `dd7895b29b4b97d4300e4956559b4c10cd881f1ba525a2cf7061cb34a2346598` | `IDENTITY` |
+| Report table digests and labels | `results/e4_alignment/cost_report_20261112/manifest.json` | `54f407aad07db8de12dd51af752b1f513070d5c943daeae4ebec54d1c0ac84f0` | `IDENTITY` |

@@ -1,0 +1,10 @@
+metric,value,unit,status
+invocation_attempts,17,count,MEASURED
+complete_partitions,16,count,MEASURED
+consumed_cpu_s,645.23000000000002,CPU_seconds,MEASURED
+consumed_cpu_hours,0.17923055555555556,CPU_hours,MEASURED
+precheck_including_replay_cpu_s,2.0800000000000001,CPU_seconds,MEASURED
+pilot_cpu_s,643.14999999999998,CPU_seconds,MEASURED
+peak_external_rss_kib,463380,KiB,MEASURED
+peak_external_rss_gib,0.44191360473632812,GiB,MEASURED
+maximum_invocation_wall_s,112.08,seconds,MEASURED

@@ -1,0 +1,23 @@
+stream: 19
+seed: 42
+rho: 0.4
+H: 2000
+alpha: 0.05
+grid: [8, 16, 32, 64, 128, 239, 500]
+T_fit: 2000
+n_cal: 2000
+n_hold: 2000
+n_alt: 2000
+B_boot: 2000
+pilot_n: 40
+prefix_k: 8
+info_divisor: 40.0
+backgrounds:
+  gaussian: null
+  t7: 7
+fpr_margin: 0.01
+qualification: 0.95
+limits:
+  rss_gib: 8.0
+  invocation_seconds: 1800
+  block_paths: 8

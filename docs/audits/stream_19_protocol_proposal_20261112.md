@@ -1,6 +1,11 @@
 # Stream 19 protocol proposal — fixed-information N scan of an ex ante spectral dictionary, 2026-11-12
 
-**Status: PROPOSED prospective protocol, not an E4 result.** Written under the delegated documentary GO
+**Status: CONDITIONAL SCIENTIFIC GO, no full-campaign authorization.** The researcher's November 12 decision is recorded in
+`prompts/GO-stream-19-e4-science-20261112.md`. Section 12 governs the current scope. Sections 1-11 below retain the original
+proposal verbatim for history, including its then-PROPOSED/OPEN labels and pre-drafting hashes. Its published SHA-256 was
+`602e7abcc50ac671464eb7323f578b1bdd8f002a5e04020e073b2c3764831e19`. No E4 implementation, pilot or campaign has run at this update.
+
+**Original documentary provenance.** Written under the delegated documentary GO
 `prompts/GO-stream-19-protocol-20261112.md` for the canonical plan `prompts/plans/plan-19-protocol-20261112.md`, whose eight
 integrated-GO clarifications prevail. Every scientific default below is PROPOSED for the researcher's separate scientific GO; a
 point without a complete recipe is OPEN. Nothing here was simulated, computed, implemented or tested. Labels: [D] documented in
@@ -247,3 +252,29 @@ A zero exit status of a counting command is not a PASS when a check fails. SHA-2
 | `jepadrift/representations/pca.py` | `a1314d104b69640f5e2ce4c57c5e63ab87c8ca14ec8ccc5fdbbde7338b559a4c` |
 
 Other sources and the three seals (E2, E3, PCA full manifest) are hashed in the journal and match the continuation bootstrap.
+
+## 12. Researcher decision and current execution gates — 2026-11-12
+
+The separate researcher GO approves the main question and the proposed model, amplitude/grid, six methods, primary rank
+reading and secondary anytime-valid reading, sample sizes, t7 sensitivity, censoring rule, 24 CPU-hour cap and conditional
+inference. No outer resampling over fits is included. This experiment neither replaces historical per-asset-amplitude E4 nor
+qualifies learned non-oracle PCA selection. All cells remain visible, including NOT_IDENTIFIED; I* is never retuned on effects.
+
+**Scalar calibration decision.** EW, O-dir and O-score1 share exactly one independent null calibration and frozen threshold,
+with identical scalar detector, bets and crossing rule. Calibration trajectories are disjoint from holdout and alternatives.
+SPEC-prefix8, SPEC-full and P3-CS(b) retain separate calibration by cell. Every method retains its own measured holdout FPR;
+paired intervals retain cross-method and cross-N dependence. The historical section-6 OPEN choice is resolved by this decision.
+
+**Eigenvalue decision.** Use the null fit only. Sort decreasing deterministically; orient each vector by its largest absolute
+coordinate, breaking coordinate ties by the lowest index. Predeclare a float64 eigenvalue-gap tolerance; the proposed technical
+default is 64 * eps * max(1, lambda_max), the researcher's example. Reject an ambiguous block without a justified canonical
+basis as EIGENVALUE_TIE_UNRESOLVED. Tests must cover repeated eigenvalues, stable ordering and sign invariance. This numerical
+rule does not statistically identify individual axes in a degenerate subspace. The historical section-10 OPEN rule is superseded.
+The existing `eigh_desc` conventions and the deterministic detectability precheck are documented in
+`docs/audits/stream_19_e4_preimplementation_20261112.md`; they do not change the shared routine.
+
+**Next gate.** A separate code plan and Codex technical GO must precede implementation and a CPU/memory-only pilot. Pilot
+performance must not tune scientific choices. The campaign stays disabled until a later researcher execution GO after receipt
+of the tests, cost forecast, censoring risk and frozen protocol identity. No real financial data, J4/FROZEN, JEPA/VAE training
+or modification of the PCA full/E2/E3 sealed artifacts is authorized. The analytic precheck must precede execution and must
+not use simulation results; its numerical reproduction and FAIR trace belong to the reviewed code plan.
