@@ -1322,3 +1322,116 @@ tes questions. Vérifie le stream 27 en particulier. » Consignée dans
 intégrité/non-régression dans le périmètre limité demandé, périodes complètes comprises. Les constats historiques
 restent tracés. Les nouvelles vérifications attendent le créneau sérialisé après E4 ; aucune fenêtre scientifique,
 donnée privée ou activation J4 n'est ajoutée. La configuration F2 reste à préciser entre les alternatives proposées.
+
+## C-E6-phase1 — E6 phase 1: in-sample D6, external D5 control, readings of P1-D and P3-D (2026-10-22)
+
+Stream 23 (`experiments/e6_second_order.py`; GO `prompts/GO-stream-23.md`, plan `prompts/plans/plan-23.md`).
+
+(a) **D6 is in-sample and descriptive.** The energies are even, so one Rademacher sign per day leaves q_t
+unchanged bit for bit (`test_energy_streams_invariant_to_day_signs`). D6 therefore uses the raw calib rows of
+`d3_239` (941 days, 2016-04-07 to 2019-12-31) with no sign-flip pseudo-sample. Representation, P1-D moments, thresholds
+and evaluation share these days. Each window start s is an equivalent counterfactual onset: F4 is injected once from
+the first calib day with the matrix M fitted on the clean calib rows, and M does not depend on the onset
+(`test_cell_injection_rows_match_per_onset_injection`); F4 and both energy streams act day by day, and the CUSUM
+restarts from 0 at s. The window [s, s + H) therefore sees the rows and stream values of a clean injection at s, up
+to floating-point rounding.
+
+- The threshold, the smallest λ with FPR(H) ≤ 0.05 over all 692 (H = 250) or 442 (H = 500) windows, is the peak of
+  the dominant volatility episode, identical at both H: 36.09 (P1-D), 172.49 (P3-D factor), 182.87 (P3-D full).
+- The attained in-sample FPR is 0. The next attainable level is 0.24 to 0.28 at H = 250 and 0.50 to 0.57 at H = 500,
+  so 5 % is not attainable.
+- Under drift, detections fall in that tie block. P1-D's detection rate equals the next level (0.277, 0.566), and
+  all its alarms lie within 7 days of 2019-01-04. P3-D's modal alarm dates lie between 2018-12-24 and 2019-02-07,
+  with 75 to 100 % of its alarms within 7 days of them.
+- Every D6 drift cell is labelled exploratory. The D6 FPR carries no CI. The D6 G_ADD has `IC=NA` under the
+  conservative prespecified reporting criterion of the protocol (plan-23, Q5, approved by the GO): no D6 CI below 10
+  blocks of length ≥ H, and the windows hold 2.77 (H = 250) and 0.88 (H = 500) such blocks. The criterion is not a
+  general requirement of a block bootstrap or a deff: block-resampling theory [Künsch, 1989; Lahiri, 2003, *Resampling
+  Methods for Dependent Data*] sets asymptotic conditions on the block length and the number of blocks, not a minimum
+  of 10. ⌊941/H⌋ is not used as an effective size.
+
+(b) **P1-D follows the Article B energy stream.** q_t = (r_t² − μ̂)/σ̂ of the equal-weighted index, with μ̂ = mean(r²)
+and σ̂ = std(r²) (ddof 0, R01 l.271–273) on the fit rows. It uses `monitors/cusum.py` and has no `PIPELINES` entry.
+σ̂/(√2 μ̂) = 1.76 on the D6 calib and 1.60 on the D5 fit panel.
+
+(c) **D5 is the external control.**
+- Thresholds come from 2000 independent calibration panels (seed role 1); FPR and delays are measured on 2000
+  disjoint test panels (role 2). Γ_z^op = λ_D5/λ_iid with this final threshold.
+- The attained FPR lies in the 99 % region of α for every monitor and both H: 0.048 to 0.0575, all PASS.
+- Representation and P1-D moments come from a single fit panel (role 0, 941 days), and the results are conditional on
+  it. With the planning probe's fit panel (seeds `[23, 99, …]`), λ_D5 at H = 250 was 88.8 (P1-D), 28.8 (factor K = 10)
+  and 4953 (full), against 26.6, 9.86 and 2867 in the delivered run.
+- The whitening is out of sample on the test panels: the null mean of q is −1.64 (factor K = 10), −0.59 (K = 1) and
+  +3.69 (full) at H = 250. The P3-D stream is not recentred (GO, Q2).
+- The D6 in-sample rule, applied to the fit panel, does not transfer to the test panels. Its FPR there is 0 for
+  factor K = 10 and K = 1, 0.457 and 0.731 for full, 0.040 and 0.080 for P1-D (H = 250 and 500).
+
+(d) **K on D5.** The Marchenko–Pastur rule gives K = 0 on an equicorrelated panel. Factor mode is therefore run at
+K = 10, labelled conditional, and at K = 1 as a sensitivity: the residual is PC2 alone, while the true model has no
+residual factor beyond PC1 (GO, Q3).
+
+(e) **Cells.**
+- Deformation of PC2–PC4, r ∈ {1.25, 1.5, 2}.
+- Rotations θ ∈ {15°, 30°, 45°} of PC2–PC3, the negative control declared before execution: exploratory on D6 (seen
+  by the probe) and prespecified on D5.
+- Rotations of PC1–PC2 and PC2–PC12, chosen after the D6 probe: exploratory on both backgrounds.
+- The information is `meta["info"]` (`I_target=None`), labelled `gaussian_design`. It is joint for a rotation, and
+  given per direction only for a deformation. τ_budget = ln(H/α)/I (`floors.evidence_budget`) is a design reference,
+  not a bound on the delay of the energy CUSUM.
+- The sector-factor deformation is deferred; `injection.py` is unchanged.
+
+(f) **Censoring rules, fixed before execution.**
+- A delay lies in [1, H]; a run without alarm is censored.
+- RMST_H counts censored runs as H, so it is a lower bound of the ADD once a run is censored.
+- G_ADD = RMST_H(P1-D)/RMST_H(P3-D), labelled `exact`, `lower_bound` (P1-D censored only) or `undetermined` (P3-D
+  censored).
+- The D5 CI is the 95 % paired percentile bootstrap over test panels (B = 2000).
+- Unequal attained FPRs, all inside the 99 % region, move G_ADD off 1 on weak drifts. On the PC2–PC3 control, P3-D
+  full gives 0.995 [0.991, 0.999] at H = 250 (attained FPR 0.055 against 0.048 for P1-D).
+
+## C-E6-phase1-io — intégration de E6 phase 1 et lecture D6 bornée avant 2020 (stream 23, 2026-11-14)
+
+**Provenance.** Ports historiques `7e4c7a1`, puis `3d0bd20`, matérialisés sans altération des références, puis
+réconciliation sur `461f2b13894be2cca954676dc3aab10e0b640a2b` après publication E4. Le préfixe DEVIATIONS de
+main et les 66 lignes de C-E6-phase1 ci-dessus sont conservés verbatim. Le worktree historique reste intact.
+
+**Correction I/O.** Le lecteur historique chargeait ret_wide.npy entièrement avant découpage et main hachait
+le panneau complet. Le nouveau lecteur refuse tout nom autre que d3_239, date NaT ou >=2020, calendrier non
+unidimensionnel/vide/NaT/non strictement croissant, bornes invalides et forme incohérente avant toute copie
+de rendements. Il ouvre le panneau en memmap lecture seule, puis copie uniquement la tranche pré-2020 avec
+son dtype en ordre C. Le journal hache ces seules lignes consommées ; le hachage du panneau complet est retiré.
+dates.npy et splits.yaml restent lus en entier comme métadonnées de calendrier, selon H-cal explicitement reçu.
+Ce contrat n'est pas une promesse sur les pages que le système d'exploitation conserve en cache.
+
+**Trois registres.** Source historique `072b7b0c03754b41c8a489359a46de26e3597f208c07f5dd2623e92dd098c750` ;
+patch technique `5af91240df658f8ec7e8f45139cf74144ed9c6665d52bc6f8aec67da42902855` ; tests reçus
+`39d706c0e11658f47a87283cc7e73a236c68e2919b97af25c9e77576d5ebedfc`. Les empreintes scientifiques attendues
+C3 restent celles de l'historique, distinctes des nouvelles identités du code et des lignes réellement lues.
+Les noyaux, paramètres, graines, configuration, cohortes, dates, colonnes et wilson restent inchangés.
+
+**Témoins et reproduction.** Quatorze échecs RED observés sur le source historique avant lecture ; quatorze cas
+synthétiques GREEN après P-IO ; mutant d'ouverture pleine refusé par les deux témoins C/F ; fichier entier :
+27 tests réussis, dont les treize tests historiques conservés. Quick jobs=1 : SHA-256
+`874be21275625e7f160a8ee351ee05811f71dc5673107ee7e2f54998b409a1e2`. Full jobs=48 : CSV SHA-256
+`4101c867bd3e6bc885d8d03845cda6ac033aa60e02ca94d4d45948166c59d249` et quatre figures exactement conformes
+aux références archivées. R6 confirme 3775 x 239 rendements consommés jusqu'au 2019-12-31, dont les 941 lignes
+calib [2834,3775) du 2016-04-07 au 2019-12-31. Leur empreinte de traçabilité est
+`d18ddc3b541ea3037ae9a817b40bd43ee9568c71e62eeeb095fda8c2bd2a4b6c`. Aucun réglage pour obtenir ces hashes.
+
+**Incident d'enveloppe.** Le premier full atteint la limite agrégée de 8 Gio choisie par Codex : OOM, pas de
+sortie scientifique à comparer. STOP conservé ; coût récupéré du scope 280.250667 CPU_s. Amendement technique
+distinct : un seul nouvel essai à 64 Gio, jobs=48 et tout paramétrage scientifique inchangés. Cet essai passe en
+44.89 s, pic agrégé 14849028096 octets, aucun OOM ; coût GNU time 815.51 CPU_s. Le compteur agrégé préservé
+du scope (815.577751 CPU_s, à ce cutoff) chevauche cette mesure : ne pas les additionner. La mémoire agrégée
+est distincte du RSS maximal d'un processus. Aucune divergence scientifique ni relance supplémentaire.
+
+**Qualification inchangée.** D6 reste descriptif/in-sample : FPR sans IC, 72 cellules de dérive sans IC G_ADD.
+D5 utilise calibrations et tests indépendants, conditionnellement à un unique fit. Les indices E6 sont en base
+0, ceux du benchmark PCA en base 1. Pas de Lorden ADD, gain JEPA, P4-D/P5-D, phase 2 ou contribution J4.
+Les comparaisons de gains ne sont pas présentées comme ayant des FPR atteints égaux.
+
+**Portée administrative.** Une lecture de transcript JSONL par le worker a utilisé /usr/bin/python3 hors de
+l'environnement prescrit, sans import projet ni résultat scientifique. L'écart est conservé ; Codex a imposé
+la .venv pour la suite et aucune répétition de calcul scientifique n'a été faite pour cet écart administratif.
+La vérification globale de clôture, avec ses accès historiques limités, relève du GO QA distinct ; son résultat
+doit être rapporté après exécution, sans être déduit des reproductions ciblées ci-dessus.

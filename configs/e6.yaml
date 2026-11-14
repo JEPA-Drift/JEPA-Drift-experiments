@@ -1,0 +1,38 @@
+# E6 phase 1 (stream 23): second-order F4 drifts monitored by P1-D and P3-D (prompts/plans/plan-23.md).
+# alpha = pipelines.TARGET_FPR and delta = pipelines.ENERGY_DELTA come from the library, not from this file.
+stream: 23
+H: [250, 500]
+n_iid: 20000
+n_boot: 2000
+d6:
+  dataset: d3_239
+  last_day: "2019-12-31"
+  modes: [factor, full]
+d5:
+  N: 239
+  alpha: 0.08
+  beta: 0.90
+  nu: 7
+  factor_rho: 0.40
+  burn: 1000
+  T_fit: 941
+  T_panel: 500
+  n_cal: 2000
+  n_test: 2000
+  factor_K: {10: conditional, 1: sensitivity}
+cells:
+  - {name: deform_r1.25, family: F4-deform, params: {subspace: [1, 2, 3], r: 1.25}, role: test, status_d6: exploratory, status_d5: prespecified}
+  - {name: deform_r1.5, family: F4-deform, params: {subspace: [1, 2, 3], r: 1.5}, role: test, status_d6: exploratory, status_d5: prespecified}
+  - {name: deform_r2, family: F4-deform, params: {subspace: [1, 2, 3], r: 2.0}, role: test, status_d6: exploratory, status_d5: prespecified}
+  - {name: rotate_pc2_pc3_15, family: F4-rotate, params: {pair: [1, 2], theta_deg: 15.0}, role: negative_control, status_d6: exploratory, status_d5: prespecified}
+  - {name: rotate_pc2_pc3_30, family: F4-rotate, params: {pair: [1, 2], theta_deg: 30.0}, role: negative_control, status_d6: exploratory, status_d5: prespecified}
+  - {name: rotate_pc2_pc3_45, family: F4-rotate, params: {pair: [1, 2], theta_deg: 45.0}, role: negative_control, status_d6: exploratory, status_d5: prespecified}
+  - {name: rotate_pc1_pc2_15, family: F4-rotate, params: {pair: [0, 1], theta_deg: 15.0}, role: test, status_d6: exploratory, status_d5: exploratory}
+  - {name: rotate_pc1_pc2_30, family: F4-rotate, params: {pair: [0, 1], theta_deg: 30.0}, role: test, status_d6: exploratory, status_d5: exploratory}
+  - {name: rotate_pc1_pc2_45, family: F4-rotate, params: {pair: [0, 1], theta_deg: 45.0}, role: test, status_d6: exploratory, status_d5: exploratory}
+  - {name: rotate_pc2_pc12_15, family: F4-rotate, params: {pair: [1, 11], theta_deg: 15.0}, role: test, status_d6: exploratory, status_d5: exploratory}
+  - {name: rotate_pc2_pc12_30, family: F4-rotate, params: {pair: [1, 11], theta_deg: 30.0}, role: test, status_d6: exploratory, status_d5: exploratory}
+  - {name: rotate_pc2_pc12_45, family: F4-rotate, params: {pair: [1, 11], theta_deg: 45.0}, role: test, status_d6: exploratory, status_d5: exploratory}
+quick:
+  n_boot: 200
+  d5: {n_cal: 200, n_test: 200}
