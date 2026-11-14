@@ -135,3 +135,53 @@ detection performance; the scientific full campaign was not executed. Producer: 
 | Planned row counts (section 5) | `results/e4_alignment/cost_report_20261112/planned_output_volume.csv` | `fc55a907d82bb95f8c9ac367e7ff3990b010ae6be0d4c2b7c2c881ef1a98e835` | `SCHEMA_MAXIMUM_IF_NO_REFUSAL` |
 | Source and partition fingerprints (section 1) | `results/e4_alignment/cost_report_20261112/source_manifest.csv` | `dd7895b29b4b97d4300e4956559b4c10cd881f1ba525a2cf7061cb34a2346598` | `IDENTITY` |
 | Report table digests and labels | `results/e4_alignment/cost_report_20261112/manifest.json` | `54f407aad07db8de12dd51af752b1f513070d5c943daeae4ebec54d1c0ac84f0` | `IDENTITY` |
+
+## Stream 19 E4 full sources (terminal campaign, 2026-11-14)
+
+Report: `docs/audits/stream_19_e4_full_20261114.md`, including all-cell appendices. The earlier cost-pilot section
+above describes its historical cutoff; the full campaign is now executed. Publication root below is
+`results/e4_alignment/full_20261113/`. Producer: `experiments/e4_production.py`, SHA-256
+`402d23bf09a76c51f9dbcddaf4cd5edb3cbc476b14b42685871502e8b0826980`; scientific kernels and analysis:
+`experiments/e4_alignment.py`, SHA-256 `e457ebae9011a5f1d1b0b9bc43d38f2ab97a70bccd64069dba07ad51996efd01`.
+Frozen configuration: `configs/e4_alignment.yaml`, SHA-256
+`5b9086948f3d7a49753a64d5b2ff01616ecaa1e02e2574777f45db51a3b3d1f2`.
+
+| Quantity / report location | File relative to publication root | SHA-256 | Keys and scope |
+|---|---|---|---|
+| All holdout FPRs and Wilson intervals, sections 5/7 and appendices | `analysis/holdout_fpr.csv` | `20968b0bde02d9024f123e0f394d482dbd42ef2dfe21bff0e02ed84b426c117b` | background,N,method,reading; 168 rows, n_hold=2000 |
+| Primary RMST, SE, normal intervals, detection/Wilson, FPR and flags; sections 5/7, appendix A | `analysis/cells_predictive_rank.csv` | `8ffa3c931f5e526addfb46732b9a5c87c4661454b3cb12462f69fd60e857c38b` | background,N,method,reading; 84 cells; n=2000,deff=1 |
+| Secondary metrics; section 5, appendix B | `analysis/cells_anytime_valid_horizon.csv` | `961b97111f97347bb7357b992ac1cee632fe29d66f3a9742dae16b45ffb11324` | background,N,method,reading; 84 cells; n=2000,deff=1 |
+| Primary local slopes, paired intervals, full-grid qualification and FPR comparability; section 6 | `analysis/contrasts_predictive_rank.csv` | `3270152cfd5573e67b984109ed5c8c73581212b9be58afde2ee5d359bc00a6bb` | background,reading,contrast; 6 rows, all NOT_IDENTIFIED |
+| Secondary local slopes and qualifications; section 6 | `analysis/contrasts_anytime_valid_horizon.csv` | `68addf59cb8defb1db12bf038d3c844bf5c8f338e74101f7a369dcb480aa4afe` | background,reading,contrast; 6 rows, all NOT_IDENTIFIED |
+| Primary integrity warnings, distinct from FPR flags | `analysis/warnings_predictive_rank.csv` | `34c9998eb17be1f89bbdd921a10e835043f325ee31e7e4a446dd2d6aca3f4f41` | Empty, schema retained |
+| Secondary integrity warnings | `analysis/warnings_anytime_valid_horizon.csv` | `34c9998eb17be1f89bbdd921a10e835043f325ee31e7e4a446dd2d6aca3f4f41` | Empty, schema retained |
+| Actual raw-table counts, schemas and fragment CSV hashes; section 4 | `manifest.json` | `b7514d600af40dc5e10ac8738333c25059218bd184c4a49008adbe2b5de6d69c` | 672000 trials,84000 maxima,28000 diagnostics,3948000 axes |
+| File bytes/SHA, source identity, activation and accounting snapshot; sections 1/4/9 | `PUBLISHED.json` | `5c318af8768b7f1b83e08e30a20dd57067010ad05bf7b70a0cb31d3c03fd544d` | 91 declared files, including manifest; ledger cutoff A0000747 |
+
+The 560 lineage blocks and 354 partitions trace to `lineage.json` and `campaign_plan.json`, bound by PUBLISHED.
+All fourteen fit states, thresholds and the shared scalar calibration remain under `records/`; compressed
+`trials/`, `calibration_maxima/`, `diagnostics/` and `diagnostics_axes/` preserve every cell and refusal status.
+The portable audit reconstructs the blocks and recalculates 42 dictionary calibrations. It checks analysis hashes,
+not a complete independent statistical recomputation; scientific source/result review supplies the latter scope
+only for the quantities explicitly checked.
+
+RMST is the mean of min(first-hit,H), with H for no alarm. Cell intervals are NORMAL_DEFF1; contrast intervals are
+paired-bootstrap percentiles with B_boot=2000 and shared index SHA-256
+`0cf0285bad70251a457cb83cc8b69c485677cfadc69e78a798861debba38ed30`. Section 6 estimates are slopes of log-RMST
+ratios on log(N), not Lorden ADD or universal exponents. All twelve qualifications fail the prespecified Wilson
+detection criterion on the whole grid; estimates and DESCRIPTIVE labels remain visible. Delta_1+Delta_2=Delta
+is descriptive, without causal decomposition.
+
+Report rate/count summaries and appendix C are direct selections, counts or subtractions of these cell/FPR tables.
+ORACLE_DIRECTION and ORACLE_SCORE1 remain oracle claims; INFO_GAUSS_PROXY_T7 is not exact t7 KL. The fourteen
+FPR_ABOVE_NOMINAL flags are pointwise dependent diagnostics. COMMON_NOMINAL_ALPHA_ONLY and the secondary
+COMPARABLE_FPR margin diagnostic do not certify equal attained FPR or calibration.
+
+Resource statements have separate cutoffs: the published ledger stops at A0000747; the retained host terminal
+receipt reaches A0000749 (34995.28 CPU_s), and its own A0000750 adds 1.43 measured CPU_s. The resulting
+34996.71 CPU_s exclude unmeasured infrastructure. The last whole-service snapshot overlaps this ledger and must
+not be added to it. The conditional 51150.388723 CPU_s envelope and its uncovered UNKNOWN terms are documented
+in `prompts/STOP-stream-19-e4-closeout-accounting-20261114.md`. The explicit researcher disposition is
+`prompts/GO-stream-19-e4-finalization-accounting-reserve-20261114.md`: finalization without a global-cap certificate.
+Subsequent closeout/hook time, exit and command receipts remain separately retained in the host run journal.
+No cost estimate or UNKNOWN entry is converted to a measured value.

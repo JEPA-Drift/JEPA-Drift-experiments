@@ -1,0 +1,11 @@
+item,assumption,status
+per_path_linear,per-path CPU of a role scales linearly with the replicates of a block,UNMEASURED_ASSUMPTION
+fixture_overhead_transfer,"the cost_fixture invocation CPU of a partition stands for its startup, identity, dependency checks, serialization and hashing in full mode",UNMEASURED_ASSUMPTION
+interruption_reserve,three of the largest blocks are reserved for interrupted recomputation,UNMEASURED_ASSUMPTION
+supervision_margin,the 1800 CPU s next-invocation envelope includes the host supervision margin,UNMEASURED_ASSUMPTION
+git_objects,Git object storage equals the published bytes; no Git operation is measured,UNMEASURED_ASSUMPTION
+control_bound,"every full invocation's evidence re-check, pending-cost read and ledger read stay below the declared bound, confirmed before activation on a technical candidate",UNMEASURED_ASSUMPTION
+evidence_cost_self_check,reading the evidence-cost table itself is outside its own measurement,UNMEASURED_ASSUMPTION
+accounting_transfer,the final accounting receipt costs at most the measured cost_fixture plan call,UNMEASURED_ASSUMPTION
+projected_volumes,full partition bytes equal the measured cost_fixture partition bytes,UNMEASURED_ASSUMPTION
+transient_peaks,transient disk peaks are not observed; bounds derived from recorded plain CSV sizes stand for them,UNMEASURED_ASSUMPTION

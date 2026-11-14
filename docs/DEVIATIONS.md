@@ -1229,3 +1229,96 @@ la lecture par rang. E4 réutilise `fit_pipeline` sur des lignes de fit sans dé
 - Un test exige l'égalité binaire des décalages `first_alarm(kernel_log_path(spec, x)) == PIPELINES[p][2](spec, state,
   x)` pour SPEC-full, SPEC-prefix8 et P3-CS(b).
 - Les labels de lecture restent distincts.
+
+## C-e4-production-blocks — blocs de réplicats, barrière globale des seuils et writer imbriqué (2026-11-13)
+
+**Origine.** Plan canonique `prompts/plans/plan-19-e4-production-20261112.md` (§3, §4, §6) et précisions 3, 4, 5, 6 et
+9 de sa « Décision GO intégrée » ; GO technique `prompts/GO-stream-19-e4-production-20261112.md`.
+
+**Écart.** Le prototype calcule chaque cellule d'un seul tenant (`_cell`, `run_cells`) et garde toutes les lignes en
+mémoire. `experiments/e4_production.py` réexécute les mêmes noyaux du prototype, importé sans modification, par blocs de
+réplicats [s, min(s + bloc, n)) aux indices globaux, avec la configuration complète et les clés de graines inchangées.
+- Le fit nul est reconstruit dans chaque bloc et confronté aux empreintes de sa partition `fit`.
+- La partition globale `thresholds` gèle tous les seuils, à partir des maxima rangés par réplicat, avant toute
+  simulation de holdout ou d'alternative.
+- Le writer local `run_production_partition` inventorie les fichiers imbriqués. Le writer plat du prototype ne gère pas
+  les sous-répertoires de la fusion.
+- La campagne est sérielle, sans worker, sous limite CPU native de 1700 s (souple) et 1750 s (dure).
+
+**Garde-fous.**
+- Sur fixtures, les octets des tables et de l'analyse sont identiques à ceux du prototype et invariants à la taille et
+  à l'ordre des blocs ainsi qu'à trois processus.
+- Un bloc absent, chevauchant ou étranger est un travail incomplet (code 5), jamais une cellule `NOT_IDENTIFIED` ni une
+  alarme fabriquée.
+- Toute phase productrice scientifique est refusée sans activation dont les preuves sont revérifiées (code 3).
+
+## C-e4-production-storage — fragments FAIR compressés par cellule et lignage publié (2026-11-13)
+
+**Origine.** Plan canonique (§5, §9) et précisions 1, 2, 5, 7 et 8 de sa « Décision GO intégrée ».
+
+**Écart.** Au lieu d'un CSV par table, les tables longues (essais, diagnostics, axes J_k, maxima de calibration) sont
+publiées en fragments gzip par cellule, sans nom ni horodatage dans l'en-tête gzip.
+- Les octets décompressés sont ceux de `save_fair_csv`. Le SHA-256 canonique porte sur ces octets.
+- `sha256_whole` porte sur « un en-tête + les corps » ; il est égal au SHA-256 du CSV unique du prototype.
+- Les axes J_k sont fusionnés ligne à ligne en flux : leurs corps, produits par `save_fair_csv` dans les blocs, sont
+  concaténés sans être rechargés ni réécrits.
+- Les blocs restent dans la racine de travail ignorée par Git. La publication contient les fragments, `lineage.json`
+  (enregistrements des partitions productrices et correspondance bloc → fragment), les petites charges utiles
+  scalaire, fit et seuils telles quelles, le registre des tentatives et, en full, l'activation et ses reçus.
+
+**Portée.** Un fichier publié de plus de 45 Mio est refusé. Les volumes, l'empreinte disque et les objets Git restent
+des ESTIMATE jusqu'au pilote technique.
+
+**Complément du 13 novembre 2026 (réception Codex, corrections R1–R7).** Annexe
+`prompts/plans/plan-19-e4-production-corrections-20261113.md`. Ce complément s'applique aux deux entrées ci-dessus sans
+en réécrire le texte.
+- C-e4-production-blocks :
+  - la boucle hôte du §9 devient un seul script, `tools/run_e4_production.sh`, testé avec un producteur stub. Il exige
+    un K décimal, lance au plus K + 1 `next`, sort en code 9 si la borne est épuisée et ne réussit qu'après 10, `verify`
+    et `publish` ;
+  - chaque invocation full prévue porte une borne de contrôle déclarée, qui couvre la revérification des preuves, les
+    coûts restants et la lecture du registre. Avant l'activation, une mesure sur preuve candidate technique, au volume
+    de registre projeté, confirme cette borne ; aucune activation n'est écrite ni aucune partition science produite ;
+  - la séquence scalaire comprend une production (partition `scalar_cal`) et deux audits (publication et audit
+    autonome) ;
+  - l'activation exige que le CPU mesuré jusqu'à elle, plus la projection et la réserve, reste sous 86 400 s.
+- C-e4-production-storage :
+  - l'audit autonome recalcule l'identité depuis son corps canonique. Il contrôle le mode, le domaine, le plan de
+    graines et les sources, et réconcilie le plan, le manifeste, le lignage et les enregistrements producteurs ;
+  - une publication full porte exactement quatre reçus, dont les faits normalisés se vérifient sans les journaux bruts ;
+  - le rapport du pilote est un ensemble fermé, décrit par un manifeste. Il contient le registre des tentatives sans
+    perte, les coûts par source et par étape, et les volumes mesurés, séparés des volumes prévisionnels ;
+  - les coûts mesurés hors registre sont importés avec leur provenance SHA-256 ; aucun coût inconnu n'est mis à zéro.
+
+## C-legacy-global-check-scope — portée des anciens tests globaux et frontière pré-2020 (2026-11-13)
+
+**Origine.** Revue du plan 27-F2, puis audit ciblé des sources et du journal R0009. Trace détaillée :
+`docs/audits/legacy_global_checks_data_scope_20261113.md`.
+
+**Établi.** R0009 a exécuté `make check` sans exclusion de D3 : 37 puis 1 308 PASS, cinq seuls skips D4.
+La suite historique comprend des tests d'intégration de données réelles. `test_data_d3.py` vérifie explicitement
+l'univers en 2020, la reconstruction du panel complet et un profil incluant monitor/2022–2024. La liste de douze
+fichiers issue d'un grep n'est pas douze violations prouvées : `test_e4_alignment.py` est synthétique et intercepte
+les lecteurs. Les indices absolus 4000/4250 de `test_chars.py` ne prouvent pas des dates 2020+ ; ses sélections sont
+pré-2020, mais ses chargeurs lisent des fichiers complets avant filtrage.
+
+**Correction de portée.** L'affirmation initiale « aucune donnée réelle » était trop large pour toute la vérification.
+Elle s'applique aux tests spécifiques E4, aux pilotes P1/P2 et au producteur scientifique E4 ; elle ne s'applique pas
+au contrôle global historique. Un PASS global n'est pas une preuve de frontière d'I/O pré-2020.
+
+**Limite et suite.** Les futurs contrôles concernés restent bloqués avant intégration tant que leur traitement
+conforme n'est pas établi, sans saut silencieux ni dérogation implicite par délégation à Codex. L'exception existante
+de reproduction d'identité Article B est distinguée des autres calculs. Aucun résultat de test n'autorise une
+nouvelle lecture réelle ou une adaptation scientifique.
+
+**Portée E4.** Son chemin scientifique demeure entièrement synthétique, avec sources/configuration figées avant
+R0009 et aucun choix scientifique modifié à partir de ces contrôles. La campagne synthétique autorisée continue.
+Cette entrée ne modifie aucun noyau, graine, calibration, scellé ou feuille d'activation et ne signale pas un échec
+de reproduction E4. Elle ne règle pas les deux arbitrages F2 encore ouverts.
+
+**Autorisation ultérieure du chercheur (13 novembre).** Réponse explicite « Autorisations accordées pour toutes
+tes questions. Vérifie le stream 27 en particulier. » Consignée dans
+`prompts/GO-legacy-global-check-access-20261113.md`. La baseline locale et son hook sont désormais autorisés pour
+intégrité/non-régression dans le périmètre limité demandé, périodes complètes comprises. Les constats historiques
+restent tracés. Les nouvelles vérifications attendent le créneau sérialisé après E4 ; aucune fenêtre scientifique,
+donnée privée ou activation J4 n'est ajoutée. La configuration F2 reste à préciser entre les alternatives proposées.

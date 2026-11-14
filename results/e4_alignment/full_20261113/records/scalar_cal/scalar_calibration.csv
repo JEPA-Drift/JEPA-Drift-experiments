@@ -1,0 +1,2 @@
+status,threshold_rule,n_cal,maxima_sha256,rank_r,threshold_hex,calibration_alarms,calibration_hash
+OK,predictive_exchangeable_rank_v2,2000,a6707f4b7fe83117292d65630049aaf89ba47395c32814575c919f721b9ec822,99,0x1.b56156d5a6095p+2,99,ae1c9070dd07f061acd3b4070f92099a9f0112f8bf623aa94783f045d04217ab
