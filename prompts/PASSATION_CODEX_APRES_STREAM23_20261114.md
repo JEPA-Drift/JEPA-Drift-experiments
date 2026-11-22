@@ -16,7 +16,7 @@ Lire obligatoirement, dans cet ordre :
 2. **La version locale révisée de `prompts/Protocole Codex.md`**, même si elle n'est pas encore commitée.
    SHA-256 reçu : `5eb63af813eb5e1af04c344b24f8662329c1abb04d38412fc9512c476770dae8`.
 3. `prompts/streams/13_CODEX_AMORCAGE_PCA_INFO_ONLINE_2026_11_14.md` et l'intégralité de
-   `prompts/streams/prompt-32-pca-info-online.md`.
+   `prompts/streams/32_STREAM_PCA_INFO_ONLINE_SPEC.md`.
 4. Les rapports et GO précis des lots concernés ci-dessous. `INDEX.md` contient des états historiques
    obsolètes : ne pas en déduire les clôtures ou les autorisations actuelles.
 

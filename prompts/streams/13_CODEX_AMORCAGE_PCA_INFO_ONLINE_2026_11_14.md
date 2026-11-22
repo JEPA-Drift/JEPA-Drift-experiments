@@ -12,7 +12,7 @@ Dès que 23 est effectivement clos et publié, **ne lance pas 27, 21, 16 ou une 
 
 ## 2. Mission suivante immédiate : stream 32 — PCA-INFO-ONLINE
 
-Lis intégralement **`prompts/streams/prompt-32-pca-info-online.md`**, ainsi que les sources exactes qu'il cite, lorsqu'elles sont réellement accessibles. Les anciennes notes de clarification et le deck peuvent être des pièces externes au dépôt : ne présume pas leur présence sur GitHub ; la nouvelle spécification est autonome sur ses contrats essentiels. Priorité P0 : produire un pipeline **sans oracle**, où les contributions informationnelles `qhat_{k,t-1}` sont estimées avec le passé uniquement, puis les axes et `d*` sont recalculés avant la nouvelle observation.
+Lis intégralement **`prompts/streams/32_STREAM_PCA_INFO_ONLINE_SPEC.md`**, ainsi que les sources exactes qu'il cite, lorsqu'elles sont réellement accessibles. Les anciennes notes de clarification et le deck peuvent être des pièces externes au dépôt : ne présume pas leur présence sur GitHub ; la nouvelle spécification est autonome sur ses contrats essentiels. Priorité P0 : produire un pipeline **sans oracle**, où les contributions informationnelles `qhat_{k,t-1}` sont estimées avec le passé uniquement, puis les axes et `d*` sont recalculés avant la nouvelle observation.
 
 Vérifie également la prise en charge du nouveau fichier par `prompts/streams/INDEX.md`, le master dérivé et `tools/check_prompts.py` ; resynchronise uniquement via le mécanisme canonique contrôlé.
 
