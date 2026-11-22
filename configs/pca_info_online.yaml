@@ -1,0 +1,107 @@
+# Stream 32 B4ac preregistration draft for experiments/pca_info_online.py.
+# Documentary handoff under B_TDD_ONLY. This file is NOT a runtime GO and does
+# not implement the distinct 10,000-row primary P_CONF CAL proposal.
+# Provenance tags: SOURCE_RULE, SPEC_PROPOSAL, NOTIFICATION_DECISION, NEW_PROPOSAL
+# citing plan-32.md §12 and plan-32-v2.1-amendment.md §§5–6.
+# Design must not be altered using ALT outputs.
+seed: 3232  # NEW_PROPOSAL: root seed is the reproducible project's B draft choice
+parameters:  # SPEC_PROPOSAL: plan-32.md §12 unless tagged otherwise
+  H: 250
+  alpha: 0.05
+  K: 20  # SPEC_PROPOSAL: plan-32.md §12, K=20 eligible PCs in both N=32 and N=239 setups
+  T_fit: 1000
+  I_star: 0.25
+  gamma_M: 504  # SPEC_PROPOSAL: plan-32.md §12, nominal value that selects cost, not threshold h
+  gamma_M_sensitivity: 5000  # NOTIFICATION_DECISION: plan-32-v2.1-amendment.md §5
+  windows: [32, 128]
+  primary_window: 128  # NEW_PROPOSAL: plan-32-v2.1-amendment.md §5
+  s2_rule: "2*ln(H/alpha)/(H*K)"  # SOURCE_RULE: common isotropic prior, plan-32.md §12
+  # SPEC_PROPOSAL: AFF range 1..16, plan-32-v2.1-amendment.md §5
+  affine: AFF_OLS_1_16  # NEW_PROPOSAL: OLS fit method
+  frame: QR_FIRST_COLUMN_ONES  # NEW_PROPOSAL: plan-32-v2.1-amendment.md §5
+  spectrum: {lambda_1: 16.0, floor: 0.05, scale: 6.0, decay: 8.0}  # SPEC_PROPOSAL: plan-32-v2.1-amendment.md §5
+applications:  # SOURCE_RULE: plan-32.md §12; inclusive PCA index ranges
+  RESIDUAL: [2, 21]
+  MARKET: [1, 20]
+families:  # SPEC_PROPOSAL: F0-F3 per plan-32.md §12
+  # NOTIFICATION_DECISION: F_HEAD_RESIDUAL per plan-32-v2.1-amendment.md §6
+  # NEW_PROPOSAL: family weights and sign laws
+  F0_ISOTROPIC_RESIDUAL: {application: RESIDUAL, support: UNIFORM_SPHERE}
+  F1_TAIL_RESIDUAL: {application: RESIDUAL, support: [18, 19, 20, 21], q: "I_star/4", signs: RADEMACHER_PER_AXIS_AND_PATH}
+  F2_STRUCTURED_RESIDUAL: {application: RESIDUAL, support: [3, 9, 17, 21], q: "I_star/4", signs: RADEMACHER_PER_AXIS_AND_PATH}
+  F_HEAD_RESIDUAL: {application: RESIDUAL, support: [2, 3, 4, 5], q: "I_star/4", signs: RADEMACHER_PER_AXIS_AND_PATH}
+  F3_MARKET: {application: MARKET, support: [1], q: "I_star", signs: RADEMACHER}
+policies:  # SOURCE_RULE: plan-32.md §12; 8 online + 4 oracle + 6 static = 18
+  online: {orders: [INFO, PREFIX], costs: [MIX, AFF], windows: [32, 128]}
+  oracle: {orders: [INFO, PREFIX], costs: [MIX, AFF]}
+  static: [FULL_K, FIXED_EIGENMEAN_PREFIX, CPV90, RESIDUAL_CPV90, FIXED_DEV_PREFIX, FIXED_EXANTE_QBAR_MIX]  # frozen before CAL
+dev:  # DEV is disjoint and its policy freezes before CAL, tags per key below
+  families: [F0_ISOTROPIC_RESIDUAL, F1_TAIL_RESIDUAL, F2_STRUCTURED_RESIDUAL, F_HEAD_RESIDUAL]
+  n_lib: 100
+  d_grid: [1, 2, 4, 8, 16, 20]  # NOTIFICATION_DECISION: d_dev grid
+  s2_grid: [1, 4, 16, 64]  # NEW_PROPOSAL: s2_dev grid, multipliers of s2_rule
+  criterion: MEAN_RMST_H_EQUAL_FAMILY_WEIGHTS  # NEW_PROPOSAL: selection criterion and tie-grid design
+  ties: SMALLEST
+null_status: {tail: 0.05, eps_v: 0.01}  # NEW_PROPOSAL: tri-state null qualification, plan-32.md §12
+bootstrap: {B: 10000}  # NEW_PROPOSAL: B draws, plan-32.md §12, identical per-family indices across relevant contrasts
+phi:  # NOTIFICATION_DECISION: Phi balance, plan-32-v2.1-amendment.md §6
+  # NEW_PROPOSAL: setup, H1-H3, margin and m, plan-32.md §12
+  setup: [FITTED_LW_GAUSSIAN, 239, 0]
+  application: RESIDUAL
+  window: 128
+  cost: MIX
+  m: 3  # multiplicity for the primary H1/H2/H3 block
+  delta_NI: 0.10
+  claims: {H1: F2_STRUCTURED_RESIDUAL, H2: F_HEAD_RESIDUAL, H3: F2_STRUCTURED_RESIDUAL}
+head: {kappa_geo: 0.80, kappa_det: 0.80}  # NEW_PROPOSAL: both kappa thresholds, plan-32-v2.1-amendment.md §6
+modes:
+  smoke:  # NEW_PROPOSAL: nominal sizes for the eventual procedural smoke, larger than local pytest fixtures
+    sizes: {DEV_LIB: 100, DEV_NULL: 40, DEV_ALT: 10, CAL_NULL: 40, HOLD_NULL: 40, ALT: 40}
+    null_plan: {eta: 0.10, beta: 0.20, n_min: 40, n_plan: 40, n_cap: 80}  # reduced smoke NULL_PLAN
+  pilot:  # SPEC_PROPOSAL: role counts, awaits R2, contrasts are PILOT_ONLY
+    # NEW_PROPOSAL: DEV sizes
+    sizes: {DEV_LIB: 100, DEV_NULL: 200, DEV_ALT: 50, CAL_NULL: 200, HOLD_NULL: 200, ALT: 200}
+    null_plan: null
+  full:  # NEW_PROPOSAL: cohort proposal conditional on R3, pending pilot-based R3–R5
+    # CAL_NULL is the current role-wide key with 2000 rows in this draft. The
+    # distinct 10,000-row primary P_CONF CAL proposal awaits the R3 runtime
+    # decision and, if retained, a per-cell allocation design; not implemented here.
+    sizes: {DEV_LIB: 100, DEV_NULL: 1000, DEV_ALT: 200, CAL_NULL: 2000, HOLD_NULL: 2000, ALT: 2000}
+    null_plan: {eta: 0.10, beta: 0.20, n_min: 2000, n_plan: 2000, n_cap: 20000}  # bounds HOLD for primary full
+scope:  # SPEC_PROPOSAL: plan-32.md §12
+  # T7 excluded pending its Gaussian completeness, null qualification and invariance gates
+  setups:  # [kind, N, fit_id]
+    - [EXACT, 32, 0]
+    - [EXACT, 239, 0]
+    - [FITTED_LW_GAUSSIAN, 32, 0]
+    - [FITTED_LW_GAUSSIAN, 239, 0]
+  applications: [RESIDUAL, MARKET]
+  families: [F0_ISOTROPIC_RESIDUAL, F1_TAIL_RESIDUAL, F2_STRUCTURED_RESIDUAL, F_HEAD_RESIDUAL, F3_MARKET]
+  policies:
+    - ONLINE_INFO_MIX_W32
+    - ONLINE_INFO_MIX_W128
+    - ONLINE_INFO_AFF_W32
+    - ONLINE_INFO_AFF_W128
+    - ONLINE_PREFIX_MIX_W32
+    - ONLINE_PREFIX_MIX_W128
+    - ONLINE_PREFIX_AFF_W32
+    - ONLINE_PREFIX_AFF_W128
+    - ORACLE_INFO_MIX
+    - ORACLE_INFO_AFF
+    - ORACLE_PREFIX_MIX
+    - ORACLE_PREFIX_AFF
+    - FULL_K
+    - FIXED_EIGENMEAN_PREFIX
+    - CPV90
+    - RESIDUAL_CPV90
+    - FIXED_DEV_PREFIX
+    - FIXED_EXANTE_QBAR_MIX
+# NOTIFICATION_DECISION: B draft envelope structure, identified by design_id
+# NEW_PROPOSAL: envelope values, part of the
+# design identity. Full envelope awaits pilot-based R3–R5.
+envelope: {memory_max_gib: 32, cpu_hours_max: 4.0, wall_seconds_per_invocation: 2700, jobs_max: 8}
+# NEW_PROPOSAL: smoke code accepts null authorization, independently of the
+# procedural GO that a campaign requires.
+# Real smoke requires a written runtime GO; pilot/full require stage, design_id
+# and go_reference {path, sha256}. This draft is not a GO.
+authorization: null

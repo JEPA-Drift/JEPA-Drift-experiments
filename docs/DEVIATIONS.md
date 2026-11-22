@@ -1435,3 +1435,38 @@ l'environnement prescrit, sans import projet ni résultat scientifique. L'écart
 la .venv pour la suite et aucune répétition de calcul scientifique n'a été faite pour cet écart administratif.
 La vérification globale de clôture, avec ses accès historiques limités, relève du GO QA distinct ; son résultat
 doit être rapporté après exécution, sans être déduit des reproductions ciblées ci-dessus.
+
+## C-pca-info-online-A-integration-deferrals — couverture reçue des noyaux A (2026-11-14)
+
+Le GO A du stream32, SHA-256 `8f9724545e15a0f1fbf2f952e8da74d4d272fd12482945d4810d8098fc380de7`,
+active les noyaux et la matrice T1–T22. Il reporte explicitement enB les refus de fit, de schéma et d'orchestration ;
+il n'autorise pas explicitement le report intégral de T16, ni ne détaille tous les raccordements T10/T15/T19/T21.
+Le bilan A reçoit seulement les noyaux numériques :45tests ciblés passent, sans couverture intégrale T1–T22.
+T10 (wrappers et politiques statiques), T15 (prior commun transmis par les politiques), T16 (vrais exports),
+T19/T21 (échecs de conception, cohortes indépendantes et taille figée) et les refus T22 d'intégration restent dus.
+
+L'ordonnancement de ces témoins d'intégration enB est un écart explicite à la sortie complète initialement attribuée àA,
+en particulier pour T16. Le chercheur l'accepte par `prompts/16_CODEX_GO_STREAM32_B_TDD_REVIEW_20261114.md` :
+ces obligations sont transférées à la sortie **bloquante** deB. Le GO A et les réceptions historiques ne sont pas réécrits.
+Aucun test n'est supprimé, aucun seuil de test n'est abaissé et aucun résultat scientifique n'est ajusté.
+La matrice T1–T68 doit distinguer les noyaux reçus des raccordements non exécutés et des vérifications runtime deC.
+
+La même notification corrige la proposition documentaire vers `docs/sections/pca_info_online.md`, conforme au plan.
+L'activation B reste une décision écrite distincte, limitée aux fixtures déterministes ; runtime, smoke, pilote/full,
+données réelles, JEPA et producteurs scellés restent hors périmètre. Ce constat ne vaut pas réception deB.
+
+## C-pca-info-online-C4-profile-envelope — plafond du profilage (2026-11-20)
+
+Le YAML scellé du lot B fixe `envelope.jobs_max=8`, tandis que le plan §17 et l’amendement v2.1 §5 demandent un profil à 12 workers. C1–C3 ont utilisé le plafond de 8. Après réception de C3, un YAML dérivé a porté ce seul plafond à 12 pour les quatre profils C4. Sous verrou, `--describe` a confirmé l’égalité du reste du descripteur et du plan de graines. Les paramètres scientifiques et le YAML source conservent leurs empreintes.
+
+Le nouveau design a reçu un GO distinct avant calcul. Les quatre profils ont produit la même réalisation et les mêmes cinq empreintes CSV au sein de ce design. Les deux identités de design, l’empreinte du YAML dérivé et les mesures sont consignées dans les pièces de réception. [GO C4](../prompts/GO-stream-32-C4-20261120.md), [réception du lot C](../prompts/RECEIPT-stream-32-C-20261120.md)
+
+## C-pca-info-online-full-r3-allocation — allocation R3-A et partitions HOLD
+
+Le Full gaussien utilise deux groupes CAL pour le RESIDUAL primaire. Les trois P_CONF reçoivent 10 000 trajectoires CAL et les autres cellules en reçoivent 2 000. Le §10 fixe l’effectif HOLD des P_CONF selon NULL_PLAN, entre 2 000 et 20 000. Les autres cellules restent à 2 000. Les groupes partagent leurs indices préfixes et les contrastes HOLD d’effectifs mixtes utilisent seulement les chemins communs vérifiés. Les bornes Clopper–Pearson et l’inférence confirmatoire conservent leurs effectifs propres.
+
+Les partitions HOLD sont générées et persistées par blocs de 1 000 chemins au plus. Les lecteurs vérifient les indices et le contenu des blocs puis les assemblent en ordre numérique. Le résumé HOLD publie la liste des blocs contribuants et son empreinte de filiation. La limite stricte de 50 Mio s’applique aux NPZ et à la publication du design alloué. Les choix R4 Tango asymptotique et R5 `FIT_CONDITIONAL` fixent la portée à quatre setups gaussiens et au fit 0. La campagne T7 reste fermée. [Amorçage R3–R5](../prompts/amorcage-32-Pilote-Priorite_3_4_revised.md) · [Configuration Full](../configs/pca_info_online_full.yaml)
+
+## C-pca-info-online-gaussian-closeout — clôture du Stream 32 (2026-11-22)
+
+La clôture porte sur le Pilote et le Full gaussiens. Les quatre `NULL_FAILED` non-oracles du Pilote ont bloqué l’ouverture de T7 au §18. Le Pilote conserve ses statuts et sa qualification `PILOT_ONLY`. Le Full autorisé séparément porte sur quatre setups gaussiens au fit 0. H1–H3 sont confirmées aux FPR atteints comparables, et la cellule INFO primaire conserve le statut individuel `NULL_INCONCLUSIVE`. Les décisions, les sorties reçues et les preuves historiques restent inchangées. [Plan §18](../prompts/plans/plan-32.md#18-lots-et-portes) · [Audit du Pilote](../prompts/AUDIT-stream-32-pilot-null-20261120.md) · [Audit du Full](../prompts/AUDIT-stream-32-full-gaussian-20261122.md)

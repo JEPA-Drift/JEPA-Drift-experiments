@@ -111,6 +111,7 @@ Effort Opus : low / medium / high / xhigh / max. Effort Vibe : Low / Medium / Hi
 | 26  | `prompt-26-e7.md`                | E7                                          | T→CC  | C                    | J5             | 16                                       | 12      | Vibe     | Medium    | révisé 18/10        |
 | 27  | `prompt-27-e10.md`               | E10                                         | T→CC  | C                    | J5             | 7                                        | 13      | Vibe     | High      | révisé 18/10        |
 | 28  | `prompt-28-e11.md`               | E11                                         | T→CC  | C                    | J5             | 5, 7, 14                                 | 13      | Vibe     | Medium    | révisé 18/10        |
+| 32  | `prompt-32-pca-info-online.md`   | PCA-INFO-ONLINE (oracle vs online)          | T→CC  | P0                   | —              | 28-PCA, 31                               | —       | Opus     | max       | plan v2 14/11       |
 
 Streams **Opus** restants (quota compté) : **12, 13, 14, 22**. Tous les autres : **Vibe**.
 

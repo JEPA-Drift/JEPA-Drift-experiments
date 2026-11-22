@@ -1,4 +1,4 @@
-"""Tests of tools/check_prompts.py (streams 8b and 31) on synthetic masters and on the repository's 33 prompts."""
+"""Tests of tools/check_prompts.py (streams 8b and 31) on synthetic masters and on the repository's 34 prompts."""
 import pytest
 
 from tools import check_prompts as cp
@@ -42,13 +42,15 @@ def _repo_prompts():
             for p in sorted(cp.STREAMS.glob(pattern))}
 
 
-def test_cli_discovers_the_33_expected_ids():
+def test_cli_discovers_the_34_expected_ids():
     prompts = cp.discover(cp.STREAMS)
     ids = cp.prompt_ids(prompts)
-    assert prompts == _repo_prompts() and len(prompts) == 33
-    assert set(ids) == cp.EXPECTED_IDS and sum(name.startswith("prompt-") for name in prompts) == 29
+    assert prompts == _repo_prompts() and len(prompts) == 34
+    assert set(ids) == cp.EXPECTED_IDS and sum(name.startswith("prompt-") for name in prompts) == 30
     assert ids["28"] == "prompt-28-e11.md" and {pid: ids[pid] for pid in PCA} == PCA
-    assert not {"01_STREAM_14_REWRITE_BOTTLENECK.md", "07_STREAM_22_E5_J4_REWRITE.md"} & set(prompts)
+    assert ids["32"] == "prompt-32-pca-info-online.md"
+    assert not {"01_STREAM_14_REWRITE_BOTTLENECK.md", "07_STREAM_22_E5_J4_REWRITE.md",
+                "13_CODEX_AMORCAGE_PCA_INFO_ONLINE_2026_11_14.md"} & set(prompts)
     cp.require_expected(ids, cp.EXPECTED_IDS)
 
 
@@ -77,7 +79,7 @@ def test_real_master_sync_append_only_idempotent_history_unchanged():
     pids = {name: cp.TITLE.match(text).group(1) for name, text in prompts.items()}
     history = [name for name in prompts if name.startswith("prompt-")]
     spans = cp.blocks(master)
-    assert len(history) == 29
+    assert len(history) == 30
     assert all(master[slice(*spans[pids[name]])] == prompts[name].rstrip("\n") for name in history)
     once = cp.sync(master, prompts)
     again = cp.sync(once, prompts)
@@ -146,9 +148,9 @@ def test_main_reports_counts_exit_codes_and_writes_nothing_on_refusal(tmp_path, 
     assert cp.main(["--sync-master"]) == 1 and master.read_bytes() == synced[:-len("````\n")]
     assert "4/4" not in capsys.readouterr().out
     master.write_bytes(synced)
-    (streams / "32_STREAM_PCA_DRIFT_Y.md").write_bytes("## PROMPT 32 — Y\n".encode("utf-8"))
-    assert cp.main(["--sync-master"]) == 1 and "unexpected ['32']" in capsys.readouterr().out
-    (streams / "32_STREAM_PCA_DRIFT_Y.md").unlink()
+    (streams / "99_STREAM_PCA_DRIFT_Y.md").write_bytes("## PROMPT 99 — Y\n".encode("utf-8"))
+    assert cp.main(["--sync-master"]) == 1 and "unexpected ['99']" in capsys.readouterr().out
+    (streams / "99_STREAM_PCA_DRIFT_Y.md").unlink()
     (streams / "31_STREAM_PCA_DRIFT_X.md").unlink()
     assert cp.main([]) == 1 and "missing ['31']" in capsys.readouterr().out
     assert master.read_bytes() == synced

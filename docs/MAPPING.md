@@ -185,3 +185,29 @@ in `prompts/STOP-stream-19-e4-closeout-accounting-20261114.md`. The explicit res
 `prompts/GO-stream-19-e4-finalization-accounting-reserve-20261114.md`: finalization without a global-cap certificate.
 Subsequent closeout/hook time, exit and command receipts remain separately retained in the host run journal.
 No cost estimate or UNKNOWN entry is converted to a measured value.
+
+## Stream 32 Gaussian pilot
+
+The [R2 receipt](../prompts/RECEIPT-stream-32-pilot-gaussian-20261120.md) records the Gaussian pilot only. The [manifest](../results/pca_info_online/pilot-gaussian/manifest.json) binds the five CSV SHA-256 values for realization `ede212c81c5cd7f98475f271ae56499e47af1d03a4132bd4f3ae715c427c672d`. The producer is [pca_info_online.py](../experiments/pca_info_online.py). The [audit script](../logs/stream-32/audit-pilot-gaussian.py) joins published rows and verified committed phases. Its [compact output](../logs/stream-32/pilot-gaussian.audit.json) records the evidence below.
+
+| Receipt quantities | Source or selector |
+| --- | --- |
+| Payload row counts and pilot labels | Five CSVs in `results/pca_info_online/pilot-gaussian/`. In `aggregates.csv`, `record_kind=DESCRIPTIVE_CONTRAST` selects the 520 pilot contrasts. `status=DESCRIPTIVE_V_RMST` selects the eight diagnostic groups. |
+| Null status counts and four failures | `trials_summary.csv`, `role=HOLD_NULL`, keyed by `calibration_id`. The four failed calibration IDs are in the receipt. `issues.csv` records issue rows. The auditor verifies the first-hit recount, intervals and family roles against HOLD and CAL. |
+| Primary alarm and discordance counts, HOLD forecast | The HOLD_NULL partition for FITTED_LW_GAUSSIAN N239, fit 0, RESIDUAL. Use the three PRIMARY calibration IDs in the receipt and the same path indices. Recount paired indicators from the verified partition, then apply `plan_holdout` at the proposed full bounds. |
+| Four HEAD geometries and prefix bound | The SETUP `applications.RESIDUAL.head` metadata holds the 16 profiles per setup. The primary HEAD ALT partition, its PREFIX calibration and the frozen bootstrap key supply the descriptive bound. |
+| CPU, time, memory and disk | `telemetry.json`, staging `resources.json`, and `logs/stream-32/pilot-gaussian-attempt-1.*` and `pilot-gaussian.disk.*`. The receipt separates observed values from §17 scan-rate forecasts. |
+| Calibration and resource projections | The audit script applies predictive rank/Beta variance to the three proposed CAL counts and uses the measured pilot CPU and allocated bytes per §17 nominal scan. The memory estimates are array components derived from the projected cohort sizes. |
+
+## Stream 32 Full Gaussian
+
+The [Full receipt](../prompts/RECEIPT-stream-32-full-gaussian-20261120.md) and [independent audit](../prompts/AUDIT-stream-32-full-gaussian-20261122.md) cover the four Gaussian setups with fit 0. The [manifest](../results/pca_info_online/full-gaussian/manifest.json) and [FINAL](../logs/stream-32/full-gaussian-staging/staging/8a4af3ecd7864f16/phases/FINAL.json) bind the five published CSVs and 104 staged partitions to realization `d574db30705b7257567131dd5fdf3c26c4308b4de32f7a5382b34b853457646a`. The producer is [pca_info_online.py](../experiments/pca_info_online.py). The sealed [independent auditor](../logs/stream-32/audit-full-gaussian.py) supplied the [pre-ALT](../logs/stream-32/full-gaussian-audit-pre-alt.json) and [ALT](../logs/stream-32/full-gaussian-audit-alt.json) reports in that order.
+
+| Full Gaussian quantities | Source or selector |
+| --- | --- |
+| CAL ranks, thresholds, maxima hashes and sizes | `calibration.csv`, keyed by `calibration_id`, and the verified CAL NPZs. The three primary RESIDUAL `P_CONF` cells use 10,000 paths and the other 176 cells use 2,000. |
+| Realized HOLD size and cap status | `NULL_PLAN.json` and its bool alarm NPZ. The pre-ALT report reproduces `plan_id` and `n_hold`; `issues.csv` retains `PLAN_CAPPED_EXPECT_INCONCLUSIVE`. |
+| HOLD null counts, bounds and qualifications | `trials_summary.csv`, `role=HOLD_NULL`. Use each cell's own `n` and `k` with its ordered partition keys and SHA. `issues.csv` contains the 106 inconclusive cells. |
+| Descriptive pairing, nominal contrasts and selection data | `aggregates.csv`, `record_kind=DESCRIPTIVE_CONTRAST`, carries `candidate_n_hold`, `reference_n_hold`, `n_hold`, `hold_pairing` and `hold_phase_digest` in `inference_json`. `selections.csv` binds each row to `alt_payload_sha256`. Eight `DESCRIPTIVE_V_RMST` rows bind both CSV input hashes. |
+| H1–H3 and HEAD | `aggregates.csv`, `record_kind=CONFIRMATORY`, keyed by `hypothesis`. The `bootstrap_key`, HOLD/ALT digests and individual calibration IDs bind the paired FPR and RMST results. The independent ALT report recalculates bootstrap bounds, the HEAD geometry and prefix controls, and the final statuses. |
+| CPU, wall and aggregate memory | `logs/stream-32/full-gaussian-supervisor/ledger.json` and its ten invocation receipts. Sum `cpu_scope_seconds` for measured CPU and use `cpu_charged_seconds` for the budget. Wall and memory come from `elapsed_to_stop_seconds` and `receipt.memory_peak`. |
