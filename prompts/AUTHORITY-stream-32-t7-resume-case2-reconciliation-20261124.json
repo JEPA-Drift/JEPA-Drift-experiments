@@ -1,0 +1,16 @@
+{
+  "schema": "stream32-t7-resume/1",
+  "stage": "qualification",
+  "case": "resumed",
+  "design_id": "a565c473535afc703fb501612030342fda79f5a92a2d10598696b4abc8021804",
+  "previous_token": "7b80185040e4482a83a4e93deb2af41f",
+  "intent_sha256": "5c5259d602dc6571884c807b4452083cde741a142eb05430ffde425db7e53db5",
+  "receipt_sha256": "82c647a5f2a154a17ba21f9d59c5c0f9314a5f629dc8c167bb201db296c8c535",
+  "inventory_sha256": "3e0e2e78b00a57956c8f6f8bd8a6cbdf6b516e1e9a15a16bb81f80a2160f4d3c",
+  "cpu_charged_seconds": 1062,
+  "reconciliation": true,
+  "go_reference": {
+    "path": "prompts/GO-stream-32-t7-resume-case2-reconciliation-20261124.md",
+    "sha256": "18ea0c07e9f0ed93af6193ebc1b06f93ccb88681924a8d15004fda5bf1c3d9ce"
+  }
+}

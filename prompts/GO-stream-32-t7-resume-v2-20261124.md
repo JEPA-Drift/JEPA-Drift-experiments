@@ -1,0 +1,15 @@
+# Décision de réconciliation et de reprise T7 v2 — qualification `continuous`
+
+Décision écrite du chercheur du 24 novembre 2026 pour la réconciliation du jeton historique et la reprise de `continuous --jobs 1`.
+
+T7_RECONCILIATION_GO ACCORDÉ
+T7_RESUME_GO ACCORDÉ
+stage: qualification
+case: continuous
+design_id: a565c473535afc703fb501612030342fda79f5a92a2d10598696b4abc8021804
+previous_token: 0958186bcdfb4072b2e6cc51b1831d49
+intent_sha256: 45ee0dcdbe62c7814214e7e45671a490db6b979239ec9884d421669c2cc1c277
+next_intent_sha256: 5c5259d602dc6571884c807b4452083cde741a142eb05430ffde425db7e53db5
+receipt_sha256: e13562c9b859ccb5b484826e0a64f90307a60cddcac0309eea830048e48e5380
+inventory_sha256: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+cpu_charged_seconds: 2

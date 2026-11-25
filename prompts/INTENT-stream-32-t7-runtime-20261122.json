@@ -1,0 +1,334 @@
+{
+  "artifacts": {
+    "experiments/pca_drift_benchmark.py": "8324b47b505ca935cd6bbd8ad6757db59bf78795678f4d94af128da0d9c0b373",
+    "experiments/pca_info_online.py": "9fbd6a500789cf8fb9add1317c03ae88a5ad3db979492451a88e3add8fb741ec",
+    "jepadrift/floors.py": "49b36c5ef1b7995a274243180825731d42a61829c70e00fc7fc72841d39a9170",
+    "jepadrift/injection.py": "8b281267351372fcf856047cf6a75f2ce066ce366813f8545821bfba0fe89ccc",
+    "jepadrift/monitors/calibration.py": "0a6853fcb3e124f9d2c7862ff8447e8f65cf698a40e0bd8b1a8ce98a64b85429",
+    "jepadrift/monitors/cusum.py": "ac1444fa8006471fb4aab9f827ca4986f133fc7dd49b3f7ee9b4aa69f65d9b53",
+    "jepadrift/monitors/streams.py": "3f081d405c83ee03c963b3f0aa260466ed80a994beae3060fa4177fae3ff1cfa",
+    "jepadrift/pipelines.py": "6eeffac88ee02cedd9c8e6c2739f0ae375aa951d8268c2609dc02a37a97771c9",
+    "jepadrift/representations/base.py": "3a3a0eb33d5afab1bfee70818646ad4a13a804bcce538f044578514b9deae46e",
+    "jepadrift/representations/extract.py": "11e5605b0a02d14aefab13217d6d19fc89ef8cd1826193afdf114c9c8739615e",
+    "jepadrift/representations/pca.py": "a1314d104b69640f5e2ce4c57c5e63ab87c8ca14ec8ccc5fdbbde7338b559a4c",
+    "jepadrift/sim.py": "0d7d45068f85a3dd64f25caeee9e5aa079c61bb8bbf30dc847dea0ba18bc383d",
+    "jepadrift/stats/covariance.py": "0af9e66ce8e32dd45b148c37b789cbd20393febbd22c4544407de627e75cda47",
+    "jepadrift/stats/intervals.py": "c4f848d40568cde4fdbc2800ad7efa76d5decee5bd93bd138c46ac92074ca921",
+    "logs/stream-32-t7/check-t7-status.sh": "e624f3dce97fef765e20d4d9c9c2ca6c7a9f09bd3fd54f73746f651d98191f5d",
+    "logs/stream-32-t7/run-t7.sh": "2c11edf1fdebc394c353e66c54219ec18f5cf759b3071db081bf64104c5b2115",
+    "logs/stream-32-t7/t7-supervisor.py": "276d464275f6cad63395778a1f29e42fa3f3bda792e8dc1769658d9402f5480c",
+    "logs/stream-32-t7/t7-wall-guard.py": "c0688b6ab6ee5e07123d933517da2e450b3b132d4ef246893ed40bc677aa5719",
+    "logs/stream-32-t7/t7-worker.sh": "8b7adb653721bcd103273b5e50aaf7bfeeda6bb18fb7273c4c8463c8e89565b5",
+    "tools/ops/audit_stream32_t7.py": "6c874cdb58a12787f538503fa42117d61e3582ae29597b9e8f5398115da54021"
+  },
+  "authorized_config": {
+    "path": "configs/pca_info_online_t7_qualification_authorized.yaml",
+    "sha256": "045bcc63a6581898bb30bd3a552395160239ca74134ce1a5968c43d991fdf6b1"
+  },
+  "descriptor": {
+    "campaign": "SMOKE",
+    "code": {
+      "experiments/pca_drift_benchmark.py": "8324b47b505ca935cd6bbd8ad6757db59bf78795678f4d94af128da0d9c0b373",
+      "experiments/pca_info_online.py": "9fbd6a500789cf8fb9add1317c03ae88a5ad3db979492451a88e3add8fb741ec",
+      "jepadrift/floors.py": "49b36c5ef1b7995a274243180825731d42a61829c70e00fc7fc72841d39a9170",
+      "jepadrift/injection.py": "8b281267351372fcf856047cf6a75f2ce066ce366813f8545821bfba0fe89ccc",
+      "jepadrift/monitors/calibration.py": "0a6853fcb3e124f9d2c7862ff8447e8f65cf698a40e0bd8b1a8ce98a64b85429",
+      "jepadrift/monitors/cusum.py": "ac1444fa8006471fb4aab9f827ca4986f133fc7dd49b3f7ee9b4aa69f65d9b53",
+      "jepadrift/monitors/streams.py": "3f081d405c83ee03c963b3f0aa260466ed80a994beae3060fa4177fae3ff1cfa",
+      "jepadrift/pipelines.py": "6eeffac88ee02cedd9c8e6c2739f0ae375aa951d8268c2609dc02a37a97771c9",
+      "jepadrift/representations/base.py": "3a3a0eb33d5afab1bfee70818646ad4a13a804bcce538f044578514b9deae46e",
+      "jepadrift/representations/extract.py": "11e5605b0a02d14aefab13217d6d19fc89ef8cd1826193afdf114c9c8739615e",
+      "jepadrift/representations/pca.py": "a1314d104b69640f5e2ce4c57c5e63ab87c8ca14ec8ccc5fdbbde7338b559a4c",
+      "jepadrift/sim.py": "0d7d45068f85a3dd64f25caeee9e5aa079c61bb8bbf30dc847dea0ba18bc383d",
+      "jepadrift/stats/covariance.py": "0af9e66ce8e32dd45b148c37b789cbd20393febbd22c4544407de627e75cda47",
+      "jepadrift/stats/intervals.py": "c4f848d40568cde4fdbc2800ad7efa76d5decee5bd93bd138c46ac92074ca921"
+    },
+    "envelope": {
+      "cpu_hours_max": 2.0,
+      "jobs_max": 2,
+      "memory_max_gib": 8,
+      "wall_seconds_per_invocation": 900
+    },
+    "environment": {
+      "blas": [
+        "scipy-openblas",
+        "0.3.31.188.0"
+      ],
+      "numpy": "2.4.4",
+      "pandas": "3.0.6",
+      "python": "3.12.9",
+      "pyyaml": "6.0.3",
+      "scipy": "1.17.1",
+      "statsmodels": "0.15.0",
+      "variables": {
+        "MKL_CBWR": "COMPATIBLE",
+        "MKL_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "PYTHONHASHSEED": "42"
+      }
+    },
+    "mode": "smoke",
+    "null_plan": null,
+    "schema_version": "pca_info_online/1",
+    "science": {
+      "applications": {
+        "MARKET": [
+          1,
+          20
+        ],
+        "RESIDUAL": [
+          2,
+          21
+        ]
+      },
+      "bootstrap": {
+        "B": 64
+      },
+      "dev": {
+        "criterion": "MEAN_RMST_H_EQUAL_FAMILY_WEIGHTS",
+        "d_grid": [
+          1,
+          2,
+          4,
+          8,
+          16,
+          20
+        ],
+        "families": [
+          "F0_ISOTROPIC_RESIDUAL",
+          "F1_TAIL_RESIDUAL",
+          "F2_STRUCTURED_RESIDUAL",
+          "F_HEAD_RESIDUAL"
+        ],
+        "n_lib": 8,
+        "s2_grid": [
+          1,
+          4,
+          16,
+          64
+        ],
+        "ties": "SMALLEST"
+      },
+      "families": {
+        "F0_ISOTROPIC_RESIDUAL": {
+          "application": "RESIDUAL",
+          "support": "UNIFORM_SPHERE"
+        },
+        "F1_TAIL_RESIDUAL": {
+          "application": "RESIDUAL",
+          "q": "I_star/4",
+          "signs": "RADEMACHER_PER_AXIS_AND_PATH",
+          "support": [
+            18,
+            19,
+            20,
+            21
+          ]
+        },
+        "F2_STRUCTURED_RESIDUAL": {
+          "application": "RESIDUAL",
+          "q": "I_star/4",
+          "signs": "RADEMACHER_PER_AXIS_AND_PATH",
+          "support": [
+            3,
+            9,
+            17,
+            21
+          ]
+        },
+        "F3_MARKET": {
+          "application": "MARKET",
+          "q": "I_star",
+          "signs": "RADEMACHER",
+          "support": [
+            1
+          ]
+        },
+        "F_HEAD_RESIDUAL": {
+          "application": "RESIDUAL",
+          "q": "I_star/4",
+          "signs": "RADEMACHER_PER_AXIS_AND_PATH",
+          "support": [
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      },
+      "head": {
+        "kappa_det": 0.8,
+        "kappa_geo": 0.8
+      },
+      "null_status": {
+        "eps_v": 0.01,
+        "tail": 0.05
+      },
+      "parameters": {
+        "H": 250,
+        "I_star": 0.25,
+        "K": 20,
+        "T_fit": 1000,
+        "affine": "AFF_OLS_1_16",
+        "alpha": 0.05,
+        "frame": "QR_FIRST_COLUMN_ONES",
+        "gamma_M": 504,
+        "gamma_M_sensitivity": 5000,
+        "primary_window": 128,
+        "s2_rule": "2*ln(H/alpha)/(H*K)",
+        "spectrum": {
+          "decay": 8.0,
+          "floor": 0.05,
+          "lambda_1": 16.0,
+          "scale": 6.0
+        },
+        "windows": [
+          32,
+          128
+        ]
+      },
+      "phi": {
+        "application": "RESIDUAL",
+        "claims": {
+          "H1": "F2_STRUCTURED_RESIDUAL",
+          "H2": "F_HEAD_RESIDUAL",
+          "H3": "F2_STRUCTURED_RESIDUAL"
+        },
+        "cost": "MIX",
+        "delta_NI": 0.1,
+        "m": 3,
+        "setup": [
+          "FITTED_LW_GAUSSIAN",
+          239,
+          0
+        ],
+        "window": 128
+      },
+      "policies": {
+        "online": {
+          "costs": [
+            "MIX",
+            "AFF"
+          ],
+          "orders": [
+            "INFO",
+            "PREFIX"
+          ],
+          "windows": [
+            32,
+            128
+          ]
+        },
+        "oracle": {
+          "costs": [
+            "MIX",
+            "AFF"
+          ],
+          "orders": [
+            "INFO",
+            "PREFIX"
+          ]
+        },
+        "static": [
+          "FULL_K",
+          "FIXED_EIGENMEAN_PREFIX",
+          "CPV90",
+          "RESIDUAL_CPV90",
+          "FIXED_DEV_PREFIX",
+          "FIXED_EXANTE_QBAR_MIX"
+        ]
+      }
+    },
+    "scope": {
+      "applications": [
+        "RESIDUAL",
+        "MARKET"
+      ],
+      "families": [
+        "F0_ISOTROPIC_RESIDUAL",
+        "F1_TAIL_RESIDUAL",
+        "F2_STRUCTURED_RESIDUAL",
+        "F_HEAD_RESIDUAL",
+        "F3_MARKET"
+      ],
+      "policies": [
+        "ONLINE_INFO_MIX_W32",
+        "ONLINE_INFO_MIX_W128",
+        "ONLINE_INFO_AFF_W32",
+        "ONLINE_INFO_AFF_W128",
+        "ONLINE_PREFIX_MIX_W32",
+        "ONLINE_PREFIX_MIX_W128",
+        "ONLINE_PREFIX_AFF_W32",
+        "ONLINE_PREFIX_AFF_W128",
+        "ORACLE_INFO_MIX",
+        "ORACLE_INFO_AFF",
+        "ORACLE_PREFIX_MIX",
+        "ORACLE_PREFIX_AFF",
+        "FULL_K",
+        "FIXED_EIGENMEAN_PREFIX",
+        "CPV90",
+        "RESIDUAL_CPV90",
+        "FIXED_DEV_PREFIX",
+        "FIXED_EXANTE_QBAR_MIX"
+      ],
+      "setups": [
+        [
+          "FITTED_LW_T7",
+          32,
+          0
+        ],
+        [
+          "FITTED_LW_T7",
+          239,
+          0
+        ]
+      ]
+    },
+    "seed": 3232,
+    "seed_plan_sha256": "5bdb1b70b5253c1e16eb14017621e2ff4ae327b00142072bc22c8edb450994e7",
+    "sizes": {
+      "ALT": 6,
+      "CAL_NULL": 39,
+      "DEV_ALT": 4,
+      "DEV_LIB": 8,
+      "DEV_NULL": 39,
+      "HOLD_NULL": 60
+    },
+    "spectrum_sha": "02cd0b5d273fba316983843d161fd433b1a1c45735765dd84540844327aa9ab8"
+  },
+  "design_id": "a565c473535afc703fb501612030342fda79f5a92a2d10598696b4abc8021804",
+  "envelope": {
+    "cpu_hours_max": 2.0,
+    "jobs_max": 2,
+    "memory_max_gib": 8,
+    "wall_seconds_per_invocation": 900
+  },
+  "go_reference": {
+    "path": "prompts/GO-stream-32-t7-runtime-20261122.md",
+    "sha256": "87ddbd1c6e3c93b5c0bfb0f66ec8366042151ea83125c2929b458db5f8b563e8"
+  },
+  "mode": "smoke",
+  "qualification_cases": {
+    "continuous": {
+      "jobs": [
+        1
+      ],
+      "stop_after": null
+    },
+    "resumed": {
+      "jobs": [
+        1,
+        2
+      ],
+      "stop_after": "CAL"
+    }
+  },
+  "schema": "stream32-t7-launch/1",
+  "scientific_config": {
+    "path": "configs/pca_info_online_t7_qualification.yaml",
+    "sha256": "0286dd3f5916254b1ab4c1d148361280206fadfb4efbe0569008f5ea5ff99d96"
+  },
+  "seed_plan_sha256": "5bdb1b70b5253c1e16eb14017621e2ff4ae327b00142072bc22c8edb450994e7",
+  "stage": "qualification"
+}

@@ -1,0 +1,15 @@
+{
+  "schema": "stream32-t7-resume/1",
+  "stage": "full",
+  "design_id": "03abb171a86076e1eaab777cc5d789d7e556646b09eb3c26c9cfa8f5094b1f96",
+  "previous_token": "07a8a59926684258bae07c1aa99ea05d",
+  "intent_sha256": "9451209da37b0a0337fddff05d3e017c5363a31b3d12831e00e4a4ee13faac71",
+  "receipt_sha256": "2c7a8b7db76f79d682ed84b6c00bb4091120d5534dc6975045a0f15657080feb",
+  "inventory_sha256": "b369fc7927737a6ad7f049c22f791cbb474a83f111efdbc6fa2437b0cf501946",
+  "cpu_charged_seconds": 4798,
+  "reconciliation": false,
+  "go_reference": {
+    "path": "prompts/GO-stream-32-t7-resume-full-07a8a599-20261124.md",
+    "sha256": "808c4c2dd916d3008d58c085ed83eb10b8a9e161cb33f649977325c4c3d5b88f"
+  }
+}

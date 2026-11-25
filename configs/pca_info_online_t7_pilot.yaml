@@ -1,0 +1,77 @@
+seed: 3232
+parameters:
+  H: 250
+  alpha: 0.05
+  K: 20
+  T_fit: 1000
+  I_star: 0.25
+  gamma_M: 504
+  gamma_M_sensitivity: 5000
+  windows: [32, 128]
+  primary_window: 128
+  s2_rule: "2*ln(H/alpha)/(H*K)"
+  affine: AFF_OLS_1_16
+  frame: QR_FIRST_COLUMN_ONES
+  spectrum: {lambda_1: 16.0, floor: 0.05, scale: 6.0, decay: 8.0}
+applications:
+  RESIDUAL: [2, 21]
+  MARKET: [1, 20]
+families:
+  F0_ISOTROPIC_RESIDUAL: {application: RESIDUAL, support: UNIFORM_SPHERE}
+  F1_TAIL_RESIDUAL: {application: RESIDUAL, support: [18, 19, 20, 21], q: "I_star/4", signs: RADEMACHER_PER_AXIS_AND_PATH}
+  F2_STRUCTURED_RESIDUAL: {application: RESIDUAL, support: [3, 9, 17, 21], q: "I_star/4", signs: RADEMACHER_PER_AXIS_AND_PATH}
+  F_HEAD_RESIDUAL: {application: RESIDUAL, support: [2, 3, 4, 5], q: "I_star/4", signs: RADEMACHER_PER_AXIS_AND_PATH}
+  F3_MARKET: {application: MARKET, support: [1], q: "I_star", signs: RADEMACHER}
+policies:
+  online: {orders: [INFO, PREFIX], costs: [MIX, AFF], windows: [32, 128]}
+  oracle: {orders: [INFO, PREFIX], costs: [MIX, AFF]}
+  static: [FULL_K, FIXED_EIGENMEAN_PREFIX, CPV90, RESIDUAL_CPV90, FIXED_DEV_PREFIX, FIXED_EXANTE_QBAR_MIX]
+dev:
+  families: [F0_ISOTROPIC_RESIDUAL, F1_TAIL_RESIDUAL, F2_STRUCTURED_RESIDUAL, F_HEAD_RESIDUAL]
+  n_lib: 100
+  d_grid: [1, 2, 4, 8, 16, 20]
+  s2_grid: [1, 4, 16, 64]
+  criterion: MEAN_RMST_H_EQUAL_FAMILY_WEIGHTS
+  ties: SMALLEST
+null_status: {tail: 0.05, eps_v: 0.01}
+bootstrap: {B: 10000}
+phi:
+  setup: [FITTED_LW_GAUSSIAN, 239, 0]
+  application: RESIDUAL
+  window: 128
+  cost: MIX
+  m: 3
+  delta_NI: 0.10
+  claims: {H1: F2_STRUCTURED_RESIDUAL, H2: F_HEAD_RESIDUAL, H3: F2_STRUCTURED_RESIDUAL}
+head: {kappa_geo: 0.80, kappa_det: 0.80}
+modes:
+  pilot:
+    sizes: {DEV_LIB: 100, DEV_NULL: 200, DEV_ALT: 50, CAL_NULL: 200, HOLD_NULL: 200, ALT: 200}
+    null_plan: null
+scope:
+  setups:
+    - [FITTED_LW_T7, 32, 0]
+    - [FITTED_LW_T7, 239, 0]
+  applications: [RESIDUAL, MARKET]
+  families: [F0_ISOTROPIC_RESIDUAL, F1_TAIL_RESIDUAL, F2_STRUCTURED_RESIDUAL, F_HEAD_RESIDUAL, F3_MARKET]
+  policies:
+    - ONLINE_INFO_MIX_W32
+    - ONLINE_INFO_MIX_W128
+    - ONLINE_INFO_AFF_W32
+    - ONLINE_INFO_AFF_W128
+    - ONLINE_PREFIX_MIX_W32
+    - ONLINE_PREFIX_MIX_W128
+    - ONLINE_PREFIX_AFF_W32
+    - ONLINE_PREFIX_AFF_W128
+    - ORACLE_INFO_MIX
+    - ORACLE_INFO_AFF
+    - ORACLE_PREFIX_MIX
+    - ORACLE_PREFIX_AFF
+    - FULL_K
+    - FIXED_EIGENMEAN_PREFIX
+    - CPV90
+    - RESIDUAL_CPV90
+    - FIXED_DEV_PREFIX
+    - FIXED_EXANTE_QBAR_MIX
+envelope: {memory_max_gib: 8, cpu_hours_max: 2.0, wall_seconds_per_invocation: 2700, jobs_max: 1}
+authorization: null

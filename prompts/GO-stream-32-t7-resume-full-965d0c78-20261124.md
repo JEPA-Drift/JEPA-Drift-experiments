@@ -1,0 +1,12 @@
+# Décision de reprise T7 full — tranche 3b-2
+
+Autorisation donnée par le chercheur le 24 novembre 2026 pour la tranche suivante de l’INTENT actif.
+
+T7_RESUME_GO ACCORDÉ
+stage: full
+design_id: 03abb171a86076e1eaab777cc5d789d7e556646b09eb3c26c9cfa8f5094b1f96
+previous_token: 965d0c78bf0a4ea180b336b2b545ec38
+intent_sha256: 9451209da37b0a0337fddff05d3e017c5363a31b3d12831e00e4a4ee13faac71
+receipt_sha256: 75d31f783da87374ca5276c9a28040ae2db3f0ac2e5a4cb93da35f7386939ff6
+inventory_sha256: ff459032a80452a547ef6df3106ce3cc840b86e6971b1ad7f5f4eb69a1cd951a
+cpu_charged_seconds: 2162
