@@ -110,7 +110,7 @@ committed with the stream); the master collection `Prompts_Claude_Code_v5.md` (d
 - `external/`: external checkouts and side venvs (gitignored).
 - `incoming/`: drop zone for incoming lots (gitignored).
 - `.venv/`: Python 3.12 virtual environment (gitignored); `graphify-out/`: knowledge-graph cache (gitignored).
-- Root: `CLAUDE.md` (canonical project memory; `AGENTS.md` is a relative symlink to it), `Makefile`, `requirements.txt`, `requirements.lock`, `conda-torch.lock`, `.gitignore`, `conftest.py`.
+- Root: `CLAUDE.md` (canonical project memory; `AGENTS.md` is a relative symlink to it), `Makefile`, `requirements.txt`, `requirements.lock`, `conda-torch.lock`, `.gitignore`, `.graphifyignore` (keeps the vendored `external/` tree out of the Graphify corpus), `conftest.py`.
 
 ## Engineering rules
 - Python 3.12. Interpreter: `.venv/bin/python` — the venv is built on the Trading 3.12.9 binary
