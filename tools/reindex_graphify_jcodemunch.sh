@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Reindex the project knowledge graphs (Graphify + jCodeMunch).
 # Run at the end of each stream — see CLAUDE.md, "Engineering rules".
-# --diff (default): incremental reindex. --full: purge graphify-out/ and the
-# jCodeMunch index, then rebuild both from zero; the Graphify semantic layer
-# (LLM-extracted nodes) is not regenerated and needs `graphify extract`.
+# --diff (default): drop graph nodes whose source file is gone, then AST reindex.
+# --full: print the node types it destroys, purge both indexes, rebuild from zero.
+# --semantic: replace the AST pass with `graphify extract`, the only path that produces the
+#             image, paper and concept nodes; billable, cached by content, never implied.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
@@ -11,18 +12,23 @@ cd "$ROOT"
 
 usage() {
     cat <<'EOF'
-usage: tools/reindex_graphify_jcodemunch.sh [--diff|--full]
+usage: tools/reindex_graphify_jcodemunch.sh [--diff|--full] [--semantic]
 
-  --diff   incremental reindex of both indexes (default)
-  --full   purge graphify-out/ and the jCodeMunch index, then rebuild from zero
+  --diff      incremental reindex, dropping graph nodes whose source file is gone (default)
+  --full      print the node types destroyed, purge both indexes, rebuild from zero
+  --semantic  run `graphify extract` instead of `graphify update`: LLM pass, billable
+              backend (whichever API key is set), semantic cache by content hash, so
+              later runs only pay for changed documents
 EOF
 }
 
 mode=diff
+semantic=0
 for arg in "$@"; do
     case "$arg" in
         --diff) mode=diff ;;
         --full) mode=full ;;
+        --semantic) semantic=1 ;;
         -h|--help) usage; exit 0 ;;
         *)
             echo "[reindex] error: unknown argument: $arg" >&2
@@ -42,9 +48,22 @@ print(ids[0] if ids else "")
 ' "$ROOT"
 }
 
+inventory() {
+    [ -f "$ROOT/graphify-out/graph.json" ] || { echo "[reindex] no graph to inventory"; return 0; }
+    python3 - "$ROOT/graphify-out/graph.json" <<'PY' || echo "[reindex] inventory failed, continuing"
+import collections
+import json
+import sys
+
+counts = collections.Counter(node.get("file_type") for node in json.load(open(sys.argv[1])).get("nodes", []))
+print("[reindex] destroying: " + ", ".join(f"{kind} {count}" for kind, count in counts.most_common()))
+PY
+}
+
 expected=""
 if [ "$mode" = full ]; then
     echo "[reindex] --full: purging graphify-out/ and the jCodeMunch index"
+    inventory
     rm -rf "$ROOT/graphify-out"
     expected="$(repo_id)"
     if [ -n "$expected" ]; then
@@ -56,8 +75,18 @@ if [ "$mode" = full ]; then
     fi
 fi
 
-echo "[reindex] graphify update ."
-graphify update .
+if [ -f "$ROOT/graphify-out/graph.json" ]; then
+    echo "[reindex] prune_graph_ghosts.py"
+    python3 "$ROOT/tools/prune_graph_ghosts.py" --root "$ROOT"
+fi
+
+if [ "$semantic" = 1 ]; then
+    echo "[reindex] graphify extract . (LLM pass, billable)"
+    graphify extract .
+else
+    echo "[reindex] graphify update ."
+    graphify update .
+fi
 
 echo "[reindex] jcodemunch-mcp index $ROOT"
 jcodemunch-mcp index --no-ai-summaries "$ROOT"

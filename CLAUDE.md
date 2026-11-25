@@ -99,7 +99,7 @@ committed with the stream); the master collection `Prompts_Claude_Code_v5.md` (d
 `Orchestration_Streams_v5.md` (historical wave plan, superseded by the routing table of
 `prompts/streams/INDEX.md`) live at this level.
 - `configs/`: experiment configurations (YAML); `FROZEN.json` after milestone J4.
-- `tools/`: repository tooling — `reindex_graphify_jcodemunch.sh` (end-of-stream reindexation of jCodeMunch and Graphify), `check_prompts.py` (stream prompts as exact substrings of the master collection: `make prompts-check`, `--sync-master`), plus the `pre-commit`/`pre-push` hooks and the freeze/trace scripts added by later streams.
+- `tools/`: repository tooling — `reindex_graphify_jcodemunch.sh` (end-of-stream reindexation of jCodeMunch and Graphify), `prune_graph_ghosts.py` (drops Graphify nodes whose `source_file` no longer exists), `check_prompts.py` (stream prompts as exact substrings of the master collection: `make prompts-check`, `--sync-master`), plus the `pre-commit`/`pre-push` hooks and the freeze/trace scripts added by later streams.
 - `docs/`: `sections/` (section notes), `audits/` (lot audits), `manifests/` (hash manifests of
   proprietary data, e.g. `d4_manifest.json`), `DEVIATIONS.md` (deviations under `C-<topic>`),
   `MAPPING.md` (traceability of reported numbers, created by stream 21).
@@ -132,8 +132,12 @@ committed with the stream); the master collection `Prompts_Claude_Code_v5.md` (d
   reference of the stream being processed; the file is refreshed before each commit).
 - End of stream (once a stream's processing is finished), in this exact order: (1) the wrap-up
   summary is generated and recorded at `prompts/wrapups/wrapup-[XX].md` (rule above); (2)
-  `tools/reindex_graphify_jcodemunch.sh` reindexes jCodeMunch and Graphify (`--full` purges both
-  indexes and rebuilds them from zero, dropping the LLM-extracted Graphify nodes); (3) `make check`, then
+  `tools/reindex_graphify_jcodemunch.sh` reindexes jCodeMunch and Graphify: the default `--diff`
+  pass first drops graph nodes whose source file has disappeared (`tools/prune_graph_ghosts.py`),
+  `--full` prints the node types it destroys then purges both indexes and rebuilds them from zero,
+  and `--semantic` (never implied, billable) swaps the AST rebuild for `graphify extract`, the only
+  path producing the `image`, `paper` and `concept` nodes; which file types enter the graph is a
+  per-run decision, not a repository rule; (3) `make check`, then
   a single commit — or several if the stream's work is heterogeneous and part of the deliverables
   risks errors; (4) push — from `main`: `git push origin main`; from a worktree branch `stream-XX`:
   `git fetch origin`, rebase onto `origin/main`, `make check` again if the base moved, then
