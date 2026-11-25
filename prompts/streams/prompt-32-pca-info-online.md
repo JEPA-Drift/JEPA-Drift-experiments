@@ -62,16 +62,16 @@ For any positive dimension-only cost and additive information, sorting `q_k` in 
 
 For both eligible-axis universes defined below, implement the **eight main cells** from this factorial design:
 
-| Information source | Axis order | Objective | ID |
-|---|---|---|---|
-| True test injection (oracle) | Decreasing true `q_k` | `C_MIX` | `ORACLE_INFO_MIX` |
-| True test injection (oracle) | Decreasing true `q_k` | `C_AFF` | `ORACLE_INFO_AFF` |
-| True test injection (oracle) | Canonical eigenvalue-descending prefix | `C_MIX` | `ORACLE_PREFIX_MIX` |
-| True test injection (oracle) | Canonical eigenvalue-descending prefix | `C_AFF` | `ORACLE_PREFIX_AFF` |
-| Past-only online estimate | Decreasing estimated `qhat_{k,t-1}` | `C_MIX` | `ONLINE_INFO_MIX` |
-| Past-only online estimate | Decreasing estimated `qhat_{k,t-1}` | `C_AFF` | `ONLINE_INFO_AFF` |
-| Past-only online estimate | Canonical eigenvalue-descending prefix | `C_MIX` | `ONLINE_PREFIX_MIX` |
-| Past-only online estimate | Canonical eigenvalue-descending prefix | `C_AFF` | `ONLINE_PREFIX_AFF` |
+| Information source           | Axis order                             | Objective | ID                  |
+| ---------------------------- | -------------------------------------- | --------- | ------------------- |
+| True test injection (oracle) | Decreasing true `q_k`                  | `C_MIX`   | `ORACLE_INFO_MIX`   |
+| True test injection (oracle) | Decreasing true `q_k`                  | `C_AFF`   | `ORACLE_INFO_AFF`   |
+| True test injection (oracle) | Canonical eigenvalue-descending prefix | `C_MIX`   | `ORACLE_PREFIX_MIX` |
+| True test injection (oracle) | Canonical eigenvalue-descending prefix | `C_AFF`   | `ORACLE_PREFIX_AFF` |
+| Past-only online estimate    | Decreasing estimated `qhat_{k,t-1}`    | `C_MIX`   | `ONLINE_INFO_MIX`   |
+| Past-only online estimate    | Decreasing estimated `qhat_{k,t-1}`    | `C_AFF`   | `ONLINE_INFO_AFF`   |
+| Past-only online estimate    | Canonical eigenvalue-descending prefix | `C_MIX`   | `ONLINE_PREFIX_MIX` |
+| Past-only online estimate    | Canonical eigenvalue-descending prefix | `C_AFF`   | `ONLINE_PREFIX_AFF` |
 
 For `INFO` methods: sort descending marginal information, use cumulative sums and enumerate **every** `d=1..K`; select the maximizer. A separate "forward greedy" experimental line is **not** justified under additivity.
 
