@@ -2,6 +2,7 @@
 data/raw/
 data/derived/d4_eurofidai/
 /external
+/graphify-out/
 /ckpt
 incoming/
 __pycache__/

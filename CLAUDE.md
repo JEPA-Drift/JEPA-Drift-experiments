@@ -132,7 +132,8 @@ committed with the stream); the master collection `Prompts_Claude_Code_v5.md` (d
   reference of the stream being processed; the file is refreshed before each commit).
 - End of stream (once a stream's processing is finished), in this exact order: (1) the wrap-up
   summary is generated and recorded at `prompts/wrapups/wrapup-[XX].md` (rule above); (2)
-  `tools/reindex_graphify_jcodemunch.sh` reindexes jCodeMunch and Graphify; (3) `make check`, then
+  `tools/reindex_graphify_jcodemunch.sh` reindexes jCodeMunch and Graphify (`--full` purges both
+  indexes and rebuilds them from zero, dropping the LLM-extracted Graphify nodes); (3) `make check`, then
   a single commit — or several if the stream's work is heterogeneous and part of the deliverables
   risks errors; (4) push — from `main`: `git push origin main`; from a worktree branch `stream-XX`:
   `git fetch origin`, rebase onto `origin/main`, `make check` again if the base moved, then
